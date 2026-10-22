@@ -1,7 +1,7 @@
 "use strict";
 // Renders the README images from the HTML pages next to this file, at twice their CSS size.
 //   node_modules\electron\dist\electron.exe docs\src\render.js
-// The fonts come from Google Fonts, as in the apps, so the machine needs to be online.
+// The pages use the bundled typefaces in out\fonts and the screenshots in docs\images, so run build.ps1 first.
 // The page size is set through the DevTools protocol, so images larger than the screen come out whole.
 const { app, BrowserWindow } = require("electron");
 const fs = require("fs");

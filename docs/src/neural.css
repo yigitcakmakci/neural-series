@@ -1,5 +1,6 @@
-/* Shared look of the README images: the same palette, fonts and device frame as the apps. */
-@import url("https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap");
+/* Shared look of the README images: the same palette, fonts and device frame as the apps.
+   The typefaces are the bundled ones that build.ps1 puts in out\fonts. */
+@import url("../../out/fonts/fonts.css");
 
 :root {
   --void: #06060b;

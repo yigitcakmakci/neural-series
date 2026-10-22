@@ -3,9 +3,10 @@
   Builds the five Neural programs and the Windows setup from a clean clone.
 
 .DESCRIPTION
-  1. npm ci       Electron, xterm.js and NeuralWeb's ad blocker, at the exact versions of the lock files.
-  2. out\stage    Every program as the setup installs it: app files, icons, helper executables (compiled with
-                  the C# compiler that ships with Windows), the shared Electron runtime and the Windows icon set.
+  1. npm ci       Electron, xterm.js, the bundled typefaces (@fontsource) and NeuralWeb's ad blocker, at the
+                  exact versions of the lock files.
+  2. out\stage    Every program as the setup installs it: app files, icons, fonts, helper executables (compiled
+                  with the C# compiler that ships with Windows), the shared Electron runtime and the Windows icon set.
   3. out\Neural-Setup-<version>.exe
                   The setup program with out\stage appended as a zip:
                   [setup program][zip][8-byte zip offset]["NRLPAKET"]
@@ -46,6 +47,22 @@ function Copy-Files([string]$from, [string]$to, [string[]]$names) {
   New-Item -ItemType Directory -Force $to | Out-Null
   foreach ($name in $names) { Copy-Item (Join-Path $from $name) (Join-Path $to $name) -Force }
 }
+# Bundled typefaces: the given style sheets from assets\fonts, every WOFF2 file they name (from the @fontsource
+# packages) and each family's SIL Open Font License text as <family>-OFL.txt.
+function Copy-Fonts([string]$to, [string[]]$sheets) {
+  New-Item -ItemType Directory -Force $to | Out-Null
+  foreach ($sheet in $sheets) {
+    $css = Join-Path $root "assets\fonts\$sheet"
+    Copy-Item $css (Join-Path $to $sheet) -Force
+    foreach ($m in [regex]::Matches([IO.File]::ReadAllText($css), 'url\("(([a-z0-9-]+?)-latin(?:-ext)?-\d{3}-(?:normal|italic)\.woff2)"\)')) {
+      $file = $m.Groups[1].Value; $family = $m.Groups[2].Value
+      $pkg = Join-Path $root "node_modules\@fontsource\$family"
+      if (-not (Test-Path "$pkg\files\$file")) { throw "font file missing: @fontsource/$family/files/$file (run without -SkipNpm)" }
+      Copy-Item "$pkg\files\$file" (Join-Path $to $file) -Force
+      Copy-Item "$pkg\LICENSE" (Join-Path $to "$family-OFL.txt") -Force
+    }
+  }
+}
 
 # ---------- 1. dependencies ----------
 if (-not $SkipNpm) {
@@ -69,6 +86,8 @@ if (-not (Test-Path $webModules)) { throw "apps\neuralweb\node_modules is missin
 
 if (Test-Path $out) { Remove-Item $out -Recurse -Force }
 New-Item -ItemType Directory -Force $stage, $obj | Out-Null
+# out\fonts holds every bundled typeface; the README images (docs\src) use it too.
+Copy-Fonts "$out\fonts" @('fonts.css', 'editor-fonts.css')
 
 # ---------- 2. stage: shared Electron runtime and the exe every program is made from ----------
 Get-ChildItem $electron -Recurse -File | Where-Object { $_.Extension -ne '.exe' } | ForEach-Object {
@@ -90,19 +109,23 @@ $head = "<!doctype html>`n<html lang=`"tr`" class=`"is-shell`">`n<head>`n<meta c
   "<link rel=`"icon`" type=`"image/png`" href=`"icon.png`">`n</head>`n<body>"
 $body = [IO.File]::ReadAllText("$apps\neuralcalc\neuralcalc.html", [Text.Encoding]::UTF8)
 [IO.File]::WriteAllText("$calc\index.html", $head + $body + "`n</body>`n</html>`n", (New-Object Text.UTF8Encoding($false)))
+Copy-Fonts "$calc\fonts" @('fonts.css')
 
-# NeuralPad NP-7
+# NeuralPad NP-7, with the extra typefaces of its editor font menu
 Copy-Files "$apps\neuralpad" "$stage\apps\NeuralPad" @('index.html', 'styles.css', 'app.js', 'main.js', 'preload.js', 'package.json', 'icon.png', 'neuralpad.ico')
+Copy-Fonts "$stage\apps\NeuralPad\fonts" @('fonts.css', 'editor-fonts.css')
 
 # NeuralNav NV-4, with its shell helper and the Explorer watcher
 $nav = "$stage\apps\NeuralNav"
 Copy-Files "$apps\neuralnav" $nav @('index.html', 'styles.css', 'app.js', 'main.js', 'preload.js', 'ops.js', 'package.json', 'icon.png', 'neuralnav.ico')
+Copy-Fonts "$nav\fonts" @('fonts.css')
 Invoke-Csc @('/target:exe', '/reference:System.Windows.Forms.dll', "/out:$nav\nvhelper.exe", "$apps\neuralnav\nvhelper.cs")
 Invoke-Csc @('/target:winexe', '/reference:Microsoft.CSharp.dll', '/reference:System.Core.dll', "/out:$nav\nvwatch.exe", "$apps\neuralnav\nvwatch.cs")
 
 # NeuralTerm NT-5, with its pseudo-console bridge and xterm.js
 $term = "$stage\apps\NeuralTerm"
 Copy-Files "$apps\neuralterm" $term @('index.html', 'styles.css', 'app.js', 'main.js', 'preload.js', 'package.json', 'icon.png', 'neuralterm.ico')
+Copy-Fonts "$term\fonts" @('fonts.css')
 Invoke-Csc @('/target:exe', '/unsafe', '/platform:x64', "/out:$term\ntpty.exe", "$apps\neuralterm\ntpty.cs")
 New-Item -ItemType Directory -Force "$term\vendor" | Out-Null
 Copy-Item "$xterm\xterm\lib\xterm.js" "$term\vendor\xterm.js"
@@ -116,6 +139,7 @@ Copy-Files "$apps\neuralweb" $web @('main.js', 'store.js', 'shield.js', 'passwor
 Copy-Item $webModules "$web\node_modules" -Recurse
 foreach ($sub in 'ui', 'pages') { Copy-Item "$apps\neuralweb\$sub" "$web\$sub" -Recurse }
 Copy-Item "$apps\neuralweb\ui\theme.css" "$web\pages\theme.css" -Force
+Copy-Fonts "$web\fonts" @('fonts.css')   # served to the neural:// pages as neural://<page>/fonts/...
 $wm = "$env:SystemRoot\System32\WinMetadata"
 Invoke-Csc @('/target:exe', '/platform:x64', "/r:$fw\System.Security.dll", "/out:$web\nwdpapi.exe", "$apps\neuralweb\nwdpapi.cs")
 Invoke-Csc @('/target:winexe', '/platform:x64', "/r:$wm\Windows.Foundation.winmd", "/r:$wm\Windows.Security.winmd",

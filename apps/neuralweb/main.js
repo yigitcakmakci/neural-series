@@ -22,6 +22,7 @@ const NEWTAB = "neural://newtab/";
 const PAGES = new Set(["newtab", "history", "bookmarks", "downloads", "settings", "passwords"]);
 const HELPERS = { dpapi: path.join(__dirname, "nwdpapi.exe"), hello: path.join(__dirname, "nwhello.exe") };
 const PAGES_DIR = path.join(__dirname, "pages");
+const FONTS_DIR = path.join(__dirname, "fonts");
 const ZOOM_STEPS = [0.25, 0.33, 0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5];
 // NeuralNav from the same installation (<root>\NeuralNav\Program), wherever the setup put the series.
 const NEURALNAV = (() => {
@@ -70,15 +71,18 @@ function resolveInput(text) {
 const googleSearch = (q) => `https://www.google.com/search?q=${encodeURIComponent(q)}&ie=UTF-8`;
 
 /* ============================================================ internal pages (neural://) */
-const MIME = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon" };
-// neural://history/ is pages/history.html; any other path on a page host is a shared file from pages/ (pages.css, history.js…).
-const PAGE_CSP = "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'";
+const MIME = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon", ".woff2": "font/woff2" };
+// neural://history/ is pages/history.html; any other path on a page host is a shared file from pages/ (pages.css, history.js…),
+// except fonts/…, which comes from the app's bundled typefaces.
+const PAGE_CSP = "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'";
 async function servePage(request) {
   const u = new URL(request.url);
   if (!PAGES.has(u.hostname)) return new Response("Bulunamadı", { status: 404 });
-  const rel = u.pathname === "/" || u.pathname === "" ? `${u.hostname}.html` : decodeURIComponent(u.pathname).replace(/^\/+/, "");
-  const file = path.normalize(path.join(PAGES_DIR, rel));
-  if (!file.startsWith(PAGES_DIR + path.sep)) return new Response("Bulunamadı", { status: 404 });
+  let rel = u.pathname === "/" || u.pathname === "" ? `${u.hostname}.html` : decodeURIComponent(u.pathname).replace(/^\/+/, "");
+  let dir = PAGES_DIR;
+  if (rel.startsWith("fonts/")) { dir = FONTS_DIR; rel = rel.slice("fonts/".length); }
+  const file = path.normalize(path.join(dir, rel));
+  if (!file.startsWith(dir + path.sep)) return new Response("Bulunamadı", { status: 404 });
   try {
     const data = await fs.promises.readFile(file);
     return new Response(data, { headers: {

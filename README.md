@@ -73,8 +73,8 @@ See [Versions](#versions) and the [changelog](CHANGELOG.md).
 
 ## `// 03` Install
 
-**Requirements:** Windows 10 or 11 (64-bit), about 1.3 GB of disk space. An internet connection is recommended: the apps
-load their fonts from Google Fonts, and NeuralWeb downloads its blocking lists.
+**Requirements:** Windows 10 or 11 (64-bit), about 1.3 GB of disk space. The apps carry their own typefaces and work
+offline; NeuralWeb needs a connection to browse, of course, and to refresh its blocking lists.
 
 1. Download **`Neural-Setup-1.0.0.exe`** from the [latest release](https://github.com/yigitcakmakci/neural-series/releases/latest).
 2. Run it. The setup is not code-signed, so Windows SmartScreen may say *"Windows protected your PC"*. Choose
@@ -342,8 +342,9 @@ cd neural-series
 powershell -ExecutionPolicy Bypass -File build.ps1
 ```
 
-`build.ps1` restores the exact dependency versions from the lock files (Electron, xterm.js, the Ghostery ad blocker),
-stages every app as the setup installs it in `out\stage`, compiles the helpers and the setup, and writes
+`build.ps1` restores the exact dependency versions from the lock files (Electron, xterm.js, the typefaces from
+[Fontsource](https://fontsource.org/), the Ghostery ad blocker), stages every app as the setup installs it in
+`out\stage` (with its `fonts\` folder), compiles the helpers and the setup, and writes
 `out\Neural-Setup-1.0.0.exe` together with its SHA-256. Run it with `-SkipNpm` to reuse the existing `node_modules`.
 
 To try a build without touching your Windows settings, install it in test mode:
@@ -352,9 +353,10 @@ To try a build without touching your Windows settings, install it in test mode:
 .\out\Neural-Setup-1.0.0.exe /test /hedef:$env:TEMP\neural-test\Neural
 ```
 
-Other tools: `tools\make-icons.ps1` redraws every icon, and
-`node_modules\electron\dist\electron.exe docs\src\render.js` renders the README images. The tests in `tests\` drive the
-apps over the DevTools protocol with throwaway profiles; build first, since some of them use `out\stage`.
+Other tools: `tools\make-icons.ps1` redraws every icon, `node tools\make-fonts-css.js` rewrites the font style sheets
+in `assets\fonts` (which weights and subsets are bundled), and `node_modules\electron\dist\electron.exe docs\src\render.js`
+renders the README images. The tests in `tests\` drive the apps over the DevTools protocol with throwaway profiles.
+Build first: the README images and some tests use `out\`.
 
 <a id="versions"></a>
 
@@ -380,10 +382,11 @@ Neo-Istanbul. Details are in the [changelog](CHANGELOG.md).
 ## `// 08` Privacy and network
 
 - The apps collect nothing and have no analytics or crash reporting.
-- When an app starts it loads its fonts (Chakra Petch, Rajdhani, Share Tech Mono) from Google Fonts, which makes a request
-  to Google's servers. Without a connection the apps fall back to Windows fonts.
-- NeuralWeb sends what you type in the address bar to Google for suggestions and search, like most browsers, and
-  refreshes its blocking lists every few days. Everything else is traffic to the sites you visit.
+- The typefaces are bundled with the apps, so no font is ever fetched from the internet. NeuralCalc, NeuralPad,
+  NeuralNav and NeuralTerm do not connect to anything by themselves.
+- NeuralWeb sends what you type in the address bar to Google for suggestions and search, like most browsers. It
+  refreshes its blocking lists from GitHub every few days and, like Chromium, downloads its Turkish and English
+  spell-check dictionaries from Google's servers once. Everything else is traffic to the sites you visit.
 - Saved passwords are encrypted with your Windows account (Electron `safeStorage`), so other users of the PC cannot read them.
 
 <a id="license"></a>
@@ -394,7 +397,8 @@ Neural Series is free software under the [GNU General Public License v3.0](LICEN
 share and change it, and versions you distribute must stay open under the same license.
 
 It stands on the work of others; see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md): Electron (Chromium and Node.js),
-xterm.js, the Ghostery ad-blocker engine and the community filter lists, and the Chakra Petch, Rajdhani and Share Tech Mono typefaces.
+xterm.js, the Ghostery ad-blocker engine and the community filter lists, and the Chakra Petch, Rajdhani, Share Tech Mono,
+IBM Plex Mono, JetBrains Mono, Space Mono and Oxanium typefaces.
 
 *Neural Systems, its products and the city of Neo-Istanbul are fictional. This is a fan project inspired by the
 cyberpunk genre and is not affiliated with, endorsed by or connected to any company, game or franchise. Windows,
