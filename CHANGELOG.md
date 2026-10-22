@@ -1,9 +1,13 @@
 # Changelog
 
-All notable changes to Neural Series are listed here. Versions follow [Semantic Versioning](https://semver.org/), and
-every release carries a codename from the map of Neo-Istanbul.
+All notable changes to Neural Series are listed here. Versions follow [Semantic Versioning](https://semver.org/).
+Every major and minor release carries a codename from the map of Neo-Istanbul; patch releases keep the codename of
+their line.
 
-## Unreleased
+## 1.0.1 "Neo-Istanbul" (2026-10-22)
+
+All five apps are at 1.0.1: NeuralCalc KX-9, NeuralPad NP-7, NeuralNav NV-4, NeuralTerm NT-5, NeuralWeb NW-1.
+Run the new setup over an existing installation; options, settings and personal data are kept.
 
 ### Changed
 

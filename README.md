@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/yigitcakmakci/neural-series/releases/latest"><img src="https://img.shields.io/badge/release-v1.0.0-fcee0a?style=for-the-badge&labelColor=0c0d15" alt="Release v1.0.0"></a>
+  <a href="https://github.com/yigitcakmakci/neural-series/releases/latest"><img src="https://img.shields.io/badge/release-v1.0.1-fcee0a?style=for-the-badge&labelColor=0c0d15" alt="Release v1.0.1"></a>
   <img src="https://img.shields.io/badge/codename-Neo--Istanbul-00f0ff?style=for-the-badge&labelColor=0c0d15" alt="Codename: Neo-Istanbul">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011%20x64-00f0ff?style=for-the-badge&labelColor=0c0d15" alt="Windows 10 and 11, 64-bit">
   <img src="https://img.shields.io/badge/Electron-44.5.1-00f0ff?style=for-the-badge&labelColor=0c0d15" alt="Electron 44.5.1">
@@ -56,13 +56,13 @@ They are not mock-ups. They are the tools I use every day:
 
 | | Unit | Model | Version | What it is |
 |:-:|---|:-:|:-:|---|
-| <img src="apps/neuralcalc/icon.png" width="44" alt=""> | **NeuralCalc** | `KX-9` | 1.0.0 | Scientific calculator with a readout screen, memory and keyboard input |
-| <img src="apps/neuralpad/icon.png" width="44" alt=""> | **NeuralPad** | `NP-7` | 1.0.0 | Tabbed notepad with find and replace, encodings, sessions and themes |
-| <img src="apps/neuralnav/icon.png" width="44" alt=""> | **NeuralNav** | `NV-4` | 1.0.0 | Tabbed file explorer that can stand in for Windows File Explorer |
-| <img src="apps/neuralterm/icon.png" width="44" alt=""> | **NeuralTerm** | `NT-5` | 1.0.0 | Terminal for PowerShell, PowerShell 7, Command Prompt, Git Bash and WSL |
-| <img src="apps/neuralweb/icon.png" width="44" alt=""> | **NeuralWeb** | `NW-1` | 1.0.0 | Chromium-based web browser with an ad and tracker shield and a password manager |
+| <img src="apps/neuralcalc/icon.png" width="44" alt=""> | **NeuralCalc** | `KX-9` | 1.0.1 | Scientific calculator with a readout screen, memory and keyboard input |
+| <img src="apps/neuralpad/icon.png" width="44" alt=""> | **NeuralPad** | `NP-7` | 1.0.1 | Tabbed notepad with find and replace, encodings, sessions and themes |
+| <img src="apps/neuralnav/icon.png" width="44" alt=""> | **NeuralNav** | `NV-4` | 1.0.1 | Tabbed file explorer that can stand in for Windows File Explorer |
+| <img src="apps/neuralterm/icon.png" width="44" alt=""> | **NeuralTerm** | `NT-5` | 1.0.1 | Terminal for PowerShell, PowerShell 7, Command Prompt, Git Bash and WSL |
+| <img src="apps/neuralweb/icon.png" width="44" alt=""> | **NeuralWeb** | `NW-1` | 1.0.1 | Chromium-based web browser with an ad and tracker shield and a password manager |
 
-The series itself is versioned as a whole: **Neural Series 1.0.0, codename "Neo-Istanbul"**, built on Electron 44.5.1.
+The series itself is versioned as a whole: **Neural Series 1.0.1, codename "Neo-Istanbul"**, built on Electron 44.5.1.
 See [Versions](#versions) and the [changelog](CHANGELOG.md).
 
 > [!NOTE]
@@ -76,11 +76,11 @@ See [Versions](#versions) and the [changelog](CHANGELOG.md).
 **Requirements:** Windows 10 or 11 (64-bit), about 1.3 GB of disk space. The apps carry their own typefaces and work
 offline; NeuralWeb needs a connection to browse, of course, and to refresh its blocking lists.
 
-1. Download **`Neural-Setup-1.0.0.exe`** from the [latest release](https://github.com/yigitcakmakci/neural-series/releases/latest).
+1. Download **`Neural-Setup-1.0.1.exe`** from the [latest release](https://github.com/yigitcakmakci/neural-series/releases/latest).
 2. Run it. The setup is not code-signed, so Windows SmartScreen may say *"Windows protected your PC"*. Choose
    **More info → Run anyway**. You can compare the file's SHA-256 with the one in the release notes first:
    ```powershell
-   Get-FileHash .\Neural-Setup-1.0.0.exe -Algorithm SHA256
+   Get-FileHash .\Neural-Setup-1.0.1.exe -Algorithm SHA256
    ```
 3. Follow the wizard: pick the apps and the folder (default `%USERPROFILE%\Neural`), then choose how far the apps may
    hook into Windows. Every option can be changed later by running the setup again.
@@ -129,10 +129,10 @@ The switches are Turkish, like the rest of the interface.
 
 ```powershell
 # install everything silently with the default options
-.\Neural-Setup-1.0.0.exe /sessiz
+.\Neural-Setup-1.0.1.exe /sessiz
 
 # pick apps, options and folder; write a log
-.\Neural-Setup-1.0.0.exe /sessiz /uygulamalar:NeuralWeb,NeuralTerm /secenekler:baslat,web,nt /hedef:D:\Apps\Neural /gunluk:C:\Temp\neural.log
+.\Neural-Setup-1.0.1.exe /sessiz /uygulamalar:NeuralWeb,NeuralTerm /secenekler:baslat,web,nt /hedef:D:\Apps\Neural /gunluk:C:\Temp\neural.log
 
 # uninstall silently (add /veriler to delete settings and personal data too)
 & "$env:USERPROFILE\Neural\Ortak\NeuralKaldir.exe" /kaldir /sessiz
@@ -345,12 +345,12 @@ powershell -ExecutionPolicy Bypass -File build.ps1
 `build.ps1` restores the exact dependency versions from the lock files (Electron, xterm.js, the typefaces from
 [Fontsource](https://fontsource.org/), the Ghostery ad blocker), stages every app as the setup installs it in
 `out\stage` (with its `fonts\` folder), compiles the helpers and the setup, and writes
-`out\Neural-Setup-1.0.0.exe` together with its SHA-256. Run it with `-SkipNpm` to reuse the existing `node_modules`.
+`out\Neural-Setup-1.0.1.exe` together with its SHA-256. Run it with `-SkipNpm` to reuse the existing `node_modules`.
 
 To try a build without touching your Windows settings, install it in test mode:
 
 ```powershell
-.\out\Neural-Setup-1.0.0.exe /test /hedef:$env:TEMP\neural-test\Neural
+.\out\Neural-Setup-1.0.1.exe /test /hedef:$env:TEMP\neural-test\Neural
 ```
 
 Other tools: `tools\make-icons.ps1` redraws every icon, `node tools\make-fonts-css.js` rewrites the font style sheets
@@ -364,18 +364,20 @@ Build first: the README images and some tests use `out\`.
 
 | Release | Codename | Date | Notes |
 |---|---|---|---|
-| **1.0.0** | **Neo-Istanbul** | 2026-10-22 | First public release: five apps, the setup and uninstaller |
+| **1.0.1** | **Neo-Istanbul** | 2026-10-22 | Bundled typefaces: the apps no longer load fonts from Google Fonts |
+| 1.0.0 | Neo-Istanbul | 2026-10-22 | First public release: five apps, the setup and uninstaller |
 
-| Unit | Model | 1.0.0 |
-|---|:-:|:-:|
-| NeuralCalc | `KX-9` | ✔ |
-| NeuralPad | `NP-7` | ✔ |
-| NeuralNav | `NV-4` | ✔ |
-| NeuralTerm | `NT-5` | ✔ |
-| NeuralWeb | `NW-1` | ✔ |
+| Unit | Model | 1.0.0 | 1.0.1 |
+|---|:-:|:-:|:-:|
+| NeuralCalc | `KX-9` | ✔ | ✔ |
+| NeuralPad | `NP-7` | ✔ | ✔ |
+| NeuralNav | `NV-4` | ✔ | ✔ |
+| NeuralTerm | `NT-5` | ✔ | ✔ |
+| NeuralWeb | `NW-1` | ✔ | ✔ |
 
-Version numbers follow [Semantic Versioning](https://semver.org/). Every release gets a codename from the map of
-Neo-Istanbul. Details are in the [changelog](CHANGELOG.md).
+Version numbers follow [Semantic Versioning](https://semver.org/). Every major and minor release gets a codename from
+the map of Neo-Istanbul; patch releases (1.0.x) keep the codename of their line. Details are in the
+[changelog](CHANGELOG.md).
 
 <a id="privacy"></a>
 

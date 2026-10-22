@@ -1,7 +1,7 @@
 {
   "name": "neuralcalc",
   "productName": "NeuralCalc KX-9",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "NeuralCalc KX-9 cyberpunk hesap makinesi",
   "private": true,
   "main": "main.js",

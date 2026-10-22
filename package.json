@@ -1,6 +1,6 @@
 {
   "name": "neural-series",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Neural Series: five cyberpunk-styled desktop apps for Windows (calculator, notepad, file explorer, terminal, web browser) and their installer.",
   "private": true,
   "license": "GPL-3.0-or-later",
