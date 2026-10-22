@@ -59,6 +59,9 @@ function securityOf(url) {
   return "other";
 }
 const send = (wc, channel, payload) => { if (wc && !wc.isDestroyed()) wc.send(channel, payload); };
+// A window's UI page, or null once the window is gone. Reading webContents of a destroyed BrowserWindow throws, and a
+// closing window's tabs still send events (a hovered link, find results) while they are being destroyed.
+const ui = (w) => (w.win.isDestroyed() ? null : w.win.webContents);
 
 // What the address bar does with typed text: a URL when it looks like one, otherwise a Google search.
 function resolveInput(text) {
@@ -268,14 +271,15 @@ function createWindow({ priv = false, urls = null, bounds = null, maximized = fa
     if (!w.priv) saveSessionNow(others.length ? w : null);
   });
   win.on("closed", () => {
+    // Out of the list first: destroying the tabs below makes them send their last events.
+    windows.delete(w);
     for (const t of w.tabs) { try { t.wc.destroy(); } catch (e) { /* gone */ } }
     try { overlay.webContents.destroy(); } catch (e) { /* gone */ }
-    windows.delete(w);
     if (w.priv) { try { ses.clearStorageData(); ses.clearCache(); } catch (e) { /* private data */ } }
   });
   return w;
 }
-const winOf = (wc) => [...windows].find((w) => w.win.webContents === wc || w.overlay.webContents === wc) || null;
+const winOf = (wc) => [...windows].find((w) => ui(w) === wc || w.overlay.webContents === wc) || null;
 function findTab(wc) {
   for (const w of windows) { const t = w.tabs.find((x) => x.wc === wc); if (t) return { w, t }; }
   return null;
@@ -322,7 +326,7 @@ function setFullscreen(w, on) {
   w.fullscreen = on;
   closePopup(w);
   w.win.setFullScreen(on);
-  send(w.win.webContents, "fullscreen", on);
+  send(ui(w), "fullscreen", on);
 }
 
 /* ============================================================ tabs */
@@ -401,8 +405,8 @@ function attachTab(w, tab) {
   });
   wc.on("page-favicon-updated", (e, favicons) => fetchFavicon(w, tab, favicons[0]));
   wc.on("audio-state-changed", (e) => { tab.audible = !!e.audible; pushState(w); });
-  wc.on("update-target-url", (e, url) => { if (w.activeId === tab.id) send(w.win.webContents, "hover", url); });
-  wc.on("found-in-page", (e, r) => { if (w.activeId === tab.id) send(w.win.webContents, "find-result", { active: r.activeMatchOrdinal, matches: r.matches }); });
+  wc.on("update-target-url", (e, url) => { if (w.activeId === tab.id) send(ui(w), "hover", url); });
+  wc.on("found-in-page", (e, r) => { if (w.activeId === tab.id) send(ui(w), "find-result", { active: r.activeMatchOrdinal, matches: r.matches }); });
   wc.on("did-fail-load", (e, code, desc, url, isMainFrame) => {
     if (!isMainFrame || code === -3) return; // -3: aborted (a new navigation started)
     tab.error = { code, desc, url };
@@ -503,8 +507,8 @@ function activate(w, id) {
   pushState(w);
 }
 function focusOmnibox(w) {
-  w.win.webContents.focus();
-  send(w.win.webContents, "focus-omnibox");
+  ui(w)?.focus();
+  send(ui(w), "focus-omnibox");
 }
 // Shows the active tab's view over the viewport; a tab with an error or crash shows the UI's panel instead.
 function showActive(w) {
@@ -603,7 +607,7 @@ function pushState(w) {
   setTimeout(() => {
     w.statePending = false;
     if (w.win.isDestroyed()) return;
-    send(w.win.webContents, "state", { tabs: w.tabs.map(tabState), activeId: w.activeId, priv: w.priv, theme: store.s.theme, syncTheme: store.s.syncTheme, showBar: store.s.showBookmarksBar });
+    send(ui(w), "state", { tabs: w.tabs.map(tabState), activeId: w.activeId, priv: w.priv, theme: store.s.theme, syncTheme: store.s.syncTheme, showBar: store.s.showBookmarksBar });
     const t = activeTab(w);
     w.win.setTitle(t ? `${tabState(t).title} - NeuralWeb` : "NeuralWeb");
   }, 16);
@@ -613,7 +617,7 @@ function barData() {
   const conv = (n) => (n.type === "folder" ? { id: n.id, type: "folder", title: n.title, children: n.children.map(conv) } : { id: n.id, type: "url", title: n.title, url: n.url, favicon: fav(n.url) });
   return { bar: store.roots.bar.children.map(conv), other: store.roots.other.children.map(conv) };
 }
-function sendBookmarks(w) { send(w.win.webContents, "bookmarks", barData()); }
+function sendBookmarks(w) { send(ui(w), "bookmarks", barData()); }
 /* ============================================================ passwords in pages */
 // Messages come from the tab preload's isolated world; the origin is taken from the frame, never from the page.
 function loginSender(e) {
@@ -765,7 +769,7 @@ function openPopup(w, spec, onPick, onClose) {
   closePopup(w);
   const id = ++popupSeq;
   w.popup = { id, spec, onPick, onClose };
-  send(w.win.webContents, "popup-state", spec.kind);
+  send(ui(w), "popup-state", spec.kind);
   const b = w.win.getBounds();
   w.overlay.setBounds({ x: 0, y: 0, width: b.width, height: b.height });
   w.overlay.setVisible(false);
@@ -791,7 +795,7 @@ function closePopup(w, reason) {
   if (!w.popup) return;
   const p = w.popup;
   w.popup = null;
-  send(w.win.webContents, "popup-state", null);
+  send(ui(w), "popup-state", null);
   if (!w.overlay.webContents.isDestroyed()) {
     w.overlay.setVisible(false);
     send(w.overlay.webContents, "popup:clear");
@@ -799,7 +803,7 @@ function closePopup(w, reason) {
   if (p.onClose) p.onClose(reason);
   if (p.spec.focus !== false && !w.win.isDestroyed() && w.win.isFocused()) {
     const t = activeTab(w);
-    if (p.spec.returnFocus === "ui" || !t || t.error || t.crashed) w.win.webContents.focus(); else t.wc.focus();
+    if (p.spec.returnFocus === "ui" || !t || t.error || t.crashed) ui(w)?.focus(); else t.wc.focus();
   }
   setImmediate(() => nextPrompt(w));
 }
@@ -956,7 +960,7 @@ function downloadsChanged() {
     broadcastPages("downloads");
   }, 120);
 }
-function sendDownloads(w) { send(w.win.webContents, "downloads", downloadSummary()); }
+function sendDownloads(w) { send(ui(w), "downloads", downloadSummary()); }
 // auto: opened by a new download, so it must not take the keyboard from the page.
 function openDownloadsPopup(w, auto = false) {
   openPopup(w, { kind: "downloads", data: { ...downloadSummary(), autoClose: auto }, anchor: w.layout && w.layout.anchors.downloads, align: "right", width: 380, focus: !auto, returnFocus: "ui" },
@@ -972,7 +976,7 @@ function downloadAction(w, v) {
     case "cancel": if (item) item.cancel(); break;
     case "pause": if (item) item.pause(); break;
     case "resume": if (item && item.canResume()) item.resume(); break;
-    case "retry": if (rec) { const t = activeTab(w); (t ? t.wc : w.win.webContents).downloadURL(rec.url); } break;
+    case "retry": if (rec) { const t = activeTab(w); (t ? t.wc : ui(w))?.downloadURL(rec.url); } break;
     case "remove": if (rec) { if (rec.priv) privateDownloads.splice(privateDownloads.indexOf(rec), 1); else store.removeDownload(rec.id); downloadsChanged(); } break;
     case "all": openInternal(w, "neural://downloads/"); break;
   }
@@ -1063,7 +1067,7 @@ function run(w, name, arg) {
     case "hardReload": if (tab) tab.wc.reloadIgnoringCache(); return;
     case "stop": if (tab) tab.wc.stop(); return;
     case "home": return navigate(w, tab, NEWTAB);
-    case "bookmark": return send(w.win.webContents, "star");
+    case "bookmark": return send(ui(w), "star");
     case "siteInfo": return openSiteInfo(w);
     case "shieldPopup": return openShieldPopup(w);
     case "toggleBar": store.set("showBookmarksBar", !store.s.showBookmarksBar); for (const x of windows) pushState(x); return;
@@ -1073,11 +1077,11 @@ function run(w, name, arg) {
     case "downloadsPopup": return openDownloadsPopup(w);
     case "bookmarksManager": return openInternal(w, "neural://bookmarks/");
     case "settings": return openInternal(w, "neural://settings/" + (arg ? "#" + arg : ""));
-    case "find": w.win.webContents.focus(); return send(w.win.webContents, "find-open");
+    case "find": ui(w)?.focus(); return send(ui(w), "find-open");
     // Electron's findNext means "start a new search", the opposite of "go to the next match".
     case "findText": if (tab && arg && arg.text) tab.wc.findInPage(String(arg.text), { forward: arg.forward !== false, findNext: !arg.next }); else if (tab) tab.wc.stopFindInPage("clearSelection"); return;
     case "focusPage": if (tab && !tab.error && !tab.crashed) tab.wc.focus(); return;
-    case "editUI": if (["undo", "cut", "copy", "paste", "selectAll"].includes(arg)) w.win.webContents[arg](); return;
+    case "editUI": if (["undo", "cut", "copy", "paste", "selectAll"].includes(arg)) ui(w)?.[arg](); return;
     case "pasteGo": return navigate(w, tab, clipboard.readText().trim());
     case "findStop": if (tab) tab.wc.stopFindInPage("keepSelection"); return;
     case "print": if (tab) tab.wc.print(); return;
@@ -1348,8 +1352,8 @@ ipcMain.on("ui:popup", (e, token, spec) => {
   const w = winOf(e.sender);
   if (!w) return;
   openPopup(w, { ...spec, returnFocus: spec.returnFocus || "ui" },
-    (v, open) => send(w.win.webContents, "popup:picked", { token, value: v, open: !!open }),
-    (reason) => send(w.win.webContents, "popup:closed", { token, reason }));
+    (v, open) => send(ui(w), "popup:picked", { token, value: v, open: !!open }),
+    (reason) => send(ui(w), "popup:closed", { token, reason }));
 });
 ipcMain.on("ui:popup-update", (e, data) => {
   const w = winOf(e.sender);

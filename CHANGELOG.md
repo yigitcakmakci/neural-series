@@ -4,6 +4,18 @@ All notable changes to Neural Series are listed here. Versions follow [Semantic 
 Every major and minor release carries a codename from the map of Neo-Istanbul; patch releases keep the codename of
 their line.
 
+## 1.2.1 "Galata" (2026-10-23)
+
+All six apps are at 1.2.1. Run the new setup over an existing installation; options, settings and personal data are
+kept.
+
+### Fixed
+
+- **NeuralWeb:** closing a window could show *"A JavaScript error occurred in the main process … Object has been
+  destroyed"* now and then. When the pointer had just been over a link, the page could still report it while the
+  window was already gone. NeuralWeb now drops messages for windows that are closed and takes a closing window out of
+  its list before its tabs shut down (`tests\neuralweb\test-close.js` reproduces the old error).
+
 ## 1.2.0 "Galata" (2026-10-22)
 
 All six apps are at 1.2.0. Run the new setup over an existing installation; options, settings and personal data are

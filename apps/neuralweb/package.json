@@ -1,7 +1,7 @@
 {
   "name": "neuralweb",
   "productName": "NeuralWeb",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "NeuralWeb NW-1 Neural serisi web tarayıcısı",
   "private": true,
   "main": "main.js",
