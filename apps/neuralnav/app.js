@@ -32,12 +32,22 @@ const THEMES = [
   { id: 'alarm', name: 'Alarm' },
   { id: 'daylight', name: 'Gündüz' },
 ];
-const DEFAULTS = { view: 'details', sortKey: 'name', sortDir: 1, showHidden: false, showExt: true, preview: false, theme: 'neon', pins: [] };
+const DEFAULTS = { view: 'details', sortKey: 'name', sortDir: 1, showHidden: false, showExt: true, preview: false, theme: 'neon', syncTheme: true, pins: [] };
 const S = Object.assign({}, DEFAULTS, readJSON(SETTINGS_KEY));
 if (!THEMES.some(t => t.id === S.theme)) S.theme = DEFAULTS.theme;
 if (!Array.isArray(S.pins)) S.pins = [];
 function saveSettings() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(S)); } catch { /* storage may be unavailable */ } }
 function applyTheme() { for (const t of THEMES) root.classList.toggle('theme-' + t.id, t.id === S.theme); }
+function setTheme(id) { S.theme = id; saveSettings(); applyTheme(); nv.themeSet(id); }
+// The series theme: another Neural program (or another NeuralNav window) changed it, or the setting changed there.
+nv.onThemeApply(id => {
+  if (!THEMES.some(t => t.id === id) || id === S.theme) return;
+  S.theme = id;
+  saveSettings();
+  applyTheme();
+});
+nv.onThemeSyncState(on => { S.syncTheme = !!on; saveSettings(); });
+function toggleThemeSync() { S.syncTheme = !S.syncTheme; saveSettings(); nv.themeSync(S.syncTheme, S.theme); }
 
 /* ---------------- Formatting and file types ---------------- */
 const collator = new Intl.Collator('tr', { numeric: true, sensitivity: 'base' });
@@ -1257,7 +1267,11 @@ const MORE_MENU = () => [
   { label: 'Geri Dönüşüm Kutusu', icon: 'i-trash', run: () => nv.openRecycleBin() },
   '-',
   { label: "Gezgin pencerelerini NeuralNav'a aktar", check: () => watcher.enabled, enabled: () => watcher.available, run: toggleWatcher },
-  { label: 'Tema', sub: THEMES.map(t => ({ label: t.name, radio: () => S.theme === t.id, run: () => { S.theme = t.id; saveSettings(); applyTheme(); } })) },
+  { label: 'Tema', sub: [
+    ...THEMES.map(t => ({ label: t.name, radio: () => S.theme === t.id, run: () => setTheme(t.id) })),
+    '-',
+    { label: 'Temayı seriyle eşitle', check: () => S.syncTheme, run: toggleThemeSync },
+  ] },
   { label: 'Klavye kısayolları', run: openShortcuts },
   { label: 'NeuralNav hakkında', run: () => ask($('#dlg-about')) },
 ];
@@ -1756,6 +1770,9 @@ function saveSession() {
 }
 
 /* ---------------- Start ---------------- */
+// A program that follows the series starts with the series theme (it may have changed while this one was closed).
+const seriesTheme = await nv.themeInit(S.theme, S.syncTheme);
+if (seriesTheme !== S.theme && THEMES.some(t => t.id === seriesTheme)) { S.theme = seriesTheme; saveSettings(); }
 applyTheme();
 await loadPlaces();
 nv.watcherGet().then(w => { watcher = w; }).catch(() => {});

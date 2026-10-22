@@ -27,4 +27,10 @@ contextBridge.exposeInMainWorld("nt", {
   onStarted: on("nt:started"),
   onData: on("nt:data"),
   onExit: on("nt:exit"),
+  // series theme
+  themeInit: (theme, sync) => ipcRenderer.invoke("nt:theme-init", String(theme), Boolean(sync)),
+  themeSet: (theme) => ipcRenderer.send("nt:theme-set", String(theme)),
+  themeSync: (on, theme) => ipcRenderer.send("nt:theme-sync", Boolean(on), String(theme)),
+  onThemeApply: on("nt:theme-apply"),
+  onThemeSyncState: on("nt:theme-sync-state"),
 });

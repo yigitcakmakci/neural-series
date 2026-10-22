@@ -4,6 +4,29 @@ All notable changes to Neural Series are listed here. Versions follow [Semantic 
 Every major and minor release carries a codename from the map of Neo-Istanbul; patch releases keep the codename of
 their line.
 
+## 1.2.0 "Galata" (2026-10-22)
+
+All six apps are at 1.2.0. Run the new setup over an existing installation; options, settings and personal data are
+kept.
+
+### New: one theme for the series
+
+- Pick a theme in NeuralPad, NeuralNav, NeuralTerm, NeuralWeb or NeuralView and the others that are open switch to it
+  within a moment (about 0.2 s); the ones that are closed start with it next time. NeuralCalc has no themes.
+- Each of these apps has a **"Temayı seriyle eşitle"** (follow the series theme) switch at the end of its theme menu,
+  on by default; NeuralWeb also shows it under *Ayarlar → Görünüm*. Switched off, the app keeps its own theme and
+  neither follows nor changes the others; switched on again, it takes the series theme.
+- The windows of one app (several NeuralPad, NeuralNav or NeuralTerm windows) now always change theme together.
+- The shared theme lives in `%APPDATA%\NeuralSeries\theme.json`, written through a temporary file and a rename and
+  watched by every app. When two apps change it at once, the change that lands last wins everywhere; an app that
+  follows never writes back, so changes cannot bounce between apps.
+
+### Changed
+
+- **Setup:** *"Ayarlarımı ve kişisel verilerimi de sil"* (also delete my settings and personal data) removes the
+  shared theme folder too.
+- **NeuralTerm:** its menu can show check marks.
+
 ## 1.1.1 "Karakoy" (2026-10-22)
 
 All six apps are at 1.1.1. Run the new setup over an existing installation; options, settings and personal data are

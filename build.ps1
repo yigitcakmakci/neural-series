@@ -149,6 +149,9 @@ Invoke-Csc @('/target:winexe', '/platform:x64', "/r:$wm\Windows.Foundation.winmd
 Copy-Files "$apps\neuralview" "$stage\apps\NeuralView" @('index.html', 'styles.css', 'app.js', 'main.js', 'preload.js', 'meta.js', 'package.json', 'icon.png', 'neuralview.ico')
 Copy-Fonts "$stage\apps\NeuralView\fonts" @('fonts.css')
 
+# The series theme module, next to the main.js of every program with themes (NeuralCalc has none)
+foreach ($a in 'NeuralPad', 'NeuralNav', 'NeuralTerm', 'NeuralWeb', 'NeuralView') { Copy-Item "$apps\shared\theme-sync.js" "$stage\apps\$a\theme-sync.js" }
+
 # Windows icon set (optional in the setup: This PC, Recycle Bin, Network, user folder)
 Copy-Files (Join-Path $root 'assets\windows-icons') "$stage\simgeler" (Get-ChildItem (Join-Path $root 'assets\windows-icons') -Filter *.ico | ForEach-Object Name)
 

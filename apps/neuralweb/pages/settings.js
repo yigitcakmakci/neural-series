@@ -12,6 +12,7 @@ async function load() {
   s = await neural.call("settings");
   renderThemes();
   $("#show-bar").checked = !!s.showBookmarksBar;
+  $("#sync-theme").checked = s.syncTheme !== false;
   for (const r of document.querySelectorAll('input[name="startup"]')) r.checked = r.value === s.startup;
   $("#dl-dir").textContent = s.downloadDir;
   $("#ask-path").checked = !!s.askDownloadPath;
@@ -57,6 +58,7 @@ function renderPermissions() {
 }
 
 $("#show-bar").addEventListener("change", (e) => neural.call("setSetting", "showBookmarksBar", e.target.checked));
+$("#sync-theme").addEventListener("change", async (e) => { await neural.call("setSetting", "syncTheme", e.target.checked); load(); });
 for (const r of document.querySelectorAll('input[name="startup"]')) r.addEventListener("change", () => { if (r.checked) neural.call("setSetting", "startup", r.value); });
 $("#ask-path").addEventListener("change", (e) => neural.call("setSetting", "askDownloadPath", e.target.checked));
 $("#dl-change").addEventListener("click", async () => { $("#dl-dir").textContent = await neural.call("chooseDownloadDir"); });

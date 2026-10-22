@@ -4,6 +4,8 @@
 const { app, BrowserWindow, ipcMain, dialog, screen, Menu } = require("electron");
 const fs = require("fs");
 const path = require("path");
+// The series theme: next to main.js when installed, in apps\shared when run from source.
+const themeSync = require(fs.existsSync(path.join(__dirname, "theme-sync.js")) ? "./theme-sync" : "../shared/theme-sync");
 
 app.setAppUserModelId("NeuralPad.NP7");
 
@@ -275,6 +277,7 @@ if (!app.requestSingleInstanceLock()) {
   app.on("window-all-closed", () => app.quit());
   app.whenReady().then(() => {
     Menu.setApplicationMenu(null);
+    themeSync.wire({ ipcMain, BrowserWindow, prefix: "np", name: "NeuralPad" });
     mainWin = createWindow({ files: filesFromArgs(process.argv, process.cwd()) });
   });
 }

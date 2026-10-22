@@ -7,7 +7,8 @@ const { spawn, execFileSync } = require("child_process");
 const SP = __dirname;
 const OUT = path.join(require("os").tmpdir(), "neural-testler"); // screenshots and throwaway profiles
 fs.mkdirSync(OUT, { recursive: true });
-const EXE = path.join(process.env.USERPROFILE, "Neural", "NeuralTerm", "Program", "NeuralTerm.exe");
+// The installed NeuralTerm; NEURAL_ROOT points at another installation, such as one made with setup /test.
+const EXE = path.join(process.env.NEURAL_ROOT || path.join(process.env.USERPROFILE, "Neural"), "NeuralTerm", "Program", "NeuralTerm.exe");
 const SNAP = path.join(__dirname, "..", "..", "tools", "snap-window.ps1");
 const PORT = 9334;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -64,8 +65,8 @@ async function connect() {
   };
 
   console.log("PowerShell");
-  let r = await run(`await wait(() => /PS .+Kaynak>/.test(screenText())); return { text: screenText().slice(0, 400), tabs: qa('.tab').length, shell: q('#st-shell').textContent, size: q('#st-size').textContent };`);
-  check(/PS .+Kaynak>/.test(r.text), "PowerShell starts in the folder given on the command line", JSON.stringify(r));
+  let r = await run(`await wait(() => /PS .+neuralterm>/.test(screenText())); return { text: screenText().slice(0, 400), tabs: qa('.tab').length, shell: q('#st-shell').textContent, size: q('#st-size').textContent };`);
+  check(/PS .+neuralterm>/.test(r.text), "PowerShell starts in the folder given on the command line", JSON.stringify(r));
   check(r.shell === "Windows PowerShell" && /^\d+×\d+$/.test(r.size), "status shows the shell and the terminal size", JSON.stringify(r));
   await type('Write-Output "NEURAL-$((2+3)*7) ğüşıöç İ"');
   r = await run(`return await wait(() => /NEURAL-35 ğüşıöç İ/.test(screenText())) ? 'yes' : screenText().slice(-400);`);
@@ -83,8 +84,8 @@ async function connect() {
   execFileSync("powershell", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", SNAP, "-ProcessName", "NeuralTerm", "-Out", path.join(OUT, "term-1.png")], { stdio: "pipe" });
 
   console.log("Komut İstemi tab");
-  r = await run(`q('#tab-shells').click(); await wait(() => q('.popup')); qa('.popup .mi').find(b => b.textContent.includes('Komut İstemi')).click(); await wait(() => qa('.tab').length === 2 && /Kaynak>/.test(screenText())); return { tabs: qa('.tab').length, text: screenText().slice(0, 300) };`);
-  check(r.tabs === 2 && /Kaynak>/.test(r.text) && !/�/.test(r.text), "a Komut İstemi tab opens in the same folder without broken characters", JSON.stringify(r));
+  r = await run(`q('#tab-shells').click(); await wait(() => q('.popup')); qa('.popup .mi').find(b => b.textContent.includes('Komut İstemi')).click(); await wait(() => qa('.tab').length === 2 && /neuralterm>/.test(screenText())); return { tabs: qa('.tab').length, text: screenText().slice(0, 300) };`);
+  check(r.tabs === 2 && /neuralterm>/.test(r.text) && !/�/.test(r.text), "a Komut İstemi tab opens in the same folder without broken characters", JSON.stringify(r));
   await type("echo merhaba-cmd ğüş");
   r = await run(`return await wait(() => /\\nmerhaba-cmd ğüş/.test(screenText())) ? 'yes' : screenText().slice(-300);`);
   check(r === "yes", "cmd runs commands", r);

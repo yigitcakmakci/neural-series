@@ -285,7 +285,11 @@ function appMenu() {
     "-",
     { label: "Yazdır…", key: "Ctrl+P", disabled: !t, run: () => nw.cmd("print") },
     { label: "Sayfada bul…", key: "Ctrl+F", run: () => nw.cmd("find") },
-    { label: "Tema", sub: THEMES.map(([id, name]) => ({ label: name, checked: state.theme === id, run: () => nw.cmd("theme", id) })) },
+    { label: "Tema", sub: [
+      ...THEMES.map(([id, name]) => ({ label: name, checked: state.theme === id, run: () => nw.cmd("theme", id) })),
+      "-",
+      { label: "Temayı seriyle eşitle", checked: state.syncTheme !== false, run: () => nw.cmd("syncTheme") },
+    ] },
     { label: "Diğer araçlar", sub: [
       { label: "Sayfa kaynağını görüntüle", key: "Ctrl+U", disabled: !web, run: () => nw.cmd("viewSource") },
       { label: "Geliştirici araçları", key: "F12", run: () => nw.cmd("devtools") },

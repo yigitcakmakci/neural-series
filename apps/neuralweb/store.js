@@ -38,6 +38,7 @@ class Store {
     this.settings = new JsonFile(path.join(dir, "settings.json"), () => ({}));
     this.settings.data = Object.assign({
       theme: "neon",
+      syncTheme: true,
       showBookmarksBar: true,
       startup: "restore",
       askDownloadPath: false,

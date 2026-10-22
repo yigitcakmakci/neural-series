@@ -15,7 +15,7 @@ const el = { tabs: $('#tabs'), terms: $('#terms'), title: $('#band-title'), popu
 /* ---------------- Settings ---------------- */
 const SETTINGS_KEY = 'neuralterm.settings';
 const THEMES = [{ id: 'neon', name: 'Neon' }, { id: 'ice', name: 'Buz' }, { id: 'alarm', name: 'Alarm' }, { id: 'daylight', name: 'Gündüz' }];
-const S = Object.assign({ theme: 'neon', fontSize: 15, shell: 'powershell' }, readJSON(SETTINGS_KEY));
+const S = Object.assign({ theme: 'neon', syncTheme: true, fontSize: 15, shell: 'powershell' }, readJSON(SETTINGS_KEY));
 const saveSettings = () => { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(S)); } catch { /* storage unavailable */ } };
 
 // ANSI colors: the Neural series palette; the daylight theme uses dark tones for its light ground.
@@ -38,6 +38,16 @@ function applyTheme() {
   for (const t of THEMES) root.classList.toggle('theme-' + t.id, t.id === S.theme);
   for (const t of tabs) t.term.options.theme = termTheme();
 }
+function setTheme(id) { S.theme = id; saveSettings(); applyTheme(); nt.themeSet(id); }
+// The series theme: another Neural program (or another NeuralTerm window) changed it, or the setting changed there.
+nt.onThemeApply(id => {
+  if (!THEMES.some(t => t.id === id) || id === S.theme) return;
+  S.theme = id;
+  saveSettings();
+  applyTheme();
+});
+nt.onThemeSyncState(on => { S.syncTheme = !!on; saveSettings(); });
+function toggleThemeSync() { S.syncTheme = !S.syncTheme; saveSettings(); nt.themeSync(S.syncTheme, S.theme); }
 
 /* ---------------- Tabs ---------------- */
 let info = { shells: [], home: '' };
@@ -247,8 +257,8 @@ function openMenu(items, btn) {
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'mi';
-      const checked = it.radio ? it.radio() : false;
-      b.innerHTML = `<span class="chk">${checked ? '●' : ''}</span><span>${esc(it.label)}</span><span class="k">${esc(it.key || '')}</span><span class="arr">${it.sub ? '›' : ''}</span>`;
+      const checked = it.check ? it.check() : it.radio ? it.radio() : false;
+      b.innerHTML = `<span class="chk">${checked ? (it.radio ? '●' : '✓') : ''}</span><span>${esc(it.label)}</span><span class="k">${esc(it.key || '')}</span><span class="arr">${it.sub ? '›' : ''}</span>`;
       b.addEventListener('mousedown', e => e.preventDefault());
       b.addEventListener('click', () => {
         if (it.sub) { pop.textContent = ''; build(it.sub, pop); return; }
@@ -293,7 +303,11 @@ $('#menu-btn').addEventListener('click', e => openMenu([
   { label: 'Yeni pencere', key: 'Ctrl+Shift+N', run: () => nt.newWindow() },
   '-',
   { label: 'Varsayılan kabuk', sub: shellItems(id => { S.shell = id; saveSettings(); toast(`Yeni sekmeler ${shellName(id)} ile açılacak.`); }, id => S.shell === id) },
-  { label: 'Tema', sub: THEMES.map(t => ({ label: t.name, radio: () => S.theme === t.id, run: () => { S.theme = t.id; saveSettings(); applyTheme(); } })) },
+  { label: 'Tema', sub: [
+    ...THEMES.map(t => ({ label: t.name, radio: () => S.theme === t.id, run: () => setTheme(t.id) })),
+    '-',
+    { label: 'Temayı seriyle eşitle', check: () => S.syncTheme, run: toggleThemeSync },
+  ] },
   { label: 'Yazıyı büyüt', key: 'Ctrl+=', run: () => setFont(S.fontSize + 1) },
   { label: 'Yazıyı küçült', key: 'Ctrl+-', run: () => setFont(S.fontSize - 1) },
   '-',
@@ -347,6 +361,9 @@ nt.onCloseRequest(async count => {
 new ResizeObserver(() => { if (active) active.fit.fit(); }).observe(el.terms);
 
 /* ---------------- Start ---------------- */
+// A program that follows the series starts with the series theme (it may have changed while this one was closed).
+const seriesTheme = await nt.themeInit(S.theme, S.syncTheme);
+if (seriesTheme !== S.theme && THEMES.some(t => t.id === seriesTheme)) { S.theme = seriesTheme; saveSettings(); }
 applyTheme();
 info = await nt.info();
 if (!info.shells.some(s => s.id === S.shell)) S.shell = info.shells[0]?.id;

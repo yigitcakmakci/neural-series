@@ -30,4 +30,10 @@ contextBridge.exposeInMainWorld("vw", {
   hasNav: () => ipcRenderer.invoke("vw:has-nav"),
   saveRotation: (p, job) => ipcRenderer.invoke("vw:save-rotation", String(p), job),
   pathForFile: (file) => { try { return webUtils.getPathForFile(file); } catch (e) { return ""; } },
+  // series theme
+  themeInit: (theme, sync) => ipcRenderer.invoke("vw:theme-init", String(theme), Boolean(sync)),
+  themeSet: (theme) => ipcRenderer.send("vw:theme-set", String(theme)),
+  themeSync: (on, theme) => ipcRenderer.send("vw:theme-sync", Boolean(on), String(theme)),
+  onThemeApply: (fn) => { ipcRenderer.on("vw:theme-apply", (_e, theme) => fn(String(theme))); },
+  onThemeSyncState: (fn) => { ipcRenderer.on("vw:theme-sync-state", (_e, on) => fn(Boolean(on))); },
 });

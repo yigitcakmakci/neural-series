@@ -20,6 +20,7 @@ const vw = window.vw || {
   onDirChanged: NOOP, meta: async () => NO_SHELL, copyImage: async () => NO_SHELL, copyText: async () => NO_SHELL,
   trash: async () => NO_SHELL, rename: async () => NO_SHELL, showInNav: async () => NO_SHELL, hasNav: async () => false,
   saveRotation: async () => NO_SHELL, pathForFile: () => '',
+  themeInit: async t => t, themeSet: NOOP, themeSync: NOOP, onThemeApply: NOOP, onThemeSyncState: NOOP,
 };
 
 const root = document.documentElement;
@@ -53,7 +54,7 @@ const SORTS = [
   { id: 'size', name: 'Boyut' },
 ];
 const INTERVALS = [2, 3, 5, 10];
-const DEFAULTS = { theme: 'neon', sort: 'name', desc: false, info: false, strip: true, checker: false, interval: 3, lastDir: '', v: 1 };
+const DEFAULTS = { theme: 'neon', syncTheme: true, sort: 'name', desc: false, info: false, strip: true, checker: false, interval: 3, lastDir: '', v: 1 };
 const S = Object.assign({}, DEFAULTS, readJSON(SETTINGS_KEY));
 if (!THEMES.some(t => t.id === S.theme)) S.theme = DEFAULTS.theme;
 if (!SORTS.some(s => s.id === S.sort)) S.sort = DEFAULTS.sort;
@@ -75,6 +76,11 @@ function setSetting(k, v) {
   saveSettings();
   applySettings();
 }
+function setTheme(id) { setSetting('theme', id); vw.themeSet(id); }
+// The series theme: another Neural program changed it.
+vw.onThemeApply(id => { if (THEMES.some(t => t.id === id) && id !== S.theme) setSetting('theme', id); });
+vw.onThemeSyncState(on => { S.syncTheme = !!on; saveSettings(); });
+function toggleThemeSync() { S.syncTheme = !S.syncTheme; saveSettings(); vw.themeSync(S.syncTheme, S.theme); }
 
 /* ---------------- Files ---------------- */
 // Extension → how the file is handled. HEIC/HEIF are listed so that they can be explained.
@@ -852,7 +858,11 @@ const MENUS = [
       { label: 'Ters sıra', check: () => S.desc, run: () => { S.desc = !S.desc; saveSettings(); resort(); } },
     ] },
     { label: 'Slayt süresi', sub: () => INTERVALS.map(n => ({ label: `${n} saniye`, radio: () => S.interval === n, run: () => { S.interval = n; saveSettings(); scheduleSlide(); } })) },
-    { label: 'Tema', sub: () => THEMES.map(t => ({ label: t.name, radio: () => S.theme === t.id, run: () => setSetting('theme', t.id) })) },
+    { label: 'Tema', sub: () => [
+      ...THEMES.map(t => ({ label: t.name, radio: () => S.theme === t.id, run: () => setTheme(t.id) })),
+      '-',
+      { label: 'Temayı seriyle eşitle', check: () => S.syncTheme, run: toggleThemeSync },
+    ] },
   ] },
   { label: 'Yardım', items: [
     { label: 'Klavye kısayolları', key: 'F1', run: openShortcuts },
@@ -1271,6 +1281,9 @@ vw.onCloseRequest(async () => {
 });
 
 /* ---------------- Start ---------------- */
+// A program that follows the series starts with the series theme (it may have changed while this one was closed).
+const seriesTheme = await vw.themeInit(S.theme, S.syncTheme);
+if (seriesTheme !== S.theme && THEMES.some(t => t.id === seriesTheme)) { S.theme = seriesTheme; saveSettings(); }
 buildMenubar();
 applySettings();
 updateChrome();

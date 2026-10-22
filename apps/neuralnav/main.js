@@ -7,6 +7,8 @@ const fsp = fs.promises;
 const path = require("path");
 const { spawn, spawnSync } = require("child_process");
 const ops = require("./ops");
+// The series theme: next to main.js when installed, in apps\shared when run from source.
+const themeSync = require(fs.existsSync(path.join(__dirname, "theme-sync.js")) ? "./theme-sync" : "../shared/theme-sync");
 
 app.setAppUserModelId("NeuralNav.NV4");
 
@@ -565,6 +567,7 @@ if (!app.requestSingleInstanceLock()) {
     Menu.setApplicationMenu(null);
     const paths = pathsFromArgs(process.argv, process.cwd());
     if (!paths.length && forwardedVirtual) { app.quit(); return; }
+    themeSync.wire({ ipcMain, BrowserWindow, prefix: "nv", name: "NeuralNav" });
     mainWin = createWindow({ paths });
   });
 }

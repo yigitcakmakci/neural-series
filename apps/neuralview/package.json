@@ -1,7 +1,7 @@
 {
   "name": "neuralview",
   "productName": "NeuralView",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "NeuralView VW-3 cyberpunk resim görüntüleyici",
   "private": true,
   "main": "main.js"

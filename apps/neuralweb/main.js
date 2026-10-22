@@ -8,6 +8,8 @@ const path = require("path");
 const { Store, hostOf } = require("./store");
 const { Shield, bareHost } = require("./shield");
 const { Vault, originOf: loginOrigin } = require("./passwords");
+// The series theme: next to main.js when installed, in apps\shared when run from source.
+const { ThemeSync } = require(fs.existsSync(path.join(__dirname, "theme-sync.js")) ? "./theme-sync" : "../shared/theme-sync");
 
 app.setAppUserModelId("NeuralWeb.NW1");
 // Tests run against a throwaway profile.
@@ -33,6 +35,7 @@ const NEURALNAV = (() => {
 let store = null;
 let shield = null;
 let vault = null;
+let themeSync = null;
 let lastCsv = null; // the password CSV last imported, which the passwords page may move to the recycle bin
 const windows = new Set();
 let winSeq = 0;
@@ -600,7 +603,7 @@ function pushState(w) {
   setTimeout(() => {
     w.statePending = false;
     if (w.win.isDestroyed()) return;
-    send(w.win.webContents, "state", { tabs: w.tabs.map(tabState), activeId: w.activeId, priv: w.priv, theme: store.s.theme, showBar: store.s.showBookmarksBar });
+    send(w.win.webContents, "state", { tabs: w.tabs.map(tabState), activeId: w.activeId, priv: w.priv, theme: store.s.theme, syncTheme: store.s.syncTheme, showBar: store.s.showBookmarksBar });
     const t = activeTab(w);
     w.win.setTitle(t ? `${tabState(t).title} - NeuralWeb` : "NeuralWeb");
   }, 16);
@@ -1096,6 +1099,7 @@ function run(w, name, arg) {
       return;
     }
     case "theme": return pageApi.setSetting(null, "theme", arg);
+    case "syncTheme": return pageApi.setSetting(null, "syncTheme", !store.s.syncTheme);
     case "minimize": return w.win.minimize();
     case "toggleMax": return setMaximized(w, !w.maximized);
     case "closeWindow": return w.win.close();
@@ -1166,6 +1170,14 @@ function saveSessionNow(excluding = null) {
 function saveSessionSoon() { clearTimeout(sessTimer); sessTimer = setTimeout(() => saveSessionNow(), 1000); }
 
 /* ============================================================ pages (neural://) API */
+// Another Neural program changed the series theme.
+function seriesTheme(theme) {
+  if (!store.s.syncTheme || store.s.theme === theme) return;
+  store.set("theme", theme);
+  for (const w of windows) { pushState(w); send(w.overlay.webContents, "theme", theme); }
+  broadcastPages("settings");
+}
+
 function broadcastPages(topic) {
   for (const w of windows) for (const t of w.tabs) if (isInternal(t.url)) send(t.wc, "page:event", { topic });
 }
@@ -1190,8 +1202,15 @@ const pageApi = {
   settings: (ctx) => ({ ...store.s, versions: versions(), priv: ctx.w.priv }),
   setSetting: (ctx, key, value) => {
     const ok = { theme: ["neon", "ice", "alarm", "daylight"], startup: ["restore", "newtab"] };
-    if (ok[key] ? !ok[key].includes(value) : !["showBookmarksBar", "askDownloadPath", "passwordsOffer"].includes(key)) return false;
+    if (ok[key] ? !ok[key].includes(value) : !["showBookmarksBar", "askDownloadPath", "passwordsOffer", "syncTheme"].includes(key)) return false;
     store.set(key, ok[key] ? value : !!value);
+    if (key === "theme" && store.s.syncTheme) themeSync.write(value);
+    if (key === "syncTheme" && store.s.syncTheme) {
+      // Switched on: take the series theme, or make NeuralWeb's theme the series theme if there is none yet.
+      const v = themeSync.read();
+      if (v) store.set("theme", v.theme);
+      else themeSync.write(store.s.theme);
+    }
     for (const w of windows) { pushState(w); send(w.overlay.webContents, "theme", store.s.theme); }
     broadcastPages("settings");
     return true;
@@ -1431,6 +1450,9 @@ if (!app.requestSingleInstanceLock()) {
   app.whenReady().then(() => {
     Menu.setApplicationMenu(null);
     store = new Store(app.getPath("userData"));
+    // The series theme: taken at startup and followed while NeuralWeb runs, unless the user turned that off.
+    themeSync = new ThemeSync({ name: "NeuralWeb", onChange: seriesTheme }).start();
+    if (store.s.syncTheme) { const v = themeSync.read(); if (v && v.theme !== store.s.theme) store.set("theme", v.theme); }
     shield = new Shield({
       store, dir: app.getPath("userData"),
       tabOf: (wc) => findTab(wc),

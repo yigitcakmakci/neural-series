@@ -19,6 +19,7 @@ const np = window.np || {
   newWindow: NOOP, paste: null, pendingFiles: async () => [], openDialog: async () => [], saveDialog: async () => null,
   readFile: async () => NO_SHELL, writeFile: async () => NO_SHELL,
   sessionLoad: async () => null, sessionSave: NOOP, pathForFile: () => '',
+  themeInit: async t => t, themeSet: NOOP, themeSync: NOOP, onThemeApply: NOOP, onThemeSyncState: NOOP,
 };
 const IN_SHELL = !!window.np;
 
@@ -67,7 +68,7 @@ const THEMES = [
 const DEFAULTS = {
   wordWrap: true, statusBar: true, zoom: 100,
   fontFamily: 'Chakra Petch', fontStyle: 'normal', fontWeight: 500, fontSize: 17,
-  theme: 'neon', matchCase: false, wrapAround: true, lastDir: '', v: 2,
+  theme: 'neon', syncTheme: true, matchCase: false, wrapAround: true, lastDir: '', v: 2,
 };
 const S = Object.assign({}, DEFAULTS, readJSON(SETTINGS_KEY));
 if (!THEMES.some(t => t.id === S.theme)) S.theme = DEFAULTS.theme;
@@ -746,6 +747,21 @@ function setTheme(id) {
   S.theme = id;
   saveSettings();
   applySettings();
+  np.themeSet(id);
+}
+
+// The series theme: another Neural program (or another NeuralPad window) changed it, or the setting changed there.
+np.onThemeApply(id => {
+  if (!THEMES.some(t => t.id === id) || id === S.theme) return;
+  S.theme = id;
+  saveSettings();
+  applySettings();
+});
+np.onThemeSyncState(on => { S.syncTheme = on; saveSettings(); });
+function toggleThemeSync() {
+  S.syncTheme = !S.syncTheme;
+  saveSettings();
+  np.themeSync(S.syncTheme, S.theme);
 }
 
 async function openFont() {
@@ -907,7 +923,11 @@ const MENUS = [
     ] },
     { label: 'Durum çubuğu', check: () => S.statusBar, run: toggleStatus },
     '-',
-    { label: 'Tema', sub: THEMES.map(t => ({ label: t.name, radio: () => S.theme === t.id, run: () => setTheme(t.id) })) },
+    { label: 'Tema', sub: [
+      ...THEMES.map(t => ({ label: t.name, radio: () => S.theme === t.id, run: () => setTheme(t.id) })),
+      '-',
+      { label: 'Temayı seriyle eşitle', check: () => S.syncTheme, run: toggleThemeSync },
+    ] },
   ] },
   { label: 'Yardım', items: [
     { label: 'Klavye kısayolları', run: openShortcuts },
@@ -1324,6 +1344,9 @@ function toast(msg) {
 }
 
 /* ---------------- Start ---------------- */
+// A program that follows the series starts with the series theme (it may have changed while this one was closed).
+const seriesTheme = await np.themeInit(S.theme, S.syncTheme);
+if (seriesTheme !== S.theme && THEMES.some(t => t.id === seriesTheme)) { S.theme = seriesTheme; saveSettings(); }
 buildMenubar();
 applySettings();
 if (IS_EXTRA_WINDOW || !(await restoreSession())) activate(createTab());

@@ -59,4 +59,10 @@ contextBridge.exposeInMainWorld("nv", {
   clipClear: () => ipcRenderer.invoke("nv:clip-clear"),
   startDrag: (paths) => ipcRenderer.send("nv:start-drag", paths.map(String)),
   pathForFile: (file) => { try { return webUtils.getPathForFile(file); } catch (e) { return ""; } },
+  // series theme
+  themeInit: (theme, sync) => ipcRenderer.invoke("nv:theme-init", String(theme), Boolean(sync)),
+  themeSet: (theme) => ipcRenderer.send("nv:theme-set", String(theme)),
+  themeSync: (on, theme) => ipcRenderer.send("nv:theme-sync", Boolean(on), String(theme)),
+  onThemeApply: on("nv:theme-apply"),
+  onThemeSyncState: on("nv:theme-sync-state"),
 });

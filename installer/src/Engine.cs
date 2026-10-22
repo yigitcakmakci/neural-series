@@ -558,6 +558,11 @@ namespace NeuralSetup
                     if (Directory.Exists(data)) { DeleteDir(data); log("  " + a.Id + " verileri silindi"); }
                 }
             }
+            if (o.RemoveData)
+            {
+                string series = Path.Combine(DataRoot, "NeuralSeries"); // the series theme, shared by the programs
+                if (Directory.Exists(series)) { DeleteDir(series); log("  ortak tema dosyası silindi"); }
+            }
             progress(0.85, "Ortak dosyalar siliniyor");
             DeleteDir(RuntimeDir);
             DeleteDir(Path.Combine(o.Root, "Simgeler"));

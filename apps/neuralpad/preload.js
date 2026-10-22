@@ -25,4 +25,10 @@ contextBridge.exposeInMainWorld("np", {
   // session
   sessionLoad: () => ipcRenderer.invoke("np:session-load"),
   sessionSave: (data) => ipcRenderer.send("np:session-save", data),
+  // series theme
+  themeInit: (theme, sync) => ipcRenderer.invoke("np:theme-init", String(theme), Boolean(sync)),
+  themeSet: (theme) => ipcRenderer.send("np:theme-set", String(theme)),
+  themeSync: (on, theme) => ipcRenderer.send("np:theme-sync", Boolean(on), String(theme)),
+  onThemeApply: (fn) => { ipcRenderer.on("np:theme-apply", (_e, theme) => fn(String(theme))); },
+  onThemeSyncState: (fn) => { ipcRenderer.on("np:theme-sync-state", (_e, on) => fn(Boolean(on))); },
 });

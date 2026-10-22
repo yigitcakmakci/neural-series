@@ -6,6 +6,8 @@ const fs = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
 const { StringDecoder } = require("string_decoder");
+// The series theme: next to main.js when installed, in apps\shared when run from source.
+const themeSync = require(fs.existsSync(path.join(__dirname, "theme-sync.js")) ? "./theme-sync" : "../shared/theme-sync");
 
 app.setAppUserModelId("NeuralTerm.NT5");
 
@@ -283,6 +285,7 @@ if (!app.requestSingleInstanceLock()) {
   app.on("window-all-closed", () => app.quit());
   app.whenReady().then(() => {
     Menu.setApplicationMenu(null);
+    themeSync.wire({ ipcMain, BrowserWindow, prefix: "nt", name: "NeuralTerm" });
     mainWin = createWindow({ dirs: dirsFromArgs(process.argv, process.cwd()) });
   });
 }

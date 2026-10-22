@@ -8,6 +8,8 @@ const fsp = fs.promises;
 const path = require("path");
 const { spawn } = require("child_process");
 const meta = require("./meta");
+// The series theme: next to main.js when installed, in apps\shared when run from source.
+const themeSync = require(fs.existsSync(path.join(__dirname, "theme-sync.js")) ? "./theme-sync" : "../shared/theme-sync");
 
 app.setAppUserModelId("NeuralView.VW3");
 // Tests that start NeuralView through another program (NeuralNav) give it a throwaway profile this way.
@@ -475,6 +477,7 @@ if (!app.requestSingleInstanceLock()) {
   app.whenReady().then(() => {
     Menu.setApplicationMenu(null);
     registerProtocols();
+    themeSync.wire({ ipcMain, BrowserWindow, prefix: "vw", name: "NeuralView" });
     mainWin = createWindow(pathsFromArgs(process.argv, process.cwd()));
   });
 }
