@@ -250,8 +250,10 @@ namespace NeuralSetup
             r.DeleteValue(@"Software\Classes\.txt\OpenWithProgids", "NeuralPad.txt");
         }
 
-        // NeuralView joins "Open with" for images; the default picture app stays whatever the user chose.
+        // NeuralView joins "Open with" for images and the Default apps list of Windows Settings; the default picture app
+        // stays whatever the user chose (Windows lets only the user change it).
         static readonly string[] ImageExts = { ".jpg", ".jpeg", ".jpe", ".jfif", ".png", ".gif", ".webp", ".bmp", ".dib", ".ico", ".svg", ".avif" };
+        const string ViewCapabilities = @"Software\NeuralSystems\NeuralView\Capabilities";
         void RegisterView(Reg r)
         {
             string exe = ExePath("NeuralView"), ico = IcoPath("NeuralView") + ",0", cmd = Q(exe) + " \"%1\"";
@@ -269,12 +271,20 @@ namespace NeuralSetup
             r.Set(prog + @"\Application", "ApplicationDescription", "NeuralView VW-3 resim görüntüleyici");
             r.Set(prog + @"\Application", "AppUserModelId", Apps.Get("NeuralView").Aumid);
             foreach (var ext in ImageExts) r.SetNone(@"Software\Classes\" + ext + @"\OpenWithProgids", "NeuralView.Image");
+            r.Set(ViewCapabilities, "ApplicationName", "NeuralView");
+            r.Set(ViewCapabilities, "ApplicationDescription", "NeuralView VW-3 resim görüntüleyici");
+            r.Set(ViewCapabilities, "ApplicationIcon", ico);
+            foreach (var ext in ImageExts) r.Set(ViewCapabilities + @"\FileAssociations", ext, "NeuralView.Image");
+            r.Set(@"Software\RegisteredApplications", "NeuralView", ViewCapabilities);
         }
         void UnregisterView(Reg r)
         {
             r.DeleteTree(@"Software\Classes\Applications\NeuralView.exe");
             r.DeleteTree(@"Software\Classes\NeuralView.Image");
             foreach (var ext in ImageExts) r.DeleteValue(@"Software\Classes\" + ext + @"\OpenWithProgids", "NeuralView.Image");
+            r.DeleteValue(@"Software\RegisteredApplications", "NeuralView");
+            r.DeleteTree(@"Software\NeuralSystems\NeuralView");
+            r.DeleteIfEmpty(@"Software\NeuralSystems");
         }
 
         void Verb(Reg r, string baseKey, string name, string label, string exe, string arg)
@@ -705,6 +715,12 @@ namespace NeuralSetup
             using (var k = Registry.CurrentUser.OpenSubKey(prefix + key, true)) if (k != null) k.DeleteValue(name, false);
         }
         public void DeleteTree(string key) { Registry.CurrentUser.DeleteSubKeyTree(prefix + key, false); }
+        public void DeleteIfEmpty(string key)
+        {
+            using (var k = Registry.CurrentUser.OpenSubKey(prefix + key))
+                if (k == null || k.SubKeyCount > 0 || k.ValueCount > 0) return;
+            Registry.CurrentUser.DeleteSubKey(prefix + key, false);
+        }
     }
 
     /* ================================================================ the payload appended to this exe */

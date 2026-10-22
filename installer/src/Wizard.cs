@@ -370,7 +370,7 @@ namespace NeuralSetup
             cWeb = Check("NeuralWeb'i tarayıcı olarak tanıt", "Varsayılan tarayıcıyı yine sen Windows Ayarlar'dan seçersin.", web && o.WebRegister, x2, Y, colW);
             Y += row(cStart, cWeb);
             cPad = Check("NeuralPad: .txt için \"Birlikte aç\"", "Varsayılan not defterin değişmez.", pad && o.PadOpenWith, x1, Y, colW);
-            cView = Check("NeuralView: resimler için \"Birlikte aç\"", "Varsayılan resim uygulaman değişmez.", view && o.ViewOpenWith, x2, Y, colW);
+            cView = Check("NeuralView: resimler için \"Birlikte aç\"", "Ayarlar'daki Varsayılan uygulamalar listesine de girer; varsayılanı sen seçersin.", view && o.ViewOpenWith, x2, Y, colW);
             Y += row(cPad, cView);
             cTerm = Check("NeuralTerm: nt komutu ve sağ tık", "Win+R'de nt; klasörlerde \"NeuralTerm'de aç\".", term && o.TermCommands, x1, Y, colW);
             cNavMenu = Check("NeuralNav: \"NeuralNav ile aç\"", "Klasörlerin ve sürücülerin sağ tık menüsüne eklenir.", nav && o.NavMenu, x2, Y, colW);
@@ -407,18 +407,29 @@ namespace NeuralSetup
             f.Status = o.Root;
             Title(existing ? "Güncelleme tamamlandı" : "Kurulum tamamlandı");
             Lead("Neural serisi hazır. Programlar Başlat menüsünde; hepsi " + o.Root + " klasöründe.");
-            bool web = o.Apps.Contains("NeuralWeb");
+            bool web = o.Apps.Contains("NeuralWeb"), view = o.Apps.Contains("NeuralView");
             if (web)
             {
                 cOpenWeb = Check("NeuralWeb'i şimdi aç", "Bitir'e basınca tarayıcı açılır.", !o.Test, X, Y, W / 2);
                 Y += cOpenWeb.Height + T.P(14);
-                if (o.WebRegister)
-                {
-                    var b = new NButton { Text = "Varsayılan tarayıcıyı seç…", Location = new Point(X, Y), Size = new Size(T.P(250), T.P(36)) };
-                    b.Click += delegate { TryStart("ms-settings:defaultapps?registeredAppUser=NeuralWeb"); };
-                    f.Screen.Controls.Add(b);
-                    Y += b.Height + T.P(18);
-                }
+            }
+            // Windows lets only the user choose a default app; each button opens that program's page in Settings.
+            var defaults = new List<NButton>();
+            Func<string, string, int, NButton> settingsButton = (text, app, width) =>
+            {
+                var b = new NButton { Text = text, Size = new Size(T.P(width), T.P(36)) };
+                b.Click += delegate { TryStart("ms-settings:defaultapps?registeredAppUser=" + app); };
+                return b;
+            };
+            if (web && o.WebRegister) defaults.Add(settingsButton("Varsayılan tarayıcıyı seç…", "NeuralWeb", 250));
+            if (view && o.ViewOpenWith) defaults.Add(settingsButton("Varsayılan resim uygulaması yap…", "NeuralView", 290));
+            if (defaults.Count > 0)
+            {
+                int x = X;
+                foreach (var b in defaults) { b.Location = new Point(x, Y); f.Screen.Controls.Add(b); x += b.Width + T.P(12); }
+                Y += defaults[0].Height + T.P(10);
+                Note("Windows varsayılan uygulamayı yalnızca senin seçmene izin verir; " + (defaults.Count > 1 ? "her düğme" : "düğme") + " Ayarlar'da o programın sayfasını açar.");
+                Y += T.P(8);
             }
             Note("Seçenekleri değiştirmek için kurulumu yeniden çalıştırman yeterli. Kaldırmak için: Windows Ayarlar › Uygulamalar › Neural serisi.");
             Note("Kurulum günlüğü: " + Path.Combine(Path.GetTempPath(), "neural-kurulum.log"));

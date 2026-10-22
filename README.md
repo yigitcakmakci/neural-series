@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/yigitcakmakci/neural-series/releases/latest"><img src="https://img.shields.io/badge/release-v1.1.0-fcee0a?style=for-the-badge&labelColor=0c0d15" alt="Release v1.1.0"></a>
+  <a href="https://github.com/yigitcakmakci/neural-series/releases/latest"><img src="https://img.shields.io/badge/release-v1.1.1-fcee0a?style=for-the-badge&labelColor=0c0d15" alt="Release v1.1.1"></a>
   <img src="https://img.shields.io/badge/codename-Karakoy-00f0ff?style=for-the-badge&labelColor=0c0d15" alt="Codename: Karakoy">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011%20x64-00f0ff?style=for-the-badge&labelColor=0c0d15" alt="Windows 10 and 11, 64-bit">
   <img src="https://img.shields.io/badge/Electron-44.5.1-00f0ff?style=for-the-badge&labelColor=0c0d15" alt="Electron 44.5.1">
@@ -57,14 +57,14 @@ They are not mock-ups. They are the tools I use every day:
 
 | | Unit | Model | Version | What it is |
 |:-:|---|:-:|:-:|---|
-| <img src="apps/neuralcalc/icon.png" width="44" alt=""> | **NeuralCalc** | `KX-9` | 1.1.0 | Scientific calculator with a readout screen, memory and keyboard input |
-| <img src="apps/neuralpad/icon.png" width="44" alt=""> | **NeuralPad** | `NP-7` | 1.1.0 | Tabbed notepad with find and replace, encodings, sessions and themes |
-| <img src="apps/neuralnav/icon.png" width="44" alt=""> | **NeuralNav** | `NV-4` | 1.1.0 | Tabbed file explorer that can stand in for Windows File Explorer |
-| <img src="apps/neuralterm/icon.png" width="44" alt=""> | **NeuralTerm** | `NT-5` | 1.1.0 | Terminal for PowerShell, PowerShell 7, Command Prompt, Git Bash and WSL |
-| <img src="apps/neuralweb/icon.png" width="44" alt=""> | **NeuralWeb** | `NW-1` | 1.1.0 | Chromium-based web browser with an ad and tracker shield and a password manager |
-| <img src="apps/neuralview/icon.png" width="44" alt=""> | **NeuralView** | `VW-3` | 1.1.0 | Image viewer with folder browsing, zoom, lossless JPEG rotation and EXIF details |
+| <img src="apps/neuralcalc/icon.png" width="44" alt=""> | **NeuralCalc** | `KX-9` | 1.1.1 | Scientific calculator with a readout screen, memory and keyboard input |
+| <img src="apps/neuralpad/icon.png" width="44" alt=""> | **NeuralPad** | `NP-7` | 1.1.1 | Tabbed notepad with find and replace, encodings, sessions and themes |
+| <img src="apps/neuralnav/icon.png" width="44" alt=""> | **NeuralNav** | `NV-4` | 1.1.1 | Tabbed file explorer that can stand in for Windows File Explorer |
+| <img src="apps/neuralterm/icon.png" width="44" alt=""> | **NeuralTerm** | `NT-5` | 1.1.1 | Terminal for PowerShell, PowerShell 7, Command Prompt, Git Bash and WSL |
+| <img src="apps/neuralweb/icon.png" width="44" alt=""> | **NeuralWeb** | `NW-1` | 1.1.1 | Chromium-based web browser with an ad and tracker shield and a password manager |
+| <img src="apps/neuralview/icon.png" width="44" alt=""> | **NeuralView** | `VW-3` | 1.1.1 | Image viewer with folder browsing, zoom, lossless JPEG rotation and EXIF details |
 
-The series itself is versioned as a whole: **Neural Series 1.1.0, codename "Karakoy"**, built on Electron 44.5.1.
+The series itself is versioned as a whole: **Neural Series 1.1.1, codename "Karakoy"**, built on Electron 44.5.1.
 See [Versions](#versions) and the [changelog](CHANGELOG.md).
 
 > [!NOTE]
@@ -78,11 +78,11 @@ See [Versions](#versions) and the [changelog](CHANGELOG.md).
 **Requirements:** Windows 10 or 11 (64-bit), about 1.5 GB of disk space. The apps carry their own typefaces and work
 offline; NeuralWeb needs a connection to browse, of course, and to refresh its blocking lists.
 
-1. Download **`Neural-Setup-1.1.0.exe`** from the [latest release](https://github.com/yigitcakmakci/neural-series/releases/latest).
+1. Download **`Neural-Setup-1.1.1.exe`** from the [latest release](https://github.com/yigitcakmakci/neural-series/releases/latest).
 2. Run it. The setup is not code-signed, so Windows SmartScreen may say *"Windows protected your PC"*. Choose
    **More info → Run anyway**. You can compare the file's SHA-256 with the one in the release notes first:
    ```powershell
-   Get-FileHash .\Neural-Setup-1.1.0.exe -Algorithm SHA256
+   Get-FileHash .\Neural-Setup-1.1.1.exe -Algorithm SHA256
    ```
 3. Follow the wizard: pick the apps and the folder (default `%USERPROFILE%\Neural`), then choose how far the apps may
    hook into Windows. Every option can be changed later by running the setup again.
@@ -97,7 +97,7 @@ offline; NeuralWeb needs a connection to browse, of course, and to refresh its b
 | Start menu shortcuts (*Başlat menüsü kısayolları*) | on | The apps appear in Start and in Windows search |
 | Register NeuralWeb as a browser (*NeuralWeb'i tarayıcı olarak tanıt*) | on | NeuralWeb is offered in **Settings → Apps → Default apps**; choosing it stays with you |
 | NeuralPad in *Open with* for `.txt` | on | Your default text editor does not change |
-| NeuralView in *Open with* for images | on | JPEG, PNG, GIF, WebP, BMP, ICO, SVG and AVIF; your default picture app does not change |
+| NeuralView in *Open with* for images | on | JPEG, PNG, GIF, WebP, BMP, ICO, SVG and AVIF; NeuralView also appears in **Settings → Apps → Default apps**, where you can make it your default picture app |
 | NeuralTerm `nt` command and context menu | on | `Win+R` → `nt`; *"Open in NeuralTerm"* on folders and drives |
 | *"Open with NeuralNav"* context menu | on | Adds NeuralNav to the right-click menu of folders and drives |
 | NeuralNav as the default folder opener | off | Double-clicking a folder opens NeuralNav instead of File Explorer |
@@ -133,10 +133,10 @@ The switches are Turkish, like the rest of the interface.
 
 ```powershell
 # install everything silently with the default options
-.\Neural-Setup-1.1.0.exe /sessiz
+.\Neural-Setup-1.1.1.exe /sessiz
 
 # pick apps, options and folder; write a log
-.\Neural-Setup-1.1.0.exe /sessiz /uygulamalar:NeuralWeb,NeuralTerm /secenekler:baslat,web,nt /hedef:D:\Apps\Neural /gunluk:C:\Temp\neural.log
+.\Neural-Setup-1.1.1.exe /sessiz /uygulamalar:NeuralWeb,NeuralTerm /secenekler:baslat,web,nt /hedef:D:\Apps\Neural /gunluk:C:\Temp\neural.log
 
 # uninstall silently (add /veriler to delete settings and personal data too)
 & "$env:USERPROFILE\Neural\Ortak\NeuralKaldir.exe" /kaldir /sessiz
@@ -307,8 +307,8 @@ and your most visited sites. Searches and suggestions come from Google.
 
 <p align="center"><img src="docs/images/screenshots/neuralview.png" alt="NeuralView VW-3 with the information panel open" width="85%"></p>
 
-An image viewer. Open a picture (double-click it if NeuralView is in *Open with*, drag it onto the window, or use
-*Dosya → Aç*) and the whole folder comes with it: step through it with the arrow keys, the mouse wheel or the
+An image viewer. Open a picture (through *Open with*, by dragging it onto the window, or with *Dosya → Aç*) and the
+whole folder comes with it: step through it with the arrow keys, the mouse wheel or the
 thumbnail strip at the bottom, sorted by name, date or size (*Görünüm → Sırala*).
 
 - **Formats:** JPEG, PNG, GIF (animated), WebP, BMP, ICO, SVG and AVIF. HEIC/HEIF photos are listed, but NeuralView
@@ -321,6 +321,10 @@ thumbnail strip at the bottom, sorted by name, date or size (*Görünüm → Sı
   ISO and focal length. A picture that carries GPS coordinates is flagged with *"KONUM VERİSİ İÇERİR"* (contains
   location data), worth knowing before you share it.
 - Copy the picture or its path, show the file in NeuralNav, rename it, or move it to the Recycle Bin (asks first).
+- **Open pictures with a double-click:** make NeuralView your default picture app. Windows lets only you change a
+  default, so the setup never does it on its own: use **"Varsayılan resim uygulaması yap…"** (make it the default
+  picture app) on the setup's last page, or **Settings → Apps → Default apps → NeuralView**, and pick it for the
+  picture types you want.
 
 <details>
 <summary><b>NeuralView shortcuts</b></summary>
@@ -389,12 +393,12 @@ powershell -ExecutionPolicy Bypass -File build.ps1
 `build.ps1` restores the exact dependency versions from the lock files (Electron, xterm.js, the typefaces from
 [Fontsource](https://fontsource.org/), the Ghostery ad blocker), stages every app as the setup installs it in
 `out\stage` (with its `fonts\` folder), compiles the helpers and the setup, and writes
-`out\Neural-Setup-1.1.0.exe` together with its SHA-256. Run it with `-SkipNpm` to reuse the existing `node_modules`.
+`out\Neural-Setup-1.1.1.exe` together with its SHA-256. Run it with `-SkipNpm` to reuse the existing `node_modules`.
 
 To try a build without touching your Windows settings, install it in test mode:
 
 ```powershell
-.\out\Neural-Setup-1.1.0.exe /test /hedef:$env:TEMP\neural-test\Neural
+.\out\Neural-Setup-1.1.1.exe /test /hedef:$env:TEMP\neural-test\Neural
 ```
 
 Other tools: `tools\make-icons.ps1` redraws every icon, `node tools\make-fonts-css.js` rewrites the font style sheets
@@ -408,21 +412,22 @@ Build first: the README images and some tests use `out\`.
 
 | Release | Codename | Date | Notes |
 |---|---|---|---|
-| **1.1.0** | **Karakoy** | 2026-10-22 | New unit: the NeuralView VW-3 image viewer, with *Open with NeuralView* in NeuralNav and the setup |
+| **1.1.1** | **Karakoy** | 2026-10-22 | NeuralView in Windows' Default apps list, and a button in the setup to make it the default |
+| 1.1.0 | Karakoy | 2026-10-22 | New unit: the NeuralView VW-3 image viewer, with *Open with NeuralView* in NeuralNav and the setup |
 | 1.0.1 | Neo-Istanbul | 2026-10-22 | Bundled typefaces: the apps no longer load fonts from Google Fonts |
 | 1.0.0 | Neo-Istanbul | 2026-10-22 | First public release: five apps, the setup and uninstaller |
 
-| Unit | Model | 1.0.0 | 1.0.1 | 1.1.0 |
-|---|:-:|:-:|:-:|:-:|
-| NeuralCalc | `KX-9` | ✔ | ✔ | ✔ |
-| NeuralPad | `NP-7` | ✔ | ✔ | ✔ |
-| NeuralNav | `NV-4` | ✔ | ✔ | ✔ |
-| NeuralTerm | `NT-5` | ✔ | ✔ | ✔ |
-| NeuralWeb | `NW-1` | ✔ | ✔ | ✔ |
-| NeuralView | `VW-3` | | | ✔ |
+| Unit | Model | 1.0.0 | 1.0.1 | 1.1.0 | 1.1.1 |
+|---|:-:|:-:|:-:|:-:|:-:|
+| NeuralCalc | `KX-9` | ✔ | ✔ | ✔ | ✔ |
+| NeuralPad | `NP-7` | ✔ | ✔ | ✔ | ✔ |
+| NeuralNav | `NV-4` | ✔ | ✔ | ✔ | ✔ |
+| NeuralTerm | `NT-5` | ✔ | ✔ | ✔ | ✔ |
+| NeuralWeb | `NW-1` | ✔ | ✔ | ✔ | ✔ |
+| NeuralView | `VW-3` | | | ✔ | ✔ |
 
 Version numbers follow [Semantic Versioning](https://semver.org/). Every major and minor release gets a codename from
-the map of Neo-Istanbul; patch releases (1.0.x) keep the codename of their line. Details are in the
+the map of Neo-Istanbul; patch releases (1.0.x, 1.1.x) keep the codename of their line. Details are in the
 [changelog](CHANGELOG.md).
 
 <a id="privacy"></a>

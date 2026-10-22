@@ -4,6 +4,20 @@ All notable changes to Neural Series are listed here. Versions follow [Semantic 
 Every major and minor release carries a codename from the map of Neo-Istanbul; patch releases keep the codename of
 their line.
 
+## 1.1.1 "Karakoy" (2026-10-22)
+
+All six apps are at 1.1.1. Run the new setup over an existing installation; options, settings and personal data are
+kept.
+
+### Changed
+
+- **Setup:** NeuralView is registered in the Default apps list of Windows Settings (*Settings → Apps → Default apps →
+  NeuralView*), with the twelve picture types it opens. Making it the default picture app is still your choice:
+  Windows lets only the user change a default, so the setup never does it on its own. The entries belong to the
+  NeuralView *Open with* option and are removed with it.
+- **Setup:** the last page has a **"Varsayılan resim uygulaması yap…"** button (make it the default picture app) next
+  to NeuralWeb's browser button; it opens NeuralView's page in Settings.
+
 ## 1.1.0 "Karakoy" (2026-10-22)
 
 A new unit joins the series: **NeuralView VW-3**, an image viewer. All six apps are at 1.1.0: NeuralCalc KX-9,
