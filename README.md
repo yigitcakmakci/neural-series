@@ -1,17 +1,17 @@
 <p align="center">
-  <img src="docs/images/banner.png" alt="Neural Series: five cyberpunk desktop apps for Windows" width="100%">
+  <img src="docs/images/banner.png" alt="Neural Series: six cyberpunk desktop apps for Windows" width="100%">
 </p>
 
 <p align="center">
-  <a href="https://github.com/yigitcakmakci/neural-series/releases/latest"><img src="https://img.shields.io/badge/release-v1.0.1-fcee0a?style=for-the-badge&labelColor=0c0d15" alt="Release v1.0.1"></a>
-  <img src="https://img.shields.io/badge/codename-Neo--Istanbul-00f0ff?style=for-the-badge&labelColor=0c0d15" alt="Codename: Neo-Istanbul">
+  <a href="https://github.com/yigitcakmakci/neural-series/releases/latest"><img src="https://img.shields.io/badge/release-v1.1.0-fcee0a?style=for-the-badge&labelColor=0c0d15" alt="Release v1.1.0"></a>
+  <img src="https://img.shields.io/badge/codename-Karakoy-00f0ff?style=for-the-badge&labelColor=0c0d15" alt="Codename: Karakoy">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011%20x64-00f0ff?style=for-the-badge&labelColor=0c0d15" alt="Windows 10 and 11, 64-bit">
   <img src="https://img.shields.io/badge/Electron-44.5.1-00f0ff?style=for-the-badge&labelColor=0c0d15" alt="Electron 44.5.1">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-ff2a4f?style=for-the-badge&labelColor=0c0d15" alt="License: GPL-3.0"></a>
 </p>
 
 <p align="center">
-  <b>NeuralCalc KX-9 &nbsp;·&nbsp; NeuralPad NP-7 &nbsp;·&nbsp; NeuralNav NV-4 &nbsp;·&nbsp; NeuralTerm NT-5 &nbsp;·&nbsp; NeuralWeb NW-1</b><br>
+  <b>NeuralCalc KX-9 &nbsp;·&nbsp; NeuralPad NP-7 &nbsp;·&nbsp; NeuralNav NV-4 &nbsp;·&nbsp; NeuralTerm NT-5 &nbsp;·&nbsp; NeuralWeb NW-1 &nbsp;·&nbsp; NeuralView VW-3</b><br>
   <a href="https://github.com/yigitcakmakci/neural-series/releases/latest"><b>Download</b></a> &nbsp;·&nbsp;
   <a href="#install">Install</a> &nbsp;·&nbsp;
   <a href="#user-guide">User guide</a> &nbsp;·&nbsp;
@@ -32,14 +32,15 @@
 
 ## `// 01` What is Neural Series?
 
-Neural Series is a family of five desktop apps for Windows that share one design language: chamfered device frames,
+Neural Series is a family of six desktop apps for Windows that share one design language: chamfered device frames,
 a yellow model band with hazard stripes, scanlines, a soft CRT glow and a beam that slowly sweeps the screen. Each app
 carries a model code like a piece of hardware from a fictional maker, Neural Systems.
 
 They are not mock-ups. They are the tools I use every day:
 
 - **Real apps, real work.** NeuralWeb is my daily browser, NeuralNav can take over from File Explorer, NeuralTerm runs
-  PowerShell, Command Prompt, Git Bash and WSL, NeuralPad opens and saves real text files in several encodings.
+  PowerShell, Command Prompt, Git Bash and WSL, NeuralPad opens and saves real text files in several encodings, and
+  NeuralView pages through the pictures of a folder.
 - **At home in Windows.** Every app has its own executable, icon and taskbar identity, its own Start menu entry, and
   optional hooks into Windows: *Open with*, folder context menus, `nt` in the Run box, a registered web browser.
 - **One installer, fully reversible.** A single setup installs any combination of the apps for the current user only,
@@ -47,7 +48,7 @@ They are not mock-ups. They are the tools I use every day:
 - **No telemetry.** Nothing is collected or sent anywhere (see [Privacy and network](#privacy)).
 
 <p align="center">
-  <img src="docs/images/showcase.png" alt="All five Neural apps side by side" width="100%">
+  <img src="docs/images/showcase.png" alt="All six Neural apps side by side" width="100%">
 </p>
 
 <a id="lineup"></a>
@@ -56,13 +57,14 @@ They are not mock-ups. They are the tools I use every day:
 
 | | Unit | Model | Version | What it is |
 |:-:|---|:-:|:-:|---|
-| <img src="apps/neuralcalc/icon.png" width="44" alt=""> | **NeuralCalc** | `KX-9` | 1.0.1 | Scientific calculator with a readout screen, memory and keyboard input |
-| <img src="apps/neuralpad/icon.png" width="44" alt=""> | **NeuralPad** | `NP-7` | 1.0.1 | Tabbed notepad with find and replace, encodings, sessions and themes |
-| <img src="apps/neuralnav/icon.png" width="44" alt=""> | **NeuralNav** | `NV-4` | 1.0.1 | Tabbed file explorer that can stand in for Windows File Explorer |
-| <img src="apps/neuralterm/icon.png" width="44" alt=""> | **NeuralTerm** | `NT-5` | 1.0.1 | Terminal for PowerShell, PowerShell 7, Command Prompt, Git Bash and WSL |
-| <img src="apps/neuralweb/icon.png" width="44" alt=""> | **NeuralWeb** | `NW-1` | 1.0.1 | Chromium-based web browser with an ad and tracker shield and a password manager |
+| <img src="apps/neuralcalc/icon.png" width="44" alt=""> | **NeuralCalc** | `KX-9` | 1.1.0 | Scientific calculator with a readout screen, memory and keyboard input |
+| <img src="apps/neuralpad/icon.png" width="44" alt=""> | **NeuralPad** | `NP-7` | 1.1.0 | Tabbed notepad with find and replace, encodings, sessions and themes |
+| <img src="apps/neuralnav/icon.png" width="44" alt=""> | **NeuralNav** | `NV-4` | 1.1.0 | Tabbed file explorer that can stand in for Windows File Explorer |
+| <img src="apps/neuralterm/icon.png" width="44" alt=""> | **NeuralTerm** | `NT-5` | 1.1.0 | Terminal for PowerShell, PowerShell 7, Command Prompt, Git Bash and WSL |
+| <img src="apps/neuralweb/icon.png" width="44" alt=""> | **NeuralWeb** | `NW-1` | 1.1.0 | Chromium-based web browser with an ad and tracker shield and a password manager |
+| <img src="apps/neuralview/icon.png" width="44" alt=""> | **NeuralView** | `VW-3` | 1.1.0 | Image viewer with folder browsing, zoom, lossless JPEG rotation and EXIF details |
 
-The series itself is versioned as a whole: **Neural Series 1.0.1, codename "Neo-Istanbul"**, built on Electron 44.5.1.
+The series itself is versioned as a whole: **Neural Series 1.1.0, codename "Karakoy"**, built on Electron 44.5.1.
 See [Versions](#versions) and the [changelog](CHANGELOG.md).
 
 > [!NOTE]
@@ -73,14 +75,14 @@ See [Versions](#versions) and the [changelog](CHANGELOG.md).
 
 ## `// 03` Install
 
-**Requirements:** Windows 10 or 11 (64-bit), about 1.3 GB of disk space. The apps carry their own typefaces and work
+**Requirements:** Windows 10 or 11 (64-bit), about 1.5 GB of disk space. The apps carry their own typefaces and work
 offline; NeuralWeb needs a connection to browse, of course, and to refresh its blocking lists.
 
-1. Download **`Neural-Setup-1.0.1.exe`** from the [latest release](https://github.com/yigitcakmakci/neural-series/releases/latest).
+1. Download **`Neural-Setup-1.1.0.exe`** from the [latest release](https://github.com/yigitcakmakci/neural-series/releases/latest).
 2. Run it. The setup is not code-signed, so Windows SmartScreen may say *"Windows protected your PC"*. Choose
    **More info → Run anyway**. You can compare the file's SHA-256 with the one in the release notes first:
    ```powershell
-   Get-FileHash .\Neural-Setup-1.0.1.exe -Algorithm SHA256
+   Get-FileHash .\Neural-Setup-1.1.0.exe -Algorithm SHA256
    ```
 3. Follow the wizard: pick the apps and the folder (default `%USERPROFILE%\Neural`), then choose how far the apps may
    hook into Windows. Every option can be changed later by running the setup again.
@@ -95,6 +97,7 @@ offline; NeuralWeb needs a connection to browse, of course, and to refresh its b
 | Start menu shortcuts (*Başlat menüsü kısayolları*) | on | The apps appear in Start and in Windows search |
 | Register NeuralWeb as a browser (*NeuralWeb'i tarayıcı olarak tanıt*) | on | NeuralWeb is offered in **Settings → Apps → Default apps**; choosing it stays with you |
 | NeuralPad in *Open with* for `.txt` | on | Your default text editor does not change |
+| NeuralView in *Open with* for images | on | JPEG, PNG, GIF, WebP, BMP, ICO, SVG and AVIF; your default picture app does not change |
 | NeuralTerm `nt` command and context menu | on | `Win+R` → `nt`; *"Open in NeuralTerm"* on folders and drives |
 | *"Open with NeuralNav"* context menu | on | Adds NeuralNav to the right-click menu of folders and drives |
 | NeuralNav as the default folder opener | off | Double-clicking a folder opens NeuralNav instead of File Explorer |
@@ -102,7 +105,8 @@ offline; NeuralWeb needs a connection to browse, of course, and to refresh its b
 | Change Windows icons (*Windows simgelerini değiştir*) | off | This PC, Recycle Bin, Network and the user folder get Neural icons |
 
 **Updating.** Run a newer setup; it finds the existing installation, keeps your options and never touches your
-settings or personal data.
+settings or personal data. Apps added to the series since your last install (like NeuralView in 1.1.0) are offered
+as checked; an app you leave out stays out at later updates.
 
 **Uninstalling.** Use **Settings → Apps → Installed apps → Neural serisi**. The uninstaller removes the apps,
 shortcuts and every Windows registration it made, so folders open in File Explorer again. Your settings, bookmarks,
@@ -115,7 +119,7 @@ and personal data).
 | What | Where |
 |---|---|
 | Programs | `%USERPROFILE%\Neural\<App>\Program` (shared runtime in `Neural\Ortak\Electron`) |
-| Settings and personal data | `%APPDATA%\NeuralCalc KX-9`, `%APPDATA%\NeuralPad`, `%APPDATA%\NeuralNav`, `%APPDATA%\NeuralTerm`, `%APPDATA%\NeuralWeb` |
+| Settings and personal data | `%APPDATA%\NeuralCalc KX-9`, `%APPDATA%\NeuralPad`, `%APPDATA%\NeuralNav`, `%APPDATA%\NeuralTerm`, `%APPDATA%\NeuralWeb`, `%APPDATA%\NeuralView` |
 | Shortcuts to those data folders | `%USERPROFILE%\Neural\Veriler` |
 | Uninstaller | `%USERPROFILE%\Neural\Ortak\NeuralKaldir.exe` |
 | Setup log | `%TEMP%\neural-kurulum.log` |
@@ -129,17 +133,17 @@ The switches are Turkish, like the rest of the interface.
 
 ```powershell
 # install everything silently with the default options
-.\Neural-Setup-1.0.1.exe /sessiz
+.\Neural-Setup-1.1.0.exe /sessiz
 
 # pick apps, options and folder; write a log
-.\Neural-Setup-1.0.1.exe /sessiz /uygulamalar:NeuralWeb,NeuralTerm /secenekler:baslat,web,nt /hedef:D:\Apps\Neural /gunluk:C:\Temp\neural.log
+.\Neural-Setup-1.1.0.exe /sessiz /uygulamalar:NeuralWeb,NeuralTerm /secenekler:baslat,web,nt /hedef:D:\Apps\Neural /gunluk:C:\Temp\neural.log
 
 # uninstall silently (add /veriler to delete settings and personal data too)
 & "$env:USERPROFILE\Neural\Ortak\NeuralKaldir.exe" /kaldir /sessiz
 ```
 
 Options for `/secenekler`: `baslat` (Start menu), `web` (register NeuralWeb), `pad` (NeuralPad in *Open with*),
-`nt` (NeuralTerm command and menu), `navmenu` (NeuralNav menu), `navvarsayilan` (NeuralNav as default folder opener),
+`view` (NeuralView in *Open with*), `nt` (NeuralTerm command and menu), `navmenu` (NeuralNav menu), `navvarsayilan` (NeuralNav as default folder opener),
 `izleyici` (Explorer watcher), `simge` (Windows icons). Exit code `0` means success.
 
 </details>
@@ -150,7 +154,7 @@ Options for `/secenekler`: `baslat` (Start menu), `web` (register NeuralWeb), `p
 
 Every app is a frameless window: drag it by the yellow band, resize it from any edge, and use the small black-and-yellow
 buttons on the right of the band to minimize, maximize or close. Each app remembers its window position. NeuralPad,
-NeuralNav, NeuralTerm and NeuralWeb come with four color themes: **Neon**, **Buz** (Ice), **Alarm** and **Gündüz** (Daylight).
+NeuralNav, NeuralTerm, NeuralWeb and NeuralView come with four color themes: **Neon**, **Buz** (Ice), **Alarm** and **Gündüz** (Daylight).
 
 ### <img src="apps/neuralcalc/icon.png" width="28" alt=""> NeuralCalc `KX-9`
 
@@ -208,7 +212,8 @@ A file explorer with tabs. The sidebar holds quick access (*Hızlı erişim*), d
   tiles view (*Görünüm*) and a preview pane (*Önizleme*) for images and text.
 - Copy and move run as background jobs and ask what to do when names clash; deleting goes to the Recycle Bin, and the
   last operation can be undone.
-- Right-click offers *Open with*, *Open in NeuralPad*, *copy path* and properties. The terminal button opens
+- Right-click offers *Open with*, *Open in NeuralPad* for text files, *Open in NeuralView* (*NeuralView ile aç*) for
+  images, *copy path* and properties. The terminal button opens
   NeuralTerm in the current folder.
 - Optionally the default folder opener of Windows (see [Install](#install)).
 
@@ -298,11 +303,49 @@ and your most visited sites. Searches and suggestions come from Google.
 
 </details>
 
+### <img src="apps/neuralview/icon.png" width="28" alt=""> NeuralView `VW-3`
+
+<p align="center"><img src="docs/images/screenshots/neuralview.png" alt="NeuralView VW-3 with the information panel open" width="85%"></p>
+
+An image viewer. Open a picture (double-click it if NeuralView is in *Open with*, drag it onto the window, or use
+*Dosya → Aç*) and the whole folder comes with it: step through it with the arrow keys, the mouse wheel or the
+thumbnail strip at the bottom, sorted by name, date or size (*Görünüm → Sırala*).
+
+- **Formats:** JPEG, PNG, GIF (animated), WebP, BMP, ICO, SVG and AVIF. HEIC/HEIF photos are listed, but NeuralView
+  says plainly that it cannot open them; export them as JPEG or PNG first.
+- **Zoom:** the picture fits the window; `1` shows it at actual size, `Ctrl` + wheel zooms around the pointer, dragging
+  pans, and a double-click switches between fit and 100 %. `F11` is full screen, `Space` starts a slideshow.
+- **Rotate:** `R` / `Shift+R` turn the picture on screen; NeuralView asks before it saves. JPEG rotation is lossless
+  (only the EXIF orientation changes), PNG and BMP are written again without loss, WebP at the highest quality.
+- **Information panel** (`I`, *Bilgi*): dimensions, file size, dates and EXIF data: camera, lens, exposure, aperture,
+  ISO and focal length. A picture that carries GPS coordinates is flagged with *"KONUM VERİSİ İÇERİR"* (contains
+  location data), worth knowing before you share it.
+- Copy the picture or its path, show the file in NeuralNav, rename it, or move it to the Recycle Bin (asks first).
+
+<details>
+<summary><b>NeuralView shortcuts</b></summary>
+
+| Action | Keys |
+|---|---|
+| Next / previous image | `→` / `←`, mouse wheel, or the mouse's back and forward buttons |
+| First / last image | `Home` / `End` |
+| Fit to window / actual size | `0` / `1` (also with `Ctrl`), or double-click |
+| Zoom in / out | `+` / `-`, or `Ctrl` + mouse wheel |
+| Rotate right / left / save the rotation | `R` / `Shift+R` / `Ctrl+S` |
+| Information panel / thumbnail strip | `I` / `T` |
+| Full screen / slideshow / leave either | `F11` / `Space` / `Esc` |
+| Copy picture / copy path | `Ctrl+C` / `Ctrl+Shift+C` |
+| Show in NeuralNav | `Ctrl+E` |
+| Rename / move to Recycle Bin | `F2` / `Del` |
+| Open / shortcut list | `Ctrl+O` / `?` or `F1` |
+
+</details>
+
 <a id="under-the-hood"></a>
 
 ## `// 05` Under the hood
 
-- **One runtime, five identities.** All apps run on one copy of Electron 44.5.1 in `Neural\Ortak\Electron`; each app
+- **One runtime, six identities.** All apps run on one copy of Electron 44.5.1 in `Neural\Ortak\Electron`; each app
   folder holds NTFS hard links to it, so the runtime takes disk space once. Every app gets its own copy of
   `electron.exe` with its own icon, name and version written in through the Windows resource API, and its own
   AppUserModelID, so the taskbar groups and pins it as a separate program.
@@ -315,12 +358,13 @@ and your most visited sites. Searches and suggestions come from Google.
 
 ```text
 neural-series/
-├─ apps/                 the five apps (Electron main and renderer code, C# helpers, icons)
+├─ apps/                 the six apps (Electron main and renderer code, C# helpers, icons)
 │  ├─ neuralcalc/        KX-9
 │  ├─ neuralpad/         NP-7
 │  ├─ neuralnav/         NV-4
 │  ├─ neuralterm/        NT-5
-│  └─ neuralweb/         NW-1
+│  ├─ neuralweb/         NW-1
+│  └─ neuralview/        VW-3
 ├─ installer/src/        setup and uninstaller (C#)
 ├─ assets/windows-icons/ optional icon set for This PC, Recycle Bin, Network, user folder
 ├─ tools/                icon generator and test helpers (DevTools client, screenshots, keystrokes)
@@ -345,12 +389,12 @@ powershell -ExecutionPolicy Bypass -File build.ps1
 `build.ps1` restores the exact dependency versions from the lock files (Electron, xterm.js, the typefaces from
 [Fontsource](https://fontsource.org/), the Ghostery ad blocker), stages every app as the setup installs it in
 `out\stage` (with its `fonts\` folder), compiles the helpers and the setup, and writes
-`out\Neural-Setup-1.0.1.exe` together with its SHA-256. Run it with `-SkipNpm` to reuse the existing `node_modules`.
+`out\Neural-Setup-1.1.0.exe` together with its SHA-256. Run it with `-SkipNpm` to reuse the existing `node_modules`.
 
 To try a build without touching your Windows settings, install it in test mode:
 
 ```powershell
-.\out\Neural-Setup-1.0.1.exe /test /hedef:$env:TEMP\neural-test\Neural
+.\out\Neural-Setup-1.1.0.exe /test /hedef:$env:TEMP\neural-test\Neural
 ```
 
 Other tools: `tools\make-icons.ps1` redraws every icon, `node tools\make-fonts-css.js` rewrites the font style sheets
@@ -364,16 +408,18 @@ Build first: the README images and some tests use `out\`.
 
 | Release | Codename | Date | Notes |
 |---|---|---|---|
-| **1.0.1** | **Neo-Istanbul** | 2026-10-22 | Bundled typefaces: the apps no longer load fonts from Google Fonts |
+| **1.1.0** | **Karakoy** | 2026-10-22 | New unit: the NeuralView VW-3 image viewer, with *Open with NeuralView* in NeuralNav and the setup |
+| 1.0.1 | Neo-Istanbul | 2026-10-22 | Bundled typefaces: the apps no longer load fonts from Google Fonts |
 | 1.0.0 | Neo-Istanbul | 2026-10-22 | First public release: five apps, the setup and uninstaller |
 
-| Unit | Model | 1.0.0 | 1.0.1 |
-|---|:-:|:-:|:-:|
-| NeuralCalc | `KX-9` | ✔ | ✔ |
-| NeuralPad | `NP-7` | ✔ | ✔ |
-| NeuralNav | `NV-4` | ✔ | ✔ |
-| NeuralTerm | `NT-5` | ✔ | ✔ |
-| NeuralWeb | `NW-1` | ✔ | ✔ |
+| Unit | Model | 1.0.0 | 1.0.1 | 1.1.0 |
+|---|:-:|:-:|:-:|:-:|
+| NeuralCalc | `KX-9` | ✔ | ✔ | ✔ |
+| NeuralPad | `NP-7` | ✔ | ✔ | ✔ |
+| NeuralNav | `NV-4` | ✔ | ✔ | ✔ |
+| NeuralTerm | `NT-5` | ✔ | ✔ | ✔ |
+| NeuralWeb | `NW-1` | ✔ | ✔ | ✔ |
+| NeuralView | `VW-3` | | | ✔ |
 
 Version numbers follow [Semantic Versioning](https://semver.org/). Every major and minor release gets a codename from
 the map of Neo-Istanbul; patch releases (1.0.x) keep the codename of their line. Details are in the
@@ -385,7 +431,8 @@ the map of Neo-Istanbul; patch releases (1.0.x) keep the codename of their line.
 
 - The apps collect nothing and have no analytics or crash reporting.
 - The typefaces are bundled with the apps, so no font is ever fetched from the internet. NeuralCalc, NeuralPad,
-  NeuralNav and NeuralTerm do not connect to anything by themselves.
+  NeuralNav, NeuralTerm and NeuralView do not connect to anything by themselves; NeuralView reads your pictures and
+  their EXIF data on your PC only.
 - NeuralWeb sends what you type in the address bar to Google for suggestions and search, like most browsers. It
   refreshes its blocking lists from GitHub every few days and, like Chromium, downloads its Turkish and English
   spell-check dictionaries from Google's servers once. Everything else is traffic to the sites you visit.

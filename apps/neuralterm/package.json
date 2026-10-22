@@ -1,7 +1,7 @@
 {
   "name": "neuralterm",
   "productName": "NeuralTerm",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "NeuralTerm NT-5 Neural serisi terminal",
   "private": true,
   "main": "main.js"

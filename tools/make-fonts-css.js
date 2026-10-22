@@ -9,7 +9,7 @@ const path = require("path");
 const ROOT = path.join(__dirname, "..");
 const SUBSETS = ["latin-ext", "latin"];
 const SHEETS = {
-  // all five apps
+  // every app
   "fonts.css": [
     { pkg: "chakra-petch", weights: [400, 500, 600, 700], italic: [400, 500, 700] },
     { pkg: "rajdhani", weights: [500, 600, 700] },

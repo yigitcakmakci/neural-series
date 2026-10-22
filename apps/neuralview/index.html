@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="tr" class="theme-neon">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NeuralView</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" type="image/png" href="icon.png">
+</head>
+<body>
+<div class="window" id="window">
+  <div class="frame">
+    <div class="app frame-inner" id="app">
+
+      <!-- Top band: brand, menu, image name, window buttons (draggable) -->
+      <header class="band">
+        <div class="brand" aria-hidden="true"><span class="brand-model">VW-3</span><span class="brand-name">NEURALVIEW</span></div>
+        <nav class="menubar" id="menubar" role="menubar" aria-label="Ana menü"></nav>
+        <div class="band-title" id="band-title">NeuralView</div>
+        <span class="hazard" aria-hidden="true"></span>
+        <div class="win-btns">
+          <button class="win-btn" id="win-min" type="button" aria-label="Simge durumuna küçült" title="Küçült"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 9.5h8"/></svg></button>
+          <button class="win-btn" id="win-max" type="button" aria-label="Ekranı kapla" title="Ekranı kapla"><svg class="ic-max" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5h7v7h-7z"/></svg><svg class="ic-restore" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5h5v5M2.5 4.5h5v5h-5z"/></svg></button>
+          <button class="win-btn close" id="win-close" type="button" aria-label="Kapat" title="Kapat"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button>
+        </div>
+      </header>
+
+      <div class="body">
+        <!-- The viewing screen -->
+        <main class="stage" id="stage" tabindex="-1" aria-label="Resim">
+          <div class="beam-track" aria-hidden="true"><div class="beam"></div></div>
+          <div class="viewport" id="viewport"></div>
+
+          <div class="empty" id="empty">
+            <p class="empty-mark" aria-hidden="true">VW-3</p>
+            <p class="empty-text" id="empty-text">Bir resim açmak için <kbd>Ctrl+O</kbd> tuşlarına bas ya da resmi buraya sürükle.</p>
+            <button class="cta" id="empty-open" type="button">Resim aç</button>
+          </div>
+
+          <div class="notice" id="notice" role="alert" hidden>
+            <p class="notice-mark" aria-hidden="true">!</p>
+            <h2 class="notice-title" id="notice-title"></h2>
+            <p class="notice-text" id="notice-text"></p>
+          </div>
+
+          <button class="nav-arrow prev" id="nav-prev" type="button" aria-label="Önceki resim" title="Önceki (←)"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M7.5 2.5L4 6l3.5 3.5"/></svg></button>
+          <button class="nav-arrow next" id="nav-next" type="button" aria-label="Sonraki resim" title="Sonraki (→)"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5L8 6l-3.5 3.5"/></svg></button>
+
+          <div class="rotbar" id="rotbar" hidden>
+            <span id="rot-text"></span>
+            <button class="rb-btn primary" id="rot-save" type="button">Kaydet</button>
+            <button class="rb-btn" id="rot-undo" type="button">Geri al</button>
+          </div>
+          <div class="hud" id="hud" aria-live="polite"></div>
+          <div class="drop" id="drop" hidden><span>RESMİ BIRAK</span></div>
+        </main>
+
+        <!-- Information panel -->
+        <aside class="info" id="info" aria-label="Resim bilgisi" hidden>
+          <div class="info-head"><span>BİLGİ</span><button class="info-close" id="info-close" type="button" aria-label="Bilgi panelini kapat" title="Kapat (I)"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6"/></svg></button></div>
+          <div class="gps-warn" id="gps-warn" hidden>
+            <strong>KONUM VERİSİ İÇERİR</strong>
+            <span>Bu resim çekildiği yerin koordinatlarını taşıyor. Paylaşmadan önce bunu bil.</span>
+          </div>
+          <dl class="info-list" id="info-list"></dl>
+        </aside>
+      </div>
+
+      <!-- Thumbnails of the folder -->
+      <div class="strip" id="strip" role="listbox" aria-label="Klasördeki resimler"></div>
+
+      <!-- Status bar -->
+      <footer class="statusbar" id="statusbar">
+        <span id="st-pos">—</span>
+        <span id="st-dims"></span>
+        <span id="st-size"></span>
+        <span id="st-fmt"></span>
+        <span id="st-zoom"></span>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Resize handles -->
+  <div class="rz rz-n" data-edge="n"></div>
+  <div class="rz rz-s" data-edge="s"></div>
+  <div class="rz rz-e" data-edge="e"></div>
+  <div class="rz rz-w" data-edge="w"></div>
+  <div class="rz rz-ne" data-edge="ne"></div>
+  <div class="rz rz-nw" data-edge="nw"></div>
+  <div class="rz rz-se" data-edge="se"></div>
+  <div class="rz rz-sw" data-edge="sw"></div>
+</div>
+
+<!-- Drop-down menu layer -->
+<div id="popups"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- Questions (delete, saving a rotation) -->
+<dialog class="hud-dialog" id="dlg-confirm">
+  <form method="dialog">
+    <div class="dlg-body">
+      <h2 class="dlg-head" id="confirm-title">NeuralView</h2>
+      <div class="dlg-content"><p id="confirm-text"></p><p class="hint" id="confirm-hint"></p></div>
+      <div class="btns" id="confirm-btns"></div>
+    </div>
+  </form>
+</dialog>
+
+<!-- Rename -->
+<dialog class="hud-dialog" id="dlg-rename">
+  <form method="dialog" id="rename-form">
+    <div class="dlg-body">
+      <h2 class="dlg-head">Yeniden adlandır</h2>
+      <div class="dlg-content">
+        <label class="field">Yeni ad
+          <input id="rename-input" type="text" spellcheck="false" autocomplete="off">
+        </label>
+        <p class="hint error" id="rename-error"></p>
+      </div>
+      <div class="btns">
+        <button value="ok" class="primary">Yeniden adlandır</button>
+        <button value="cancel" formnovalidate>İptal</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<!-- Shortcuts -->
+<dialog class="hud-dialog wide" id="dlg-keys">
+  <form method="dialog">
+    <div class="dlg-body">
+      <h2 class="dlg-head">Klavye kısayolları</h2>
+      <div class="dlg-content"><div class="keys" id="keys-list"></div></div>
+      <div class="btns"><button value="ok" class="primary">Tamam</button></div>
+    </div>
+  </form>
+</dialog>
+
+<!-- About -->
+<dialog class="hud-dialog" id="dlg-about">
+  <form method="dialog">
+    <div class="dlg-body">
+      <h2 class="dlg-head">NeuralView hakkında</h2>
+      <div class="dlg-content">
+        <p class="about-mark" aria-hidden="true">VW-3</p>
+        <p>Neo-İstanbul ağının resim görüntüleyicisi: JPG, PNG, GIF, WebP, BMP, ICO, SVG ve AVIF.</p>
+        <p class="hint">Sürüm 1.1 · Resimlerin yalnızca bu bilgisayarda açılır; NeuralView hiçbir şeyi bir yere göndermez.</p>
+      </div>
+      <div class="btns"><button value="ok" class="primary">Tamam</button></div>
+    </div>
+  </form>
+</dialog>
+
+<script src="app.js"></script>
+</body>
+</html>

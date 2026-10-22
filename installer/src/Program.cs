@@ -4,7 +4,7 @@
 // Scripting and tests:
 //   /test                              keeps every Windows change under HKCU\Software\NeuralSetupTest and <target>\_test
 //   /hedef:<folder>  /sessiz (silent)  /gunluk:<log file>  /veriler (also delete settings and personal data)
-//   /uygulamalar:NeuralCalc,NeuralWeb  /secenekler:baslat,pad,navmenu,navvarsayilan,izleyici,nt,web,simge
+//   /uygulamalar:NeuralCalc,NeuralWeb  /secenekler:baslat,pad,navmenu,navvarsayilan,izleyici,nt,web,view,simge
 //   /onizle:programlar|windows|kurulum|tamam|hata   (with /test: open the wizard on that page)
 using System;
 using System.Collections.Generic;
@@ -61,7 +61,7 @@ namespace NeuralSetup
                 var on = new HashSet<string>(arg("secenekler").Split(',').Select(x => x.Trim().ToLowerInvariant()));
                 o.StartMenu = on.Contains("baslat"); o.PadOpenWith = on.Contains("pad"); o.NavMenu = on.Contains("navmenu");
                 o.NavDefault = on.Contains("navvarsayilan"); o.NavWatch = on.Contains("izleyici"); o.TermCommands = on.Contains("nt");
-                o.WebRegister = on.Contains("web"); o.WindowsIcons = on.Contains("simge");
+                o.WebRegister = on.Contains("web"); o.WindowsIcons = on.Contains("simge"); o.ViewOpenWith = on.Contains("view");
             }
             o.RemoveData = arg("veriler") != null;
 
@@ -73,7 +73,7 @@ namespace NeuralSetup
 
             if (arg("sessiz") != null) return Silent(o, payload, uninstall, arg("gunluk"));
 
-            var form = new NeuralForm(880, 600, true);
+            var form = new NeuralForm(880, 680, true);
             var wizard = new Wizard(form, o, payload, uninstall, existing);
             if (arg("onizle") != null && o.Test) form.Shown += delegate { wizard.Preview(arg("onizle")); };
             Application.Run(form);

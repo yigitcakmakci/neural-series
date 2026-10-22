@@ -27,7 +27,7 @@ namespace NeuralSetup
         readonly List<Item> items = new List<Item>();
         readonly Dictionary<string, NCheck> appChecks = new Dictionary<string, NCheck>();
         readonly List<string> logLines = new List<string>();
-        NCheck cStart, cPad, cTerm, cWeb, cNavMenu, cNavDefault, cNavWatch, cIcons, cOpenWeb, cRemoveData;
+        NCheck cStart, cPad, cTerm, cWeb, cView, cNavMenu, cNavDefault, cNavWatch, cIcons, cOpenWeb, cRemoveData;
         PathBox pathBox;
         NProgress bar;
         LogView logView;
@@ -120,7 +120,7 @@ namespace NeuralSetup
         void ReadWindows()
         {
             if (cStart == null) return;
-            o.StartMenu = cStart.Checked; o.PadOpenWith = cPad.Checked; o.TermCommands = cTerm.Checked; o.WebRegister = cWeb.Checked;
+            o.StartMenu = cStart.Checked; o.PadOpenWith = cPad.Checked; o.TermCommands = cTerm.Checked; o.WebRegister = cWeb.Checked; o.ViewOpenWith = cView.Checked;
             o.NavMenu = cNavMenu.Checked; o.NavDefault = cNavDefault.Checked; o.NavWatch = cNavWatch.Checked && cNavDefault.Checked; o.WindowsIcons = cIcons.Checked;
         }
         bool CheckTarget()
@@ -229,7 +229,7 @@ namespace NeuralSetup
             items.Clear();
             foreach (Control c in f.Screen.Controls.Cast<Control>().ToList()) { f.Screen.Controls.Remove(c); c.Dispose(); }
             appChecks.Clear();
-            cStart = cPad = cTerm = cWeb = cNavMenu = cNavDefault = cNavWatch = cIcons = cOpenWeb = cRemoveData = null;
+            cStart = cPad = cTerm = cWeb = cView = cNavMenu = cNavDefault = cNavWatch = cIcons = cOpenWeb = cRemoveData = null;
             pathBox = null; bar = null; logView = null;
             X = T.P(36); Y = T.P(30); W = f.Screen.Width - T.P(72);
             f.Back.Visible = false; f.Next.Visible = true; f.Next.Enabled = true; f.Next.Danger = false; f.Next.Primary = true;
@@ -289,7 +289,7 @@ namespace NeuralSetup
         {
             f.Status = payload != null ? "Paket: " + Size(new FileInfo(Process.GetCurrentProcess().MainModule.FileName).Length) + " · Neural serisi " + Engine.Version : "";
             Title("Neural serisine hoş geldin");
-            Lead("Bu sihirbaz Neural serisinin beş programını bilgisayarına kurar. Hepsi aynı Neural tasarımını ve tek bir ortak Electron çalışma klasörünü paylaşır.");
+            Lead("Bu sihirbaz Neural serisinin altı programını bilgisayarına kurar. Hepsi aynı Neural tasarımını ve tek bir ortak Electron çalışma klasörünü paylaşır.");
             foreach (var a in Apps.All)
             {
                 items.Add(new Item { Kind = "app", Code = a.Code, Text = a.Id, Sub = a.Summary, R = new Rectangle(X, Y, W, T.P(30)) });
@@ -364,21 +364,23 @@ namespace NeuralSetup
             Title("Windows ile bağlantılar");
             Lead("Hangi Windows özelliklerinin Neural programlarını kullanacağını seç. Kutuyu kaldırırsan o bağlantı geri alınır.");
             int colW = (W - T.P(14)) / 2, x1 = X, x2 = X + colW + T.P(14);
-            bool pad = o.Apps.Contains("NeuralPad"), nav = o.Apps.Contains("NeuralNav"), term = o.Apps.Contains("NeuralTerm"), web = o.Apps.Contains("NeuralWeb");
+            bool pad = o.Apps.Contains("NeuralPad"), nav = o.Apps.Contains("NeuralNav"), term = o.Apps.Contains("NeuralTerm"), web = o.Apps.Contains("NeuralWeb"), view = o.Apps.Contains("NeuralView");
             Func<NCheck, NCheck, int> row = (a, b) => Math.Max(a.Height, b == null ? 0 : b.Height) + T.P(10);
             cStart = Check("Başlat menüsü kısayolları", "Programlar Başlat menüsünde ve Windows aramasında görünür.", o.StartMenu, x1, Y, colW);
             cWeb = Check("NeuralWeb'i tarayıcı olarak tanıt", "Varsayılan tarayıcıyı yine sen Windows Ayarlar'dan seçersin.", web && o.WebRegister, x2, Y, colW);
             Y += row(cStart, cWeb);
             cPad = Check("NeuralPad: .txt için \"Birlikte aç\"", "Varsayılan not defterin değişmez.", pad && o.PadOpenWith, x1, Y, colW);
-            cTerm = Check("NeuralTerm: nt komutu ve sağ tık", "Win+R'de nt; klasörlerde \"NeuralTerm'de aç\".", term && o.TermCommands, x2, Y, colW);
-            Y += row(cPad, cTerm);
-            cNavMenu = Check("NeuralNav: \"NeuralNav ile aç\"", "Klasörlerin ve sürücülerin sağ tık menüsüne eklenir.", nav && o.NavMenu, x1, Y, colW);
-            cNavDefault = Check("NeuralNav varsayılan klasör açıcı", "Klasörlere çift tıklayınca NeuralNav açılır. Kaldırınca Windows Gezgini geri gelir.", nav && o.NavDefault, x2, Y, colW);
-            Y += row(cNavMenu, cNavDefault);
-            cNavWatch = Check("Gezgin pencerelerini yakala", "Küçük bir izleyici, Win+E dahil açılan Gezgin pencerelerini NeuralNav'a çevirir.", nav && o.NavDefault && o.NavWatch, x1, Y, colW);
-            cIcons = Check("Windows simgelerini değiştir", "Bu Bilgisayar, Geri Dönüşüm Kutusu, Ağ ve kullanıcı klasörü Neural simgelerini alır.", o.WindowsIcons, x2, Y, colW);
-            Y += row(cNavWatch, cIcons);
-            cPad.Enabled = pad; cTerm.Enabled = term; cWeb.Enabled = web; cNavMenu.Enabled = nav; cNavDefault.Enabled = nav;
+            cView = Check("NeuralView: resimler için \"Birlikte aç\"", "Varsayılan resim uygulaman değişmez.", view && o.ViewOpenWith, x2, Y, colW);
+            Y += row(cPad, cView);
+            cTerm = Check("NeuralTerm: nt komutu ve sağ tık", "Win+R'de nt; klasörlerde \"NeuralTerm'de aç\".", term && o.TermCommands, x1, Y, colW);
+            cNavMenu = Check("NeuralNav: \"NeuralNav ile aç\"", "Klasörlerin ve sürücülerin sağ tık menüsüne eklenir.", nav && o.NavMenu, x2, Y, colW);
+            Y += row(cTerm, cNavMenu);
+            cNavDefault = Check("NeuralNav varsayılan klasör açıcı", "Klasörlere çift tıklayınca NeuralNav açılır. Kaldırınca Windows Gezgini geri gelir.", nav && o.NavDefault, x1, Y, colW);
+            cNavWatch = Check("Gezgin pencerelerini yakala", "Küçük bir izleyici, Win+E dahil açılan Gezgin pencerelerini NeuralNav'a çevirir.", nav && o.NavDefault && o.NavWatch, x2, Y, colW);
+            Y += row(cNavDefault, cNavWatch);
+            cIcons = Check("Windows simgelerini değiştir", "Bu Bilgisayar, Geri Dönüşüm Kutusu, Ağ ve kullanıcı klasörü Neural simgelerini alır.", o.WindowsIcons, x1, Y, colW);
+            Y += row(cIcons, null);
+            cPad.Enabled = pad; cTerm.Enabled = term; cWeb.Enabled = web; cView.Enabled = view; cNavMenu.Enabled = nav; cNavDefault.Enabled = nav;
             cNavWatch.Enabled = nav && cNavDefault.Checked;
             cNavDefault.Changed += delegate { cNavWatch.Enabled = cNavDefault.Checked; if (!cNavDefault.Checked) cNavWatch.Checked = false; };
         }

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 640 640">
+  <rect width="640" height="640" fill="#0c0d15"/>
+  <path d="M40 40H520L600 120V600H120L40 520Z" fill="none" stroke="#fcee0a" stroke-width="16"/>
+  <path d="M160 440L260 260L340 380L400 300L480 440Z" fill="#fcee0a"/>
+  <rect x="404" y="176" width="64" height="64" fill="#00f0ff"/>
+  <text x="320" y="540" fill="#00f0ff" font-family="Consolas, monospace" font-size="40" text-anchor="middle">NEURAL SYSTEMS</text>
+</svg>

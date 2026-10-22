@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Draws every icon of the Neural series: the five app icons, the setup icon and the optional Windows icon set.
+  Draws every icon of the Neural series: the six app icons, the setup icon and the optional Windows icon set.
 
 .DESCRIPTION
   All icons share one tile: a yellow chamfered frame (top-right and bottom-left corners cut) around a dark core,
@@ -102,6 +102,11 @@ $apps = [ordered]@{
     $g.DrawEllipse($cyanPen, [float](64 * $s), [float](64 * $s), [float](128 * $s), [float](128 * $s))
     if ($size -ge 24) { $g.DrawEllipse($yellowPen, [float](104 * $s), [float](66 * $s), [float](48 * $s), [float](124 * $s)) }
     $g.DrawLine($yellowPen, [float](68 * $s), [float](128 * $s), [float](188 * $s), [float](128 * $s))
+  }
+  'neuralview' = {   # picture frame with mountains and a cyan sun
+    & $stroke $yellowC 12 @(62, 70, 194, 70, 194, 186, 62, 186) $true
+    & $poly $Y @(74, 176, 112, 118, 134, 148, 154, 128, 182, 176)
+    & $rect $C 140 86 26 26
   }
 }
 foreach ($name in $apps.Keys) { Save-Icon (Join-Path $Root "apps\$name\$name.ico") $apps[$name] (Join-Path $Root "apps\$name\icon.png") }

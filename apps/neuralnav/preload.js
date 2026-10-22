@@ -39,6 +39,7 @@ contextBridge.exposeInMainWorld("nv", {
   readLink: (p) => ipcRenderer.invoke("nv:read-link", String(p)),
   openWith: (p) => ipcRenderer.send("nv:open-with", String(p)),
   openInNeuralPad: (paths) => ipcRenderer.invoke("nv:open-neuralpad", paths.map(String)),
+  openInNeuralView: (p) => ipcRenderer.invoke("nv:open-neuralview", String(p)),
   openTerminal: (dir) => ipcRenderer.send("nv:open-terminal", String(dir)),
   showInExplorer: (p) => ipcRenderer.send("nv:show-in-explorer", String(p)),
   openRecycleBin: () => ipcRenderer.send("nv:open-recycle"),

@@ -8,7 +8,9 @@ const SP = __dirname;
 const OUT = path.join(require("os").tmpdir(), "neural-testler"); // screenshots and throwaway profiles
 fs.mkdirSync(OUT, { recursive: true });
 const BOX = path.join(OUT, "nav-sandbox");
-const EXE = path.join(process.env.USERPROFILE, "Neural", "NeuralNav", "Program", "NeuralNav.exe");
+// The installed NeuralNav; NEURAL_ROOT points at another installation, such as one made with setup /test.
+const ROOT = process.env.NEURAL_ROOT || path.join(process.env.USERPROFILE, "Neural");
+const EXE = path.join(ROOT, "NeuralNav", "Program", "NeuralNav.exe");
 const PORT = 9333;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let passed = 0, failed = 0;
@@ -25,7 +27,7 @@ mk("Belgeler/ikinci.md", "# Başlık");
 mk("Klasör B/iç.txt", "iç");
 fs.mkdirSync(path.join(BOX, "Klasör A"), { recursive: true });
 for (let i = 1; i <= 300; i++) mk(`Arşiv/kayit-${String(i).padStart(3, "0")}.log`, "x".repeat(i));
-fs.copyFileSync(path.join(process.env.USERPROFILE, "Neural", "NeuralNav", "Program", "resources", "app", "icon.png"), path.join(BOX, "resim.png"));
+fs.copyFileSync(path.join(ROOT, "NeuralNav", "Program", "resources", "app", "icon.png"), path.join(BOX, "resim.png"));
 mk("gizli.txt", "gizli");
 mk("ac.bat", '@echo acildi> "%~dp0acildi.txt"\r\n');
 execFileSync("attrib", ["+h", path.join(BOX, "gizli.txt")]);

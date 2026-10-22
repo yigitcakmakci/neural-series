@@ -37,7 +37,11 @@ namespace NeuralSetup
             new AppInfo("NeuralNav", "NV-4", "Dosya gezgini", "neuralnav.ico", "NeuralNav Dosya Gezgini", "NeuralNav NV-4 cyberpunk dosya gezgini", "NeuralNav NV-4 dosya gezgini", "NeuralNav", false),
             new AppInfo("NeuralTerm", "NT-5", "Terminal: PowerShell ve Komut İstemi", "neuralterm.ico", "NeuralTerm Terminal", "NeuralTerm NT-5 Neural serisi terminal", "NeuralTerm NT-5 terminal", "NeuralTerm", true),
             new AppInfo("NeuralWeb", "NW-1", "Web tarayıcısı: kalkan ve şifre yöneticisiyle", "neuralweb.ico", "NeuralWeb", "NeuralWeb NW-1 Neural serisi web tarayıcısı", "NeuralWeb NW-1 web tarayıcısı", "NeuralWeb", false),
+            new AppInfo("NeuralView", "VW-3", "Resim görüntüleyici", "neuralview.ico", "NeuralView Resim Görüntüleyici", "NeuralView VW-3 cyberpunk resim görüntüleyici", "NeuralView VW-3 resim görüntüleyici", "NeuralView", false),
         };
+        // The programs of the first release (1.0). An installation whose manifest has no "Bilinen" line was made by a
+        // setup that knew only these, so any other program is new to it and is offered as checked when updating.
+        public static readonly string[] First = { "NeuralCalc", "NeuralPad", "NeuralNav", "NeuralTerm", "NeuralWeb" };
         public static AppInfo Get(string id) { return All.First(a => a.Id == id); }
     }
 
@@ -47,6 +51,7 @@ namespace NeuralSetup
         public string Root;
         public HashSet<string> Apps = new HashSet<string>();
         public bool StartMenu = true, PadOpenWith = true, NavMenu = true, NavDefault, NavWatch, TermCommands = true, WebRegister = true, WindowsIcons;
+        public bool ViewOpenWith = true;
         public bool RemoveData;
         public bool Test;
     }
@@ -149,7 +154,7 @@ namespace NeuralSetup
             log("Bitti.");
         }
 
-        // Every runtime file appears in each program folder as a hard link: one copy on disk, five places.
+        // Every runtime file appears in each program folder as a hard link: one copy on disk, one place per program.
         static int LinkTree(string from, string to)
         {
             int n = 0;
@@ -179,6 +184,7 @@ namespace NeuralSetup
             }
             if (o.Apps.Contains("NeuralTerm")) { if (o.TermCommands) RegisterTerm(r); else UnregisterTerm(r); }
             if (o.Apps.Contains("NeuralWeb")) { if (o.WebRegister) RegisterWeb(r); else UnregisterWeb(r); }
+            if (o.Apps.Contains("NeuralView")) { if (o.ViewOpenWith) RegisterView(r); else UnregisterView(r); }
             if (o.WindowsIcons) SetIcons(r); else UnsetIcons(r);
             log(o.Test ? "  Windows kayıtları test anahtarına yazıldı" : "  Windows kayıtları güncellendi");
 
@@ -242,6 +248,33 @@ namespace NeuralSetup
             r.DeleteTree(@"Software\Classes\Applications\NeuralPad.exe");
             r.DeleteTree(@"Software\Classes\NeuralPad.txt");
             r.DeleteValue(@"Software\Classes\.txt\OpenWithProgids", "NeuralPad.txt");
+        }
+
+        // NeuralView joins "Open with" for images; the default picture app stays whatever the user chose.
+        static readonly string[] ImageExts = { ".jpg", ".jpeg", ".jpe", ".jfif", ".png", ".gif", ".webp", ".bmp", ".dib", ".ico", ".svg", ".avif" };
+        void RegisterView(Reg r)
+        {
+            string exe = ExePath("NeuralView"), ico = IcoPath("NeuralView") + ",0", cmd = Q(exe) + " \"%1\"";
+            string app = @"Software\Classes\Applications\NeuralView.exe";
+            r.Set(app, "FriendlyAppName", "NeuralView");
+            r.Set(app + @"\DefaultIcon", "", ico);
+            r.Set(app + @"\shell\open\command", "", cmd);
+            foreach (var ext in ImageExts) r.Set(app + @"\SupportedTypes", ext, "");
+            string prog = @"Software\Classes\NeuralView.Image";
+            r.Set(prog, "", "Resim (NeuralView)");
+            r.Set(prog + @"\DefaultIcon", "", ico);
+            r.Set(prog + @"\shell\open\command", "", cmd);
+            r.Set(prog + @"\Application", "ApplicationName", "NeuralView");
+            r.Set(prog + @"\Application", "ApplicationIcon", ico);
+            r.Set(prog + @"\Application", "ApplicationDescription", "NeuralView VW-3 resim görüntüleyici");
+            r.Set(prog + @"\Application", "AppUserModelId", Apps.Get("NeuralView").Aumid);
+            foreach (var ext in ImageExts) r.SetNone(@"Software\Classes\" + ext + @"\OpenWithProgids", "NeuralView.Image");
+        }
+        void UnregisterView(Reg r)
+        {
+            r.DeleteTree(@"Software\Classes\Applications\NeuralView.exe");
+            r.DeleteTree(@"Software\Classes\NeuralView.Image");
+            foreach (var ext in ImageExts) r.DeleteValue(@"Software\Classes\" + ext + @"\OpenWithProgids", "NeuralView.Image");
         }
 
         void Verb(Reg r, string baseKey, string name, string label, string exe, string arg)
@@ -442,7 +475,9 @@ namespace NeuralSetup
                 "Baslat=" + B(o.StartMenu), "NeuralPadAc=" + B(has("NeuralPad") && now.PadOpenWith),
                 "NeuralNavMenu=" + B(has("NeuralNav") && now.NavMenu), "NeuralNavVarsayilan=" + B(has("NeuralNav") && now.NavDefault),
                 "NeuralNavIzleyici=" + B(has("NeuralNav") && now.NavWatch), "NeuralTermKomut=" + B(has("NeuralTerm") && now.TermCommands),
-                "NeuralWebKayit=" + B(has("NeuralWeb") && now.WebRegister), "WindowsSimgeleri=" + B(now.WindowsIcons),
+                "NeuralWebKayit=" + B(has("NeuralWeb") && now.WebRegister), "NeuralViewAc=" + B(has("NeuralView") && now.ViewOpenWith),
+                "WindowsSimgeleri=" + B(now.WindowsIcons),
+                "Bilinen=" + string.Join(",", Apps.All.Select(a => a.Id)),
             };
             File.WriteAllLines(ManifestPath, lines, new UTF8Encoding(false));
         }
@@ -484,7 +519,7 @@ namespace NeuralSetup
             StopWatcher();
             progress(0.05, "Windows kayıtları geri alınıyor");
             var r = R;
-            UnregisterPad(r); UnregisterNavMenu(r); UnsetNavDefault(r); UnregisterTerm(r); UnregisterWeb(r); UnsetIcons(r);
+            UnregisterPad(r); UnregisterNavMenu(r); UnsetNavDefault(r); UnregisterTerm(r); UnregisterWeb(r); UnregisterView(r); UnsetIcons(r);
             log(o.NavDefault ? "  Windows kayıtları geri alındı; klasörleri yine Windows Gezgini açar" : "  Windows kayıtları geri alındı");
 
             progress(0.15, "Kısayollar siliniyor");
@@ -596,6 +631,21 @@ namespace NeuralSetup
             string usual = DefaultRoot();
             return Apps.All.Any(a => Directory.Exists(Path.Combine(usual, a.Id, "Program"))) ? usual : null;
         }
+        // Programs added to the series after the installation was made: not installed, and not in the list of programs
+        // its setup knew about (a program the user left out on purpose is in that list).
+        static List<string> NewSinceInstall(string root)
+        {
+            var known = new HashSet<string>(Apps.First);
+            try
+            {
+                string ini = Path.Combine(root, "Ortak", "kurulum.ini");
+                if (File.Exists(ini))
+                    foreach (var line in File.ReadAllLines(ini))
+                        if (line.StartsWith("Bilinen=")) known = new HashSet<string>(line.Substring(8).Split(','));
+            }
+            catch { }
+            return Apps.All.Where(a => !known.Contains(a.Id) && !Directory.Exists(Path.Combine(root, a.Id, "Program"))).Select(a => a.Id).ToList();
+        }
         public static string DefaultRoot() { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Neural"); }
 
         // Reads the current state of an installation into the options, so running setup again starts from it.
@@ -605,6 +655,7 @@ namespace NeuralSetup
             o.Apps.Clear();
             foreach (var a in Apps.All) if (Directory.Exists(Path.Combine(o.Root, a.Id, "Program"))) o.Apps.Add(a.Id);
             if (o.Apps.Count == 0) foreach (var a in Apps.All) o.Apps.Add(a.Id);
+            else foreach (var id in NewSinceInstall(o.Root)) o.Apps.Add(id);
             Func<string, string, string, bool> has = (key, name, needle) =>
             {
                 string v = r.Get(key, name);
@@ -622,6 +673,8 @@ namespace NeuralSetup
                 o.TermCommands = has(@"Software\Microsoft\Windows\CurrentVersion\App Paths\nt.exe", "", "NeuralTerm.exe");
             if (Directory.Exists(Path.Combine(o.Root, "NeuralWeb", "Program")))
                 o.WebRegister = has(@"Software\Clients\StartMenuInternet\NeuralWeb\shell\open\command", "", "NeuralWeb.exe");
+            if (Directory.Exists(Path.Combine(o.Root, "NeuralView", "Program")))
+                o.ViewOpenWith = has(@"Software\Classes\NeuralView.Image\shell\open\command", "", "NeuralView.exe");
             string icon = r.GetRaw(@"Software\Microsoft\Windows\CurrentVersion\Explorer\CLSID\{20D04FE0-3AEA-1069-A2D8-08002B30309D}\DefaultIcon", "");
             o.WindowsIcons = icon != null && (icon.IndexOf(@"\Simgeler\", StringComparison.OrdinalIgnoreCase) >= 0 || icon.IndexOf("NeuralIcons", StringComparison.OrdinalIgnoreCase) >= 0);
         }

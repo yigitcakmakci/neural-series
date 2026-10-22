@@ -4,6 +4,35 @@ All notable changes to Neural Series are listed here. Versions follow [Semantic 
 Every major and minor release carries a codename from the map of Neo-Istanbul; patch releases keep the codename of
 their line.
 
+## 1.1.0 "Karakoy" (2026-10-22)
+
+A new unit joins the series: **NeuralView VW-3**, an image viewer. All six apps are at 1.1.0: NeuralCalc KX-9,
+NeuralPad NP-7, NeuralNav NV-4, NeuralTerm NT-5, NeuralWeb NW-1, NeuralView VW-3.
+
+### New: NeuralView VW-3
+
+- Opens JPEG, PNG, GIF (animated), WebP, BMP, ICO, SVG and AVIF. HEIC/HEIF files are listed, and the viewer says
+  plainly that it cannot decode them instead of failing silently.
+- Steps through the images of the folder with `←` `→`, the mouse wheel or the thumbnail strip; sorts by name, date
+  or size, and follows changes to the folder while it is open.
+- Fit to window, actual size, `Ctrl` + wheel zoom around the pointer, drag to pan, double-click to switch between fit
+  and 100 %; `F11` full screen and a slideshow on `Space`.
+- `R` / `Shift+R` turn the picture on screen; saving asks first. JPEG rotation is lossless (only the EXIF orientation
+  changes), PNG and BMP are rewritten without loss, WebP at the highest quality; other formats turn on screen only.
+- Information panel (`I`): dimensions, file size, dates and EXIF data (camera, lens, exposure, aperture, ISO, focal
+  length). Pictures that carry GPS coordinates get a clear *"contains location data"* warning.
+- Copy the picture (`Ctrl+C`) or its path, show it in NeuralNav (`Ctrl+E`), rename (`F2`), move it to the Recycle Bin
+  (`Del`, asks first), open by drag and drop, shortcut list on `?` or `F1`.
+
+### Changed
+
+- **NeuralNav:** images get *"NeuralView ile aç"* (open with NeuralView) in their right-click menu. Double-clicking
+  still opens them with the Windows default.
+- **Setup:** new option *"NeuralView: resimler için Birlikte aç"*: NeuralView joins *Open with* for twelve image
+  extensions. The default picture app does not change, and uninstalling removes the entries again.
+- **Setup:** updating an installation from an earlier release offers the programs added since then as checked; a
+  program left out on purpose stays out at later updates (`kurulum.ini` now records which programs the setup knew).
+
 ## 1.0.1 "Neo-Istanbul" (2026-10-22)
 
 All five apps are at 1.0.1: NeuralCalc KX-9, NeuralPad NP-7, NeuralNav NV-4, NeuralTerm NT-5, NeuralWeb NW-1.

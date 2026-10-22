@@ -19,6 +19,7 @@ function sibling(name) {
   return fs.existsSync(local) ? local : path.join(process.env.USERPROFILE || "", "Neural", name, "Program", `${name}.exe`);
 }
 const NEURALPAD = sibling("NeuralPad");
+const NEURALVIEW = sibling("NeuralView");
 const WT = path.join(process.env.LOCALAPPDATA || "", "Microsoft", "WindowsApps", "wt.exe");
 
 let mainWin = null;
@@ -238,7 +239,7 @@ ipcMain.handle("nv:places", async () => {
   for (const key of KNOWN) { try { known.push({ key, path: app.getPath(key) }); } catch (e) { /* not available */ } }
   let drives;
   try { drives = await helper.call("drives"); } catch (e) { drives = await fallbackDrives(); }
-  return { home: app.getPath("home"), known, drives, neuralPad: fs.existsSync(NEURALPAD) };
+  return { home: app.getPath("home"), known, drives, neuralPad: fs.existsSync(NEURALPAD), neuralView: fs.existsSync(NEURALVIEW) };
 });
 
 ipcMain.handle("nv:list", async (_e, dir) => {
@@ -301,6 +302,8 @@ ipcMain.on("nv:open-with", (_e, p) => {
   detached("rundll32.exe", ["shell32.dll,OpenAs_RunDLL " + String(p)], { windowsVerbatimArguments: true });
 });
 ipcMain.handle("nv:open-neuralpad", (_e, paths) => fs.existsSync(NEURALPAD) && detached(NEURALPAD, paths.map(String)));
+// NeuralView shows one image at a time and steps through its folder, so only the first selected image is passed.
+ipcMain.handle("nv:open-neuralview", (_e, p) => fs.existsSync(NEURALVIEW) && detached(NEURALVIEW, [String(p)]));
 const NEURALTERM = sibling("NeuralTerm");
 ipcMain.on("nv:open-terminal", (_e, dir) => {
   const d = String(dir);

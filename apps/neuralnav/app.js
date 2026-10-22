@@ -80,6 +80,7 @@ const TYPES = {
 const SYMBOL = { folder: 'f-folder', text: 'f-text', doc: 'f-text', code: 'f-code', image: 'f-image', audio: 'f-audio', video: 'f-video', archive: 'f-archive', pdf: 'f-pdf', sheet: 'f-sheet', slide: 'f-slide', app: 'f-app', file: 'f-file' };
 const NATIVE_ICON = new Set(['exe', 'lnk', 'url', 'ico', 'msi', 'scr', 'cpl', 'appref-ms']);
 const TEXT_EXT = new Set(['txt', 'md', 'log', 'ini', 'cfg', 'conf', 'json', 'js', 'mjs', 'ts', 'jsx', 'tsx', 'css', 'scss', 'html', 'htm', 'xml', 'csv', 'py', 'java', 'c', 'cpp', 'h', 'cs', 'go', 'rs', 'php', 'sh', 'bat', 'cmd', 'ps1', 'yml', 'yaml', 'toml', 'sql', 'reg', 'srt', 'gitignore', 'env']);
+const VIEW_EXT = new Set(['jpg', 'jpeg', 'jpe', 'jfif', 'png', 'gif', 'webp', 'bmp', 'dib', 'ico', 'svg', 'avif']);
 const PLAYABLE = new Set(['mp4', 'webm', 'm4v', 'mov', 'mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac', 'opus']);
 const KNOWN_LABELS = { desktop: 'Masaüstü', downloads: 'İndirilenler', documents: 'Belgeler', pictures: 'Resimler', music: 'Müzik', videos: 'Videolar' };
 const KNOWN_ICONS = { desktop: 'i-desktop', downloads: 'i-download', documents: 'i-documents', pictures: 'i-pictures', music: 'i-music', videos: 'i-videos' };
@@ -1273,6 +1274,8 @@ function itemMenu() {
   }
   if (one && !one.isDir) m.push({ label: 'Birlikte aç…', run: () => nv.openWith(one.path) });
   if (textLike && places.neuralPad) m.push({ label: 'NeuralPad ile aç', icon: 'i-documents', run: () => nv.openInNeuralPad(items.map(i => i.path)) });
+  const imageLike = items.length && allFiles && items.every(i => VIEW_EXT.has(i.ext));
+  if (imageLike && places.neuralView) m.push({ label: 'NeuralView ile aç', icon: 'i-pictures', run: () => nv.openInNeuralView(items[0].path) });
   if (active.search && one) m.push({ label: 'Dosya konumunu aç', run: () => navigate(active, parentOf(one.path), { select: one.path }) });
   m.push('-');
   m.push({ label: 'Kes', key: 'Ctrl+X', icon: 'i-cut', run: () => toClipboard('move') });

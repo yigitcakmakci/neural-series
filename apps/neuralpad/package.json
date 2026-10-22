@@ -1,7 +1,7 @@
 {
   "name": "neuralpad",
   "productName": "NeuralPad",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "NeuralPad NP-7 cyberpunk not defteri",
   "private": true,
   "main": "main.js"

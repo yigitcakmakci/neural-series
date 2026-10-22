@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Builds the five Neural programs and the Windows setup from a clean clone.
+  Builds the six Neural programs and the Windows setup from a clean clone.
 
 .DESCRIPTION
   1. npm ci       Electron, xterm.js, the bundled typefaces (@fontsource) and NeuralWeb's ad blocker, at the
@@ -144,6 +144,10 @@ $wm = "$env:SystemRoot\System32\WinMetadata"
 Invoke-Csc @('/target:exe', '/platform:x64', "/r:$fw\System.Security.dll", "/out:$web\nwdpapi.exe", "$apps\neuralweb\nwdpapi.cs")
 Invoke-Csc @('/target:winexe', '/platform:x64', "/r:$wm\Windows.Foundation.winmd", "/r:$wm\Windows.Security.winmd",
   "/r:$fw\System.Runtime.dll", "/r:$fw\System.Runtime.InteropServices.WindowsRuntime.dll", "/out:$web\nwhello.exe", "$apps\neuralweb\nwhello.cs")
+
+# NeuralView VW-3, with its metadata reader (EXIF, lossless JPEG rotation)
+Copy-Files "$apps\neuralview" "$stage\apps\NeuralView" @('index.html', 'styles.css', 'app.js', 'main.js', 'preload.js', 'meta.js', 'package.json', 'icon.png', 'neuralview.ico')
+Copy-Fonts "$stage\apps\NeuralView\fonts" @('fonts.css')
 
 # Windows icon set (optional in the setup: This PC, Recycle Bin, Network, user folder)
 Copy-Files (Join-Path $root 'assets\windows-icons') "$stage\simgeler" (Get-ChildItem (Join-Path $root 'assets\windows-icons') -Filter *.ico | ForEach-Object Name)
