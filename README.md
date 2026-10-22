@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/yigitcakmakci/neural-series/releases/latest"><img src="https://img.shields.io/github/v/release/yigitcakmakci/neural-series?style=for-the-badge&label=release&labelColor=0c0d15&color=fcee0a" alt="Latest release"></a>
+  <a href="https://github.com/yigitcakmakci/neural-series/releases/latest"><img src="https://img.shields.io/badge/release-v1.0.0-fcee0a?style=for-the-badge&labelColor=0c0d15" alt="Release v1.0.0"></a>
   <img src="https://img.shields.io/badge/codename-Neo--Istanbul-00f0ff?style=for-the-badge&labelColor=0c0d15" alt="Codename: Neo-Istanbul">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011%20x64-00f0ff?style=for-the-badge&labelColor=0c0d15" alt="Windows 10 and 11, 64-bit">
   <img src="https://img.shields.io/badge/Electron-44.5.1-00f0ff?style=for-the-badge&labelColor=0c0d15" alt="Electron 44.5.1">
