@@ -1,0 +1,71 @@
+/* ============================================================
+   Neural serisi tokens, shared by NeuralWeb's window, its popups and its own pages.
+   ============================================================ */
+:root {
+  --font-display: "Chakra Petch", "Rajdhani", "Segoe UI", sans-serif;
+  --font-body: "Rajdhani", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Share Tech Mono", Consolas, monospace;
+  --cut: 22px;
+  --danger: #ff2a4f;
+  --ok: #2bff88;
+}
+:root, .theme-neon {
+  --panel: #0c0d15; --panel-2: #141725; --panel-3: #1c2033; --screen: #05070c;
+  --accent: #fcee0a; --accent-2: #00f0ff; --frame-end: #ff2a4f; --on-accent: #0a0a0c;
+  --band-bg: #fcee0a; --band-fg: #0a0a0c; --ink: #ebe8d8; --dim: #7d84a0; --line: #262b3f;
+  --edge: rgba(0, 240, 255, .38); --scan: rgba(0, 240, 255, .06); --beam: rgba(0, 240, 255, .08); --glow: rgba(0, 240, 255, .07);
+  --tab-hover: rgba(10, 10, 12, .14);
+  color-scheme: dark;
+}
+html.theme-ice {
+  --panel: #0a1018; --panel-2: #111a26; --panel-3: #182436; --screen: #050b12;
+  --accent: #00f0ff; --accent-2: #ff4fd8; --frame-end: #7b61ff; --on-accent: #04121a;
+  --band-bg: #00f0ff; --band-fg: #04121a; --ink: #e4f4ff; --dim: #7690a8; --line: #1e2c3d;
+  --edge: rgba(255, 79, 216, .38); --scan: rgba(0, 240, 255, .06); --beam: rgba(255, 79, 216, .08); --glow: rgba(0, 240, 255, .07);
+  --tab-hover: rgba(4, 18, 26, .14);
+  color-scheme: dark;
+}
+html.theme-alarm {
+  --panel: #110a0d; --panel-2: #1a1015; --panel-3: #26161d; --screen: #0a0507;
+  --accent: #ff2a4f; --accent-2: #fcee0a; --frame-end: #fcee0a; --on-accent: #0a0a0c;
+  --band-bg: #ff2a4f; --band-fg: #0a0a0c; --ink: #f2e7e3; --dim: #9a7f86; --line: #33202a;
+  --edge: rgba(252, 238, 10, .34); --scan: rgba(255, 42, 79, .06); --beam: rgba(252, 238, 10, .07); --glow: rgba(255, 42, 79, .08);
+  --tab-hover: rgba(10, 10, 12, .16);
+  color-scheme: dark;
+}
+html.theme-daylight {
+  --panel: #fcee0a; --panel-2: #efe100; --panel-3: #e3d500; --screen: #fffce6;
+  --accent: #0a0a0c; --accent-2: #007f8c; --frame-end: #ff2a4f; --on-accent: #fcee0a;
+  --band-bg: #0a0a0c; --band-fg: #fcee0a; --ink: #141414; --dim: #5f5a24; --line: #cdbf22;
+  --edge: rgba(0, 0, 0, .35); --scan: rgba(0, 0, 0, .04); --beam: rgba(0, 127, 140, .1); --glow: rgba(0, 0, 0, .06);
+  --tab-hover: rgba(252, 238, 10, .16);
+  color-scheme: light;
+}
+/* A private window keeps the theme but trades the bright band for a dark one, so it is never mistaken for a normal window. */
+html.private {
+  --band-bg: #1c1030; --band-fg: #ff4fd8; --tab-hover: rgba(255, 79, 216, .12);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+button, input, select, textarea { font: inherit; color: inherit; }
+svg { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: square; }
+
+.btn {
+  padding: 8px 16px; border: 0; color: var(--ink); background: var(--panel-2); box-shadow: inset 0 0 0 1px var(--line);
+  font: 700 .95rem/1 var(--font-body); letter-spacing: .03em; cursor: pointer; white-space: nowrap;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%);
+}
+.btn:hover { color: var(--accent-2); background: var(--panel-3); }
+.btn.primary { color: var(--on-accent); background: var(--accent); box-shadow: none; }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.danger { color: #0a0a0c; background: var(--danger); box-shadow: none; }
+.btn:disabled { opacity: .45; cursor: default; filter: none; }
+.btn:focus-visible { outline: 1px solid var(--accent-2); outline-offset: 2px; }
+
+@keyframes beam { 0% { transform: translateY(-100%); } 78%, 100% { transform: translateY(160px); } }
+@keyframes boot { 0% { opacity: 1; } 8% { opacity: .3; } 12% { opacity: 1; } 20% { opacity: .55; } 26%, 100% { opacity: 1; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}

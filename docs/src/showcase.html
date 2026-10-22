@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="neural.css">
+<style>
+  html, body { width: 1600px; height: 980px; }
+  .shot { position: absolute; filter: drop-shadow(0 22px 34px rgba(0, 0, 0, .75)) drop-shadow(0 0 28px rgba(0, 240, 255, .10)); }
+  .label {
+    position: absolute; z-index: 9; display: flex; align-items: center; gap: 8px;
+    color: var(--ink); font: 15px/1 var(--font-mono); letter-spacing: .14em;
+  }
+  .label::before { content: ""; width: 8px; height: 8px; background: var(--cyan); }
+</style>
+</head>
+<body>
+<div class="device"><div class="body">
+  <div class="band">
+    <span class="code">NS-1</span><span class="name">LINEUP</span>
+    <span class="readout">5 UNITS ONLINE // v1.0.0 NEO-ISTANBUL</span><span class="hazard"></span>
+  </div>
+  <div class="screen"></div>
+  <img class="shot" src="../images/screenshots/neuralweb.png" style="left: 40px; top: 84px; width: 840px;">
+  <img class="shot" src="../images/screenshots/neuralnav.png" style="left: 800px; top: 126px; width: 720px;">
+  <img class="shot" src="../images/screenshots/neuralterm.png" style="left: 96px; top: 548px; width: 620px;">
+  <img class="shot" src="../images/screenshots/neuralpad.png" style="left: 640px; top: 590px; width: 520px;">
+  <img class="shot" src="../images/screenshots/neuralcalc.png" style="left: 1210px; top: 418px; width: 285px;">
+  <div class="label" style="left: 52px; top: 940px;">NW-1 · NV-4 · NT-5 · NP-7 · KX-9</div>
+</div></div>
+</body>
+</html>

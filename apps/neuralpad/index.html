@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="tr" class="theme-neon">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Başlıksız - NeuralPad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,700&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=Oxanium:wght@400;700&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" type="image/png" href="icon.png">
+</head>
+<body>
+<div class="window" id="window">
+  <div class="frame">
+    <div class="app frame-inner" id="app">
+
+      <!-- Üst şerit: marka, menü, belge adı, pencere tuşları (sürüklenebilir) -->
+      <header class="band">
+        <div class="brand" aria-hidden="true"><span class="brand-model">NP-7</span><span class="brand-name">NEURALPAD</span></div>
+        <nav class="menubar" id="menubar" role="menubar" aria-label="Ana menü"></nav>
+        <div class="band-title" id="band-title">Başlıksız</div>
+        <span class="hazard" aria-hidden="true"></span>
+        <div class="win-btns">
+          <button class="win-btn" id="win-min" type="button" aria-label="Simge durumuna küçült" title="Küçült"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 9.5h8"/></svg></button>
+          <button class="win-btn" id="win-max" type="button" aria-label="Ekranı kapla" title="Ekranı kapla"><svg class="ic-max" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5h7v7h-7z"/></svg><svg class="ic-restore" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5h5v5M2.5 4.5h5v5h-5z"/></svg></button>
+          <button class="win-btn close" id="win-close" type="button" aria-label="Kapat" title="Kapat"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button>
+        </div>
+      </header>
+
+      <!-- Sekmeler -->
+      <div class="tabbar" id="tabbar" role="tablist" aria-label="Açık belgeler">
+        <div class="tabs" id="tabs"></div>
+        <button class="tab-new" id="tab-new" type="button" title="Yeni sekme (Ctrl+N)" aria-label="Yeni sekme">+</button>
+      </div>
+
+      <!-- Yazı yüzeyi -->
+      <main class="slab" id="slab">
+        <div class="beam-track" aria-hidden="true"><div class="beam"></div></div>
+        <div class="editors" id="editors">
+          <div class="backdrop ed-text" id="backdrop" aria-hidden="true"></div>
+        </div>
+
+        <!-- Bul / Değiştir paneli -->
+        <section class="findbar" id="findbar" hidden aria-label="Bul ve değiştir">
+          <div class="find-row">
+            <button class="fb-btn fb-toggle" id="fb-toggle" type="button" title="Değiştir'i göster/gizle" aria-label="Değiştir'i göster/gizle" aria-expanded="false"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5L8 6l-3.5 3.5"/></svg></button>
+            <input id="fb-find" type="text" placeholder="Bul" spellcheck="false" aria-label="Aranacak metin">
+            <span class="fb-count" id="fb-count"></span>
+            <button class="fb-btn" id="fb-prev" type="button" title="Öncekini bul (Shift+F3)" aria-label="Öncekini bul"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 7.5L6 4l3.5 3.5"/></svg></button>
+            <button class="fb-btn" id="fb-next" type="button" title="Sonrakini bul (F3)" aria-label="Sonrakini bul"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5"/></svg></button>
+            <button class="fb-btn" id="fb-opts" type="button" title="Arama seçenekleri" aria-label="Arama seçenekleri" aria-expanded="false"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 3.5h8M2 8.5h8"/><path d="M4 2v3M8 7v3"/></svg></button>
+            <button class="fb-btn" id="fb-close" type="button" title="Kapat (Esc)" aria-label="Kapat"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6"/></svg></button>
+          </div>
+          <div class="find-row replace-row" id="fb-replace-row" hidden>
+            <span class="fb-spacer"></span>
+            <input id="fb-replace" type="text" placeholder="Şununla değiştir" spellcheck="false" aria-label="Yeni metin">
+            <button class="fb-btn fb-wide" id="fb-rep" type="button">Değiştir</button>
+            <button class="fb-btn fb-wide" id="fb-repall" type="button">Tümünü değiştir</button>
+          </div>
+          <div class="find-opts" id="fb-optsbox" hidden>
+            <label><input type="checkbox" id="fb-case"> Büyük/küçük harf eşleştir</label>
+            <label><input type="checkbox" id="fb-wrap" checked> Etrafında kaydır</label>
+          </div>
+        </section>
+      </main>
+
+      <!-- Durum çubuğu -->
+      <footer class="statusbar" id="statusbar">
+        <span id="st-pos">Sat 1, Süt 1</span>
+        <span id="st-chars">0 karakter</span>
+        <span id="st-zoom">%100</span>
+        <span id="st-eol">Windows (CRLF)</span>
+        <span id="st-enc">UTF-8</span>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Boyutlandırma tutamakları -->
+  <div class="rz rz-n" data-edge="n"></div>
+  <div class="rz rz-s" data-edge="s"></div>
+  <div class="rz rz-e" data-edge="e"></div>
+  <div class="rz rz-w" data-edge="w"></div>
+  <div class="rz rz-ne" data-edge="ne"></div>
+  <div class="rz rz-nw" data-edge="nw"></div>
+  <div class="rz rz-se" data-edge="se"></div>
+  <div class="rz rz-sw" data-edge="sw"></div>
+</div>
+
+<!-- Açılır menü katmanı -->
+<div id="popups"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- Git diyaloğu -->
+<dialog class="hud-dialog" id="dlg-goto">
+  <form method="dialog">
+    <div class="dlg-body">
+      <h2 class="dlg-head">Satıra git</h2>
+      <div class="dlg-content">
+        <label class="field">Satır numarası
+          <input id="goto-line" type="number" min="1" required>
+        </label>
+        <p class="hint" id="goto-hint"></p>
+      </div>
+      <div class="btns">
+        <button value="ok" class="primary">Git</button>
+        <button value="cancel" formnovalidate>İptal</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<!-- Yazı tipi diyaloğu -->
+<dialog class="hud-dialog wide" id="dlg-font">
+  <form method="dialog">
+    <div class="dlg-body">
+      <h2 class="dlg-head">Yazı tipi</h2>
+      <div class="dlg-content">
+        <div class="font-grid">
+          <label class="field">Yazı tipi
+            <select id="font-family" size="7"></select>
+          </label>
+          <label class="field">Yazı tipi stili
+            <select id="font-style" size="7">
+              <option value="normal|500">Normal</option>
+              <option value="normal|700">Kalın</option>
+              <option value="italic|500">İtalik</option>
+              <option value="italic|700">Kalın İtalik</option>
+            </select>
+          </label>
+          <label class="field">Boyut
+            <select id="font-size" size="7"></select>
+          </label>
+        </div>
+        <fieldset class="preview">
+          <legend>Örnek</legend>
+          <div id="font-preview">AaBbÇçĞğİıÖöŞşÜü 0123</div>
+        </fieldset>
+      </div>
+      <div class="btns">
+        <button value="ok" class="primary">Tamam</button>
+        <button value="cancel">İptal</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<!-- Kaydetme onayı -->
+<dialog class="hud-dialog" id="dlg-confirm">
+  <form method="dialog">
+    <div class="dlg-body">
+      <h2 class="dlg-head">NeuralPad</h2>
+      <div class="dlg-content"><p id="confirm-text"></p></div>
+      <div class="btns">
+        <button value="save" class="primary">Kaydet</button>
+        <button value="discard">Kaydetme</button>
+        <button value="cancel">İptal</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<!-- Kısayollar -->
+<dialog class="hud-dialog wide" id="dlg-keys">
+  <form method="dialog">
+    <div class="dlg-body">
+      <h2 class="dlg-head">Klavye kısayolları</h2>
+      <div class="dlg-content"><div class="keys" id="keys-list"></div></div>
+      <div class="btns"><button value="ok" class="primary">Tamam</button></div>
+    </div>
+  </form>
+</dialog>
+
+<!-- Hakkında -->
+<dialog class="hud-dialog" id="dlg-about">
+  <form method="dialog">
+    <div class="dlg-body">
+      <h2 class="dlg-head">NeuralPad hakkında</h2>
+      <div class="dlg-content">
+        <p class="about-mark" aria-hidden="true">NP-7</p>
+        <p>Not Defteri'nin bütün işlevleri, Neo-İstanbul ağından. Taş Tablet'in mantığı üzerine kuruldu.</p>
+        <p class="hint">Sürüm 1.0 · Yazdıklarınız yalnızca bu bilgisayarda durur: kaydettiğiniz dosyalarda ve kapatınca saklanan oturumda.</p>
+      </div>
+      <div class="btns"><button value="ok" class="primary">Tamam</button></div>
+    </div>
+  </form>
+</dialog>
+
+<!-- Yazdırma alanı -->
+<div id="print-area" aria-hidden="true"><div id="print-title"></div><pre id="print-text"></pre></div>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="tr" class="theme-neon">
+<head>
+<meta charset="utf-8">
+<title>NeuralWeb</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="ui.css">
+</head>
+<body>
+<div class="window">
+  <div class="frame">
+    <div class="frame-inner">
+      <header class="band" id="band">
+        <div class="brand" aria-hidden="true"><span class="brand-model">NW-1</span><span class="brand-name" id="brand-name">NEURALWEB</span></div>
+        <div class="tabstrip">
+          <div class="tabs" id="tabs" role="tablist" aria-label="Sekmeler"></div>
+          <button class="tab-new" id="tab-new" type="button" title="Yeni sekme (Ctrl+T)" aria-label="Yeni sekme">+</button>
+        </div>
+        <div class="drag-space"></div>
+        <span class="hazard" aria-hidden="true"></span>
+        <div class="win-btns">
+          <button class="win-btn" id="win-min" type="button" aria-label="Simge durumuna küçült" title="Küçült"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 9.5h8"/></svg></button>
+          <button class="win-btn" id="win-max" type="button" aria-label="Ekranı kapla" title="Ekranı kapla"><svg class="ic-max" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5h7v7h-7z"/></svg><svg class="ic-restore" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5h5v5M2.5 4.5h5v5h-5z"/></svg></button>
+          <button class="win-btn close" id="win-close" type="button" aria-label="Kapat" title="Kapat"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button>
+        </div>
+      </header>
+
+      <nav class="toolbar" aria-label="Gezinme">
+        <button class="tb" id="btn-back" type="button" title="Geri (Alt+Sol)" aria-label="Geri"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8H3.5M7.5 3.5L3 8l4.5 4.5"/></svg></button>
+        <button class="tb" id="btn-forward" type="button" title="İleri (Alt+Sağ)" aria-label="İleri"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9.5M8.5 3.5L13 8l-4.5 4.5"/></svg></button>
+        <button class="tb" id="btn-reload" type="button" title="Yeniden yükle (F5)" aria-label="Yeniden yükle"><svg class="ic-reload" viewBox="0 0 16 16" aria-hidden="true"><path d="M13 4.5V8h-3.5M12.6 7.6A5 5 0 1 0 11 11.6"/></svg><svg class="ic-stop" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
+        <button class="tb" id="btn-home" type="button" title="Yeni sekme sayfası (Alt+Home)" aria-label="Ana sayfa"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 7.5L8 3l5.5 4.5M4 6.5V13h3V9.5h2V13h3V6.5"/></svg></button>
+        <div class="omnibox" id="omnibox">
+          <button class="sec-chip" id="sec-chip" type="button" title="Site bilgileri" aria-label="Site bilgileri">
+            <svg class="ic-lock" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 7.5h7v5.5h-7zM6 7.5V5.5a2 2 0 0 1 4 0v2"/></svg>
+            <svg class="ic-warn" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5l6 11H2zM8 6.5v3.5M8 11.5v.5"/></svg>
+            <svg class="ic-file" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5h5l3 3v8H4zM9 2.5v3h3"/></svg>
+            <svg class="ic-search" viewBox="0 0 16 16" aria-hidden="true"><path d="M7 3a4 4 0 1 1 0 8a4 4 0 0 1 0-8zM10 10l3.5 3.5"/></svg>
+            <span id="sec-label"></span>
+          </button>
+          <input id="omni" type="text" spellcheck="false" autocomplete="off" aria-label="Adres ve arama çubuğu" placeholder="Google'da ara veya adres yaz">
+          <button class="zoom-chip" id="zoom-chip" type="button" title="Yakınlaştırma" hidden></button>
+          <button class="star" id="star" type="button" title="Bu sekmeyi yer imlerine ekle (Ctrl+D)" aria-label="Yer imi"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2l1.8 3.9 4.2.5-3.1 2.9.8 4.2L8 11.4l-3.7 2.1.8-4.2L2 6.4l4.2-.5z"/></svg></button>
+        </div>
+        <button class="tb shield" id="btn-shield" type="button" title="Kalkan" aria-label="Kalkan: reklam ve izleyici engelleyici" data-state="na">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8l5 1.9v4c0 3.2-2.1 5.4-5 6.5-2.9-1.1-5-3.3-5-6.5v-4z"/><path class="slash" d="M2.5 2.5l11 11"/></svg>
+          <span class="badge" id="shield-badge" hidden></span>
+        </button>
+        <button class="tb" id="btn-downloads" type="button" title="İndirilenler (Ctrl+J)" aria-label="İndirilenler">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v8M4.5 7L8 10.5 11.5 7M3 13.5h10"/></svg>
+          <svg class="ring" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="15" pathLength="100"/></svg>
+          <span class="badge" id="dl-badge" hidden></span>
+        </button>
+        <button class="tb" id="btn-menu" type="button" title="Menü" aria-label="Menü"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h1.5M7.25 8h1.5M11.5 8H13"/></svg></button>
+      </nav>
+
+      <div class="bookmarks-bar" id="bmbar" role="toolbar" aria-label="Yer imleri çubuğu">
+        <div class="bm-items" id="bm-items"></div>
+        <button class="bm bm-more" id="bm-more" type="button" title="Diğer yer imleri çubuğu öğeleri" hidden>»</button>
+        <button class="bm bm-other" id="bm-other" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h4.5l1.5 1.5H14V13H2z"/></svg><span>Diğer yer imleri</span></button>
+      </div>
+
+      <div class="findbar" id="findbar" hidden>
+        <span class="find-label">BUL</span>
+        <input id="find-input" type="text" spellcheck="false" autocomplete="off" aria-label="Sayfada bul">
+        <span class="find-count" id="find-count"></span>
+        <button class="tb small" id="find-prev" type="button" title="Önceki (Shift+Enter)" aria-label="Önceki"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 10l4-4 4 4"/></svg></button>
+        <button class="tb small" id="find-next" type="button" title="Sonraki (Enter)" aria-label="Sonraki"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg></button>
+        <button class="tb small" id="find-close" type="button" title="Kapat (Esc)" aria-label="Kapat"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
+      </div>
+
+      <main class="stage" id="stage">
+        <div class="beam-track" aria-hidden="true"><div class="beam"></div></div>
+        <div class="viewport" id="viewport">
+          <section class="errpanel" id="errpanel" hidden>
+            <div class="err-code" id="err-code"></div>
+            <h1 class="err-title" id="err-title"></h1>
+            <p class="err-text" id="err-text"></p>
+            <p class="err-url" id="err-url"></p>
+            <div class="err-btns">
+              <button class="btn primary" id="err-retry" type="button">Yeniden dene</button>
+              <button class="btn" id="err-adv-btn" type="button" hidden>Gelişmiş</button>
+            </div>
+            <div class="err-adv" id="err-adv" hidden>
+              <p id="err-adv-text"></p>
+              <button class="btn danger" id="err-proceed" type="button">Yine de devam et (güvenli değil)</button>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <footer class="statusbar">
+        <span id="st-status"></span>
+        <span class="st-right">
+          <span id="st-zoom" hidden></span>
+          <span id="st-sec"></span>
+          <span class="st-private" id="st-private" hidden>GİZLİ</span>
+        </span>
+      </footer>
+    </div>
+  </div>
+  <div class="rz rz-n" data-edge="n"></div>
+  <div class="rz rz-s" data-edge="s"></div>
+  <div class="rz rz-e" data-edge="e"></div>
+  <div class="rz rz-w" data-edge="w"></div>
+  <div class="rz rz-ne" data-edge="ne"></div>
+  <div class="rz rz-nw" data-edge="nw"></div>
+  <div class="rz rz-se" data-edge="se"></div>
+  <div class="rz rz-sw" data-edge="sw"></div>
+</div>
+<script src="ui.js"></script>
+</body>
+</html>

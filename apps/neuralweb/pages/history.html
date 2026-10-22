@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="tr" class="theme-neon">
+<head>
+<meta charset="utf-8">
+<title>Geçmiş</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="pages.css">
+</head>
+<body>
+<div class="bg" aria-hidden="true"><div class="beam"></div></div>
+<header class="top">
+  <span class="mark">NW-1</span><h1>Geçmiş</h1>
+  <nav><a href="neural://history/" aria-current="page">Geçmiş</a><a href="neural://bookmarks/">Yer imleri</a><a href="neural://passwords/">Şifreler</a><a href="neural://downloads/">İndirilenler</a><a href="neural://settings/">Ayarlar</a></nav>
+</header>
+<div class="rule"></div>
+<main class="wrap">
+  <div class="bar">
+    <label class="field"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M7 3a4 4 0 1 1 0 8a4 4 0 0 1 0-8zM10 10l3.5 3.5"/></svg><input id="q" type="search" placeholder="Geçmişte ara" autocomplete="off" spellcheck="false" aria-label="Geçmişte ara"></label>
+    <a class="btn" href="neural://settings/#privacy">Tarama verilerini temizle…</a>
+    <button class="btn danger" id="clear" type="button">Tüm geçmişi sil</button>
+  </div>
+  <div class="panel"><div class="panel-in" id="list"></div></div>
+  <button class="btn more" id="more" type="button" hidden>Daha fazla göster</button>
+</main>
+<script src="pages.js"></script>
+<script src="history.js"></script>
+</body>
+</html>

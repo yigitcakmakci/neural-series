@@ -1,0 +1,74 @@
+/* Shared look of the README images: the same palette, fonts and device frame as the apps. */
+@import url("https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap");
+
+:root {
+  --void: #06060b;
+  --panel: #0c0d15;
+  --panel-2: #141725;
+  --panel-3: #1c2033;
+  --line: #262b3f;
+  --yellow: #fcee0a;
+  --cyan: #00f0ff;
+  --red: #ff2a4f;
+  --ink: #ebe8d8;
+  --dim: #7d84a0;
+  --cut: 34px;
+  --font-display: "Chakra Petch", "Rajdhani", "Segoe UI", sans-serif;
+  --font-body: "Rajdhani", "Segoe UI", sans-serif;
+  --font-mono: "Share Tech Mono", Consolas, monospace;
+}
+
+html, body { margin: 0; background: transparent; overflow: hidden; }
+* { box-sizing: border-box; }
+
+/* The device: a 2px yellow-to-red frame with the top-right and bottom-left corners cut. */
+.device {
+  position: absolute; inset: 0;
+  padding: 2px;
+  background: linear-gradient(120deg, var(--yellow) 0%, var(--yellow) 55%, var(--red) 100%);
+  clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, var(--cut) 100%, 0 calc(100% - var(--cut)));
+}
+.device > .body {
+  position: relative; width: 100%; height: 100%;
+  background: var(--void);
+  clip-path: polygon(0 0, calc(100% - var(--cut) + 1px) 0, 100% calc(var(--cut) - 1px), 100% 100%, calc(var(--cut) - 1px) 100%, 0 calc(100% - var(--cut) + 1px));
+  overflow: hidden;
+}
+
+/* Yellow top band: model code, name, hazard stripes, readout. */
+.band {
+  position: relative; z-index: 3;
+  display: flex; align-items: center; gap: 14px;
+  height: 46px; padding: 0 56px 0 24px;
+  background: var(--yellow); color: #0b0b10;
+}
+.band .code { font: 700 23px/1 var(--font-display); letter-spacing: .01em; }
+.band .name { font: 700 13px/1 var(--font-body); letter-spacing: .34em; }
+.band .readout { margin-left: auto; font: 15px/1 var(--font-mono); letter-spacing: .06em; }
+.hazard { width: 92px; height: 15px; background: repeating-linear-gradient(-45deg, #0b0b10 0 6px, transparent 6px 12px); }
+
+/* Work surface: grid, glow, scanlines and the slow beam frozen mid-screen. */
+.screen {
+  position: absolute; inset: 46px 0 0 0;
+  background:
+    radial-gradient(1200px 380px at 18% 0%, rgba(0, 240, 255, .10), transparent 70%),
+    radial-gradient(900px 420px at 92% 100%, rgba(255, 42, 79, .10), transparent 70%),
+    linear-gradient(rgba(38, 43, 63, .55) 1px, transparent 1px) 0 0 / 48px 48px,
+    linear-gradient(90deg, rgba(38, 43, 63, .55) 1px, transparent 1px) 0 0 / 48px 48px,
+    var(--void);
+}
+.screen::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    linear-gradient(180deg, transparent 0%, rgba(0, 240, 255, .05) 46%, rgba(0, 240, 255, .11) 50%, rgba(0, 240, 255, .05) 54%, transparent 100%),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, .22) 0 1px, transparent 1px 3px);
+}
+
+.chip {
+  display: inline-flex; align-items: center; height: 24px; padding: 0 10px;
+  background: var(--yellow); color: #0b0b10;
+  font: 700 14px/1 var(--font-display); letter-spacing: .02em;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+}
+.chip.cyan { background: var(--cyan); }
+.mono { font-family: var(--font-mono); }

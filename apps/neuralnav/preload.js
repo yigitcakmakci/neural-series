@@ -1,0 +1,61 @@
+"use strict";
+const { contextBridge, ipcRenderer, webUtils } = require("electron");
+
+const on = (channel) => (fn) => { ipcRenderer.on(channel, (_e, payload) => fn(payload)); };
+
+contextBridge.exposeInMainWorld("nv", {
+  // window
+  minimize: () => ipcRenderer.send("nv:minimize"),
+  toggleMaximize: () => ipcRenderer.send("nv:toggle-max"),
+  close: () => ipcRenderer.send("nv:close"),
+  confirmClose: () => ipcRenderer.send("nv:close-confirm"),
+  onCloseRequest: on("nv:close-request"),
+  onMaximized: on("nv:maximized"),
+  resizeStart: (edge) => ipcRenderer.send("nv:resize-start", String(edge)),
+  resizeEnd: () => ipcRenderer.send("nv:resize-end"),
+  newWindow: (p) => ipcRenderer.send("nv:new-window", p ? String(p) : ""),
+  pendingPaths: () => ipcRenderer.invoke("nv:pending-paths"),
+  onOpenPaths: on("nv:open-paths"),
+  sessionLoad: () => ipcRenderer.invoke("nv:session-load"),
+  sessionSave: (data) => ipcRenderer.send("nv:session-save", data),
+  // places and reading
+  places: () => ipcRenderer.invoke("nv:places"),
+  list: (dir) => ipcRenderer.invoke("nv:list", String(dir)),
+  resolve: (input, base) => ipcRenderer.invoke("nv:resolve", String(input), String(base || "")),
+  stat: (p) => ipcRenderer.invoke("nv:stat", String(p)),
+  previewText: (p) => ipcRenderer.invoke("nv:preview-text", String(p)),
+  thumb: (p, size) => ipcRenderer.invoke("nv:thumb", String(p), Number(size)),
+  icon: (p, size) => ipcRenderer.invoke("nv:icon", String(p), String(size || "normal")),
+  folderSize: (token, p) => ipcRenderer.invoke("nv:folder-size", String(token), String(p)),
+  onSizeProgress: on("nv:size-progress"),
+  cancelSize: (token) => ipcRenderer.send("nv:size-cancel", String(token)),
+  search: (token, root, query) => ipcRenderer.send("nv:search", String(token), String(root), String(query)),
+  onSearch: on("nv:search-results"),
+  cancelSearch: (token) => ipcRenderer.send("nv:search-cancel", String(token)),
+  watch: (dir) => ipcRenderer.send("nv:watch", String(dir || "")),
+  onChanged: on("nv:changed"),
+  // opening
+  open: (p) => ipcRenderer.invoke("nv:open", String(p)),
+  readLink: (p) => ipcRenderer.invoke("nv:read-link", String(p)),
+  openWith: (p) => ipcRenderer.send("nv:open-with", String(p)),
+  openInNeuralPad: (paths) => ipcRenderer.invoke("nv:open-neuralpad", paths.map(String)),
+  openTerminal: (dir) => ipcRenderer.send("nv:open-terminal", String(dir)),
+  showInExplorer: (p) => ipcRenderer.send("nv:show-in-explorer", String(p)),
+  openRecycleBin: () => ipcRenderer.send("nv:open-recycle"),
+  watcherGet: () => ipcRenderer.invoke("nv:watcher-get"),
+  watcherSet: (on) => ipcRenderer.invoke("nv:watcher-set", Boolean(on)),
+  // changing
+  trash: (paths) => ipcRenderer.invoke("nv:trash", paths.map(String)),
+  deletePermanent: (paths) => ipcRenderer.invoke("nv:delete-permanent", paths.map(String)),
+  rename: (p, name) => ipcRenderer.invoke("nv:rename", String(p), String(name)),
+  create: (dir, base, kind) => ipcRenderer.invoke("nv:create", String(dir), String(base), String(kind)),
+  transfer: (id, op, sources, destDir) => ipcRenderer.send("nv:transfer", String(id), String(op), sources.map(String), String(destDir)),
+  onJob: on("nv:job"),
+  conflictReply: (jobId, reqId, decision) => ipcRenderer.send("nv:conflict-reply", String(jobId), reqId, decision),
+  cancelJob: (jobId) => ipcRenderer.send("nv:job-cancel", String(jobId)),
+  clipSet: (op, paths) => ipcRenderer.invoke("nv:clip-set", String(op), paths.map(String)),
+  clipGet: () => ipcRenderer.invoke("nv:clip-get"),
+  clipClear: () => ipcRenderer.invoke("nv:clip-clear"),
+  startDrag: (paths) => ipcRenderer.send("nv:start-drag", paths.map(String)),
+  pathForFile: (file) => { try { return webUtils.getPathForFile(file); } catch (e) { return ""; } },
+});

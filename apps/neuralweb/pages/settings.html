@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="tr" class="theme-neon">
+<head>
+<meta charset="utf-8">
+<title>Ayarlar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="pages.css">
+<link rel="stylesheet" href="settings.css">
+</head>
+<body>
+<div class="bg" aria-hidden="true"><div class="beam"></div></div>
+<header class="top">
+  <span class="mark">NW-1</span><h1>Ayarlar</h1>
+  <nav><a href="neural://history/">Geçmiş</a><a href="neural://bookmarks/">Yer imleri</a><a href="neural://passwords/">Şifreler</a><a href="neural://downloads/">İndirilenler</a><a href="neural://settings/" aria-current="page">Ayarlar</a></nav>
+</header>
+<div class="rule"></div>
+<main class="wrap settings">
+  <aside class="side" aria-label="Ayar bölümleri">
+    <a href="#appearance">Görünüm</a>
+    <a href="#shield">Reklam engelleyici</a>
+    <a href="#startup">Başlangıç</a>
+    <a href="#search">Arama motoru</a>
+    <a href="#downloads">İndirmeler</a>
+    <a href="#import">Edge'den aktar</a>
+    <a href="#privacy">Gizlilik</a>
+    <a href="#permissions">Site izinleri</a>
+    <a href="#default">Varsayılan tarayıcı</a>
+    <a href="#about">Hakkında</a>
+  </aside>
+  <div class="sections">
+    <section id="appearance">
+      <h2>Görünüm</h2>
+      <div class="panel"><div class="panel-in">
+        <div class="themes" id="themes" role="radiogroup" aria-label="Tema"></div>
+        <label class="opt"><span class="txt"><b>Yer imleri çubuğunu göster</b><small>Adres çubuğunun altında, sık kullandığın siteler. Kısayol: Ctrl+Shift+B</small></span><input type="checkbox" id="show-bar"><span class="sw"></span></label>
+      </div></div>
+    </section>
+
+    <section id="shield">
+      <h2>Reklam engelleyici</h2>
+      <div class="panel"><div class="panel-in">
+        <label class="opt"><span class="txt"><b>Reklamları ve izleyicileri engelle</b><small>Kalkan; reklamları, izleme betiklerini ve bilinen zararlı adresleri sayfa daha yüklenmeden durdurur, reklam kutularını gizler.</small></span><input type="checkbox" id="sh-on"><span class="sw"></span></label>
+        <div class="opt static"><span class="txt"><b>Engellenen istekler</b><small id="sh-stats"></small></span></div>
+        <div class="opt static"><span class="txt"><b>Engelleme listeleri</b><small id="sh-lists"></small></span><button class="btn" id="sh-update" type="button">Şimdi güncelle</button></div>
+      </div></div>
+      <h3 class="sub">Kalkanın kapalı olduğu siteler</h3>
+      <div class="panel"><div class="panel-in" id="sh-allow"></div></div>
+    </section>
+
+    <section id="startup">
+      <h2>Başlangıç</h2>
+      <div class="panel"><div class="panel-in">
+        <label class="opt"><span class="txt"><b>Kaldığın yerden devam et</b><small>NeuralWeb açılınca son kapattığın pencereler ve sekmeler geri gelir.</small></span><input type="radio" name="startup" value="restore"><span class="box round"></span></label>
+        <label class="opt"><span class="txt"><b>Yeni sekme sayfasını aç</b><small>Her açılışta temiz bir sayfayla başla.</small></span><input type="radio" name="startup" value="newtab"><span class="box round"></span></label>
+      </div></div>
+    </section>
+
+    <section id="search">
+      <h2>Arama motoru</h2>
+      <div class="panel"><div class="panel-in">
+        <div class="engine">
+          <span class="g" aria-hidden="true">G</span>
+          <span class="txt"><b>Google</b><small>Adres çubuğuna ve yeni sekme sayfasına yazdıkların Google'da aranır; öneriler de Google'dan gelir.</small></span>
+          <span class="tag">VARSAYILAN</span>
+        </div>
+      </div></div>
+    </section>
+
+    <section id="downloads">
+      <h2>İndirmeler</h2>
+      <div class="panel"><div class="panel-in">
+        <div class="opt static"><span class="txt"><b>Konum</b><small class="path" id="dl-dir"></small></span><button class="btn" id="dl-change" type="button">Değiştir…</button></div>
+        <label class="opt"><span class="txt"><b>Her dosyada nereye kaydedileceğini sor</b><small>Kapalıyken dosyalar doğrudan yukarıdaki klasöre iner.</small></span><input type="checkbox" id="ask-path"><span class="sw"></span></label>
+      </div></div>
+    </section>
+
+    <section id="import">
+      <h2>Edge'den aktar</h2>
+      <div class="panel"><div class="panel-in pad">
+        <p class="lead">Microsoft Edge'deki yer imlerini, tarama geçmişini ve kayıtlı şifreleri NeuralWeb'e kopyalar. Edge'deki verilerin olduğu gibi kalır; şifreler NeuralWeb'de Windows hesabınla şifrelenerek saklanır.</p>
+        <div class="grid2">
+          <label><span class="label">Edge profili</span><select class="select" id="edge-profile"></select></label>
+          <div class="checks">
+            <label class="opt compact"><input type="checkbox" id="imp-marks" checked><span class="box"></span><span class="txt"><b>Yer imleri</b></span></label>
+            <label class="opt compact"><input type="checkbox" id="imp-history" checked><span class="box"></span><span class="txt"><b>Tarama geçmişi</b></span></label>
+            <label class="opt compact"><input type="checkbox" id="imp-passwords" checked><span class="box"></span><span class="txt"><b>Şifreler</b></span></label>
+          </div>
+        </div>
+        <p class="hint">İpucu: Edge açıkken geçmiş dosyası kilitli olabilir. Aktarmadan önce Edge'i tamamen kapat.</p>
+        <div class="row-btns"><button class="btn primary" id="imp-go" type="button">Aktar</button><span class="result" id="imp-result" role="status"></span></div>
+      </div></div>
+    </section>
+
+    <section id="privacy">
+      <h2>Gizlilik</h2>
+      <div class="panel"><div class="panel-in">
+        <label class="opt"><input type="checkbox" id="c-history" checked><span class="box"></span><span class="txt"><b>Tarama geçmişi</b><small>Ziyaret ettiğin sayfaların listesi.</small></span></label>
+        <label class="opt"><input type="checkbox" id="c-cookies" checked><span class="box"></span><span class="txt"><b>Çerezler ve site verileri</b><small>Çoğu sitedeki oturumların kapanır.</small></span></label>
+        <label class="opt"><input type="checkbox" id="c-cache" checked><span class="box"></span><span class="txt"><b>Önbellekteki resim ve dosyalar</b><small>Siteler bir sonraki ziyarette biraz yavaş açılabilir.</small></span></label>
+        <label class="opt"><input type="checkbox" id="c-downloads"><span class="box"></span><span class="txt"><b>İndirme geçmişi</b><small>Yalnızca liste silinir; dosyalar yerinde kalır.</small></span></label>
+        <div class="row-btns pad"><button class="btn danger" id="clear-go" type="button">Verileri temizle</button><span class="result" id="clear-result" role="status"></span></div>
+      </div></div>
+    </section>
+
+    <section id="permissions">
+      <h2>Site izinleri</h2>
+      <div class="panel"><div class="panel-in" id="perm-list"></div></div>
+    </section>
+
+    <section id="default">
+      <h2>Varsayılan tarayıcı</h2>
+      <div class="panel"><div class="panel-in pad">
+        <p class="lead">Bağlantılar ve .html dosyaları NeuralWeb'de açılsın istiyorsan Windows ayarlarında NeuralWeb'i varsayılan tarayıcı yap. Açılan sayfada en üstteki <b>Varsayılan olarak ayarla</b> düğmesine bas.</p>
+        <div class="row-btns"><button class="btn primary" id="default-go" type="button">Windows varsayılan uygulamalar ayarını aç</button></div>
+      </div></div>
+    </section>
+
+    <section id="about">
+      <h2>Hakkında</h2>
+      <div class="panel"><div class="panel-in pad about">
+        <div class="about-mark" aria-hidden="true">NW-1</div>
+        <div>
+          <b>NeuralWeb</b>
+          <p id="versions"></p>
+          <p class="hint">Neural serisinin tarayıcısı. Sayfaları Chromium motoru çizer; tarayıcının güvenliği bu motorun güncel kalmasına bağlıdır.</p>
+        </div>
+      </div></div>
+    </section>
+  </div>
+</main>
+<script src="pages.js"></script>
+<script src="settings.js"></script>
+</body>
+</html>

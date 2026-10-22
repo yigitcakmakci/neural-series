@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="tr" class="theme-neon">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NeuralTerm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="vendor/xterm.css">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" type="image/png" href="icon.png">
+</head>
+<body>
+<div class="window">
+  <div class="frame">
+    <div class="frame-inner" id="app">
+      <header class="band">
+        <div class="brand" aria-hidden="true"><span class="brand-model">NT-5</span><span class="brand-name">NEURALTERM</span></div>
+        <div class="band-title" id="band-title">NeuralTerm</div>
+        <span class="hazard" aria-hidden="true"></span>
+        <div class="win-btns">
+          <button class="win-btn" id="win-min" type="button" aria-label="Simge durumuna küçült" title="Küçült"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 9.5h8"/></svg></button>
+          <button class="win-btn" id="win-max" type="button" aria-label="Ekranı kapla" title="Ekranı kapla"><svg class="ic-max" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5h7v7h-7z"/></svg><svg class="ic-restore" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5h5v5M2.5 4.5h5v5h-5z"/></svg></button>
+          <button class="win-btn close" id="win-close" type="button" aria-label="Kapat" title="Kapat"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button>
+        </div>
+      </header>
+
+      <div class="tabbar">
+        <div class="tabs" id="tabs" role="tablist" aria-label="Terminal sekmeleri"></div>
+        <button class="tab-new" id="tab-new" type="button" title="Yeni sekme (Ctrl+Shift+T)" aria-label="Yeni sekme">+</button>
+        <button class="tab-more" id="tab-shells" type="button" title="Kabuk seçerek yeni sekme" aria-label="Kabuk seçerek yeni sekme"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5L6 7.5l3-3"/></svg></button>
+        <span class="grow"></span>
+        <button class="tab-more" id="menu-btn" type="button" title="Ayarlar" aria-label="Ayarlar"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6h1M5.5 6h1M9 6h1"/></svg></button>
+      </div>
+
+      <main class="screen" id="screen">
+        <div class="beam-track" aria-hidden="true"><div class="beam"></div></div>
+        <div class="terms" id="terms"></div>
+      </main>
+
+      <footer class="statusbar">
+        <span id="st-shell"></span>
+        <span id="st-size"></span>
+        <span id="st-font"></span>
+        <span id="st-enc">UTF-8</span>
+      </footer>
+    </div>
+  </div>
+  <div class="rz rz-n" data-edge="n"></div>
+  <div class="rz rz-s" data-edge="s"></div>
+  <div class="rz rz-e" data-edge="e"></div>
+  <div class="rz rz-w" data-edge="w"></div>
+  <div class="rz rz-ne" data-edge="ne"></div>
+  <div class="rz rz-nw" data-edge="nw"></div>
+  <div class="rz rz-se" data-edge="se"></div>
+  <div class="rz rz-sw" data-edge="sw"></div>
+</div>
+
+<div id="popups"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<dialog class="hud-dialog" id="dlg-confirm">
+  <form method="dialog">
+    <div class="dlg-body">
+      <h2 class="dlg-head" id="cfm-title">Onay</h2>
+      <div class="dlg-content"><p id="cfm-text"></p></div>
+      <div class="btns">
+        <button value="ok" class="danger" id="cfm-ok">Tamam</button>
+        <button value="cancel" class="primary">Vazgeç</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="hud-dialog wide" id="dlg-keys">
+  <form method="dialog">
+    <div class="dlg-body">
+      <h2 class="dlg-head">Klavye kısayolları</h2>
+      <div class="dlg-content"><div class="keys" id="keys-list"></div></div>
+      <div class="btns"><button value="ok" class="primary">Tamam</button></div>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="hud-dialog" id="dlg-about">
+  <form method="dialog">
+    <div class="dlg-body">
+      <h2 class="dlg-head">NeuralTerm hakkında</h2>
+      <div class="dlg-content">
+        <p class="about-mark" aria-hidden="true">NT-5</p>
+        <p>Neural serisinin terminali. PowerShell, Komut İstemi ve diğer kabuklar Windows'un kendi sözde konsolunda (ConPTY) çalışır.</p>
+        <p class="hint">Sürüm 1.0 · Ekran çizimi: xterm.js</p>
+      </div>
+      <div class="btns"><button value="ok" class="primary">Tamam</button></div>
+    </div>
+  </form>
+</dialog>
+
+<script src="vendor/xterm.js"></script>
+<script src="vendor/addon-fit.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

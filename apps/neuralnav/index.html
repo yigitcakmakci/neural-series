@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="tr" class="theme-neon">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NeuralNav</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" type="image/png" href="icon.png">
+</head>
+<body>
+
+<!-- Simge seti: arayüz simgeleri (24) ve dosya türü simgeleri (32) -->
+<svg class="sprite" aria-hidden="true">
+  <defs>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+    <symbol id="i-forward" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V6M6 11l6-6 6 6"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M19.5 11A7.5 7.5 0 1 0 17 16.6"/><path d="M20 4v7h-7"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><path d="M10.5 4.5a6 6 0 1 1 0 12 6 6 0 0 1 0-12zM15 15l5.5 5.5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-newfolder" viewBox="0 0 24 24"><path d="M3 5h7l2 2h9v12H3z"/><path d="M12 10v6M9 13h6"/></symbol>
+    <symbol id="i-newfile" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M12 10v6M9 13h6"/></symbol>
+    <symbol id="i-cut" viewBox="0 0 24 24"><path d="M6 14.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM18 14.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM8.2 15.6L18 3.5M15.8 15.6L6 3.5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><path d="M8 8h12v13H8z"/><path d="M4 16V3h12"/></symbol>
+    <symbol id="i-paste" viewBox="0 0 24 24"><path d="M6 5h12v16H6z"/><path d="M9 3h6v4H9z"/><path d="M9 12h6M9 16h4"/></symbol>
+    <symbol id="i-rename" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></symbol>
+    <symbol id="i-delete" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6"/></symbol>
+    <symbol id="i-sort" viewBox="0 0 24 24"><path d="M7 4v16M3 16l4 4 4-4M14 6h7M14 11h5M14 16h3"/></symbol>
+    <symbol id="i-view" viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+    <symbol id="i-preview" viewBox="0 0 24 24"><path d="M3 4h18v16H3zM14 4v16"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><path d="M4 12h2M11 12h2M18 12h2"/></symbol>
+    <symbol id="i-terminal" viewBox="0 0 24 24"><path d="M3 5h18v14H3z"/><path d="M7 10l3 2-3 2M12 15h5"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M9 3h6l-1 6 4 4H6l4-4zM12 13v8"/></symbol>
+    <symbol id="i-pc" viewBox="0 0 24 24"><path d="M3 4h18v12H3zM8 20h8M12 16v4"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M9 4h6l2 2v5l-2 2H9l-2-2V6z"/><path d="M4 21l2-5h12l2 5"/></symbol>
+    <symbol id="i-desktop" viewBox="0 0 24 24"><path d="M3 4h18v12H3zM8 20h8M12 16v4M7 8h3v3H7z"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></symbol>
+    <symbol id="i-documents" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7"/></symbol>
+    <symbol id="i-pictures" viewBox="0 0 24 24"><path d="M3 5h18v14H3z"/><path d="M3 16l5-5 4 4 3-3 6 6"/><path d="M15.5 8.5h1"/></symbol>
+    <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V6l11-2v12"/><path d="M6 15.5a3 2.5 0 1 1 0 5 3 2.5 0 0 1 0-5zM17 13.5a3 2.5 0 1 1 0 5 3 2.5 0 0 1 0-5z"/></symbol>
+    <symbol id="i-videos" viewBox="0 0 24 24"><path d="M3 6h13v12H3z"/><path d="M16 10l5-3v10l-5-3"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 5h7l2 2h9v12H3z"/></symbol>
+    <symbol id="i-drive" viewBox="0 0 24 24"><path d="M3 7h18v10H3z"/><path d="M6 12h7M17 12h1"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14"/><path d="M10 11v6M14 11v6"/></symbol>
+    <symbol id="i-props" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h5"/></symbol>
+    <symbol id="i-window" viewBox="0 0 24 24"><path d="M3 5h18v14H3zM3 9h18"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></symbol>
+
+    <symbol id="f-folder" viewBox="0 0 32 32"><path d="M2 6h10l3 3h15v18H2z" style="fill:var(--ic-b)"/><path d="M2 12h28v15H2z" style="fill:var(--ic-a)"/><path d="M5 15h9" style="stroke:var(--ic-bg);stroke-width:2;fill:none"/></symbol>
+    <symbol id="f-file" viewBox="0 0 32 32"><path d="M6 2h14l6 6v22H6z" style="fill:var(--ic-bg);stroke:var(--ic-a);stroke-width:1.6"/><path d="M10 24h12" style="stroke:var(--ic-a);stroke-width:2;fill:none"/></symbol>
+    <symbol id="f-text" viewBox="0 0 32 32"><path d="M6 2h14l6 6v22H6z" style="fill:var(--ic-bg);stroke:var(--ic-a);stroke-width:1.6"/><path d="M10 12h12M10 16h12M10 20h12M10 24h7" style="stroke:var(--ic-a);stroke-width:1.6;fill:none"/></symbol>
+    <symbol id="f-code" viewBox="0 0 32 32"><path d="M6 2h14l6 6v22H6z" style="fill:var(--ic-bg);stroke:var(--ic-a);stroke-width:1.6"/><path d="M13 13l-4 4 4 4M19 13l4 4-4 4" style="stroke:var(--ic-a);stroke-width:1.8;fill:none"/></symbol>
+    <symbol id="f-image" viewBox="0 0 32 32"><path d="M6 2h14l6 6v22H6z" style="fill:var(--ic-bg);stroke:var(--ic-a);stroke-width:1.6"/><path d="M9 26l5-7 3 4 3-3 3 6z" style="fill:var(--ic-a)"/><path d="M11 11h4v4h-4z" style="fill:var(--ic-a)"/></symbol>
+    <symbol id="f-audio" viewBox="0 0 32 32"><path d="M6 2h14l6 6v22H6z" style="fill:var(--ic-bg);stroke:var(--ic-a);stroke-width:1.6"/><path d="M14 24V13l8-2v11" style="stroke:var(--ic-a);stroke-width:1.8;fill:none"/><path d="M10 22h4v4h-4zM18 20h4v4h-4z" style="fill:var(--ic-a)"/></symbol>
+    <symbol id="f-video" viewBox="0 0 32 32"><path d="M6 2h14l6 6v22H6z" style="fill:var(--ic-bg);stroke:var(--ic-a);stroke-width:1.6"/><path d="M12 13v11l9-5.5z" style="fill:var(--ic-a)"/></symbol>
+    <symbol id="f-archive" viewBox="0 0 32 32"><path d="M6 2h14l6 6v22H6z" style="fill:var(--ic-bg);stroke:var(--ic-a);stroke-width:1.6"/><path d="M14 4h3v3h-3zM14 9h3v3h-3zM14 14h3v3h-3z" style="fill:var(--ic-a)"/><path d="M12 19h7v7h-7z" style="fill:none;stroke:var(--ic-a);stroke-width:1.6"/></symbol>
+    <symbol id="f-pdf" viewBox="0 0 32 32"><path d="M6 2h14l6 6v22H6z" style="fill:var(--ic-bg);stroke:var(--ic-a);stroke-width:1.6"/><path d="M6 19h20v7H6z" style="fill:var(--ic-a)"/><path d="M10 11h12M10 15h8" style="stroke:var(--ic-a);stroke-width:1.6;fill:none"/></symbol>
+    <symbol id="f-sheet" viewBox="0 0 32 32"><path d="M6 2h14l6 6v22H6z" style="fill:var(--ic-bg);stroke:var(--ic-a);stroke-width:1.6"/><path d="M10 12h12v12H10zM10 18h12M16 12v12" style="stroke:var(--ic-a);stroke-width:1.5;fill:none"/></symbol>
+    <symbol id="f-slide" viewBox="0 0 32 32"><path d="M6 2h14l6 6v22H6z" style="fill:var(--ic-bg);stroke:var(--ic-a);stroke-width:1.6"/><path d="M10 12h12v8H10z" style="fill:var(--ic-a)"/><path d="M16 20v4M12 26h8" style="stroke:var(--ic-a);stroke-width:1.6;fill:none"/></symbol>
+    <symbol id="f-app" viewBox="0 0 32 32"><path d="M3 6h26v20H3z" style="fill:var(--ic-bg);stroke:var(--ic-a);stroke-width:1.6"/><path d="M3 6h26v5H3z" style="fill:var(--ic-a)"/><path d="M8 16l4 3-4 3M14 22h6" style="stroke:var(--ic-a);stroke-width:1.6;fill:none"/></symbol>
+    <symbol id="f-drive" viewBox="0 0 32 32"><path d="M3 10h26v12H3z" style="fill:var(--ic-bg);stroke:var(--ic-a);stroke-width:1.6"/><path d="M7 16h11" style="stroke:var(--ic-a);stroke-width:2;fill:none"/><path d="M23 15h3v2h-3z" style="fill:var(--ic-a)"/></symbol>
+    <symbol id="f-link" viewBox="0 0 12 12"><path d="M0 0h12v12H0z" style="fill:var(--ic-bg)"/><path d="M3 9l5-5M5 4h3v3" style="stroke:var(--ic-a);stroke-width:1.5;fill:none"/></symbol>
+  </defs>
+</svg>
+
+<div class="window" id="window">
+  <div class="frame">
+    <div class="app frame-inner" id="app">
+
+      <!-- Üst şerit (sürüklenebilir) -->
+      <header class="band">
+        <div class="brand" aria-hidden="true"><span class="brand-model">NV-4</span><span class="brand-name">NEURALNAV</span></div>
+        <div class="band-title" id="band-title">Bu Bilgisayar</div>
+        <span class="hazard" aria-hidden="true"></span>
+        <div class="win-btns">
+          <button class="win-btn" id="win-min" type="button" aria-label="Simge durumuna küçült" title="Küçült"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 9.5h8"/></svg></button>
+          <button class="win-btn" id="win-max" type="button" aria-label="Ekranı kapla" title="Ekranı kapla"><svg class="ic-max" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5h7v7h-7z"/></svg><svg class="ic-restore" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5h5v5M2.5 4.5h5v5h-5z"/></svg></button>
+          <button class="win-btn close" id="win-close" type="button" aria-label="Kapat" title="Kapat"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button>
+        </div>
+      </header>
+
+      <!-- Sekmeler -->
+      <div class="tabbar" role="tablist" aria-label="Açık konumlar">
+        <div class="tabs" id="tabs"></div>
+        <button class="tab-new" id="tab-new" type="button" title="Yeni sekme (Ctrl+T)" aria-label="Yeni sekme">+</button>
+      </div>
+
+      <!-- Gezinme, adres, arama -->
+      <div class="toolbar">
+        <div class="nav-btns">
+          <button class="tb" id="nav-back" type="button" title="Geri (Alt+Sol)" aria-label="Geri"><svg><use href="#i-back"/></svg></button>
+          <button class="tb" id="nav-forward" type="button" title="İleri (Alt+Sağ)" aria-label="İleri"><svg><use href="#i-forward"/></svg></button>
+          <button class="tb" id="nav-up" type="button" title="Üst klasör (Alt+Yukarı)" aria-label="Üst klasör"><svg><use href="#i-up"/></svg></button>
+          <button class="tb" id="nav-refresh" type="button" title="Yenile (F5)" aria-label="Yenile"><svg><use href="#i-refresh"/></svg></button>
+        </div>
+        <div class="address" id="address" title="Adresi yazmak için tıkla (Ctrl+L)">
+          <div class="crumbs" id="crumbs"></div>
+          <input id="address-input" type="text" spellcheck="false" aria-label="Adres" hidden>
+        </div>
+        <label class="searchbox">
+          <svg aria-hidden="true"><use href="#i-search"/></svg>
+          <input id="search" type="text" spellcheck="false" placeholder="Ara" aria-label="Ara">
+          <button id="search-clear" type="button" title="Aramayı temizle (Esc)" aria-label="Aramayı temizle" hidden><svg><use href="#i-close"/></svg></button>
+        </label>
+      </div>
+
+      <!-- Komutlar -->
+      <div class="cmdbar" id="cmdbar">
+        <button class="cmd" data-cmd="new" type="button" title="Yeni öğe"><svg><use href="#i-plus"/></svg><span>Yeni</span></button>
+        <span class="sep"></span>
+        <button class="cmd" data-cmd="cut" type="button" title="Kes (Ctrl+X)" aria-label="Kes"><svg><use href="#i-cut"/></svg></button>
+        <button class="cmd" data-cmd="copy" type="button" title="Kopyala (Ctrl+C)" aria-label="Kopyala"><svg><use href="#i-copy"/></svg></button>
+        <button class="cmd" data-cmd="paste" type="button" title="Yapıştır (Ctrl+V)" aria-label="Yapıştır"><svg><use href="#i-paste"/></svg></button>
+        <button class="cmd" data-cmd="rename" type="button" title="Yeniden adlandır (F2)" aria-label="Yeniden adlandır"><svg><use href="#i-rename"/></svg></button>
+        <button class="cmd" data-cmd="delete" type="button" title="Geri Dönüşüm Kutusu'na taşı (Del)" aria-label="Sil"><svg><use href="#i-delete"/></svg></button>
+        <span class="sep"></span>
+        <button class="cmd" data-cmd="sort" type="button" title="Sırala"><svg><use href="#i-sort"/></svg><span>Sırala</span></button>
+        <button class="cmd" data-cmd="view" type="button" title="Görünüm"><svg><use href="#i-view"/></svg><span>Görünüm</span></button>
+        <button class="cmd" data-cmd="preview" type="button" title="Önizleme bölmesi (Alt+P)" aria-pressed="false"><svg><use href="#i-preview"/></svg><span>Önizleme</span></button>
+        <span class="grow"></span>
+        <button class="cmd" data-cmd="terminal" type="button" title="Bu klasörde terminal aç" aria-label="Terminal"><svg><use href="#i-terminal"/></svg></button>
+        <button class="cmd" data-cmd="more" type="button" title="Diğer seçenekler" aria-label="Diğer seçenekler"><svg><use href="#i-more"/></svg></button>
+      </div>
+
+      <div class="main" id="main">
+        <nav class="sidebar" id="sidebar" aria-label="Konumlar"></nav>
+
+        <section class="content" id="content">
+          <div class="beam-track" aria-hidden="true"><div class="beam"></div></div>
+          <div class="list-head" id="list-head" hidden></div>
+          <div class="scroller" id="scroller" tabindex="0" aria-label="Dosyalar">
+            <div class="canvas" id="canvas"><div class="layer" id="layer"></div></div>
+          </div>
+          <div class="pc-view" id="pc-view" hidden></div>
+          <div class="empty" id="empty" hidden></div>
+        </section>
+
+        <aside class="preview" id="preview" hidden aria-label="Önizleme"></aside>
+      </div>
+
+      <footer class="statusbar">
+        <span id="st-count"></span>
+        <span id="st-sel"></span>
+        <span id="st-job"></span>
+        <span id="st-drive"></span>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Boyutlandırma tutamakları -->
+  <div class="rz rz-n" data-edge="n"></div>
+  <div class="rz rz-s" data-edge="s"></div>
+  <div class="rz rz-e" data-edge="e"></div>
+  <div class="rz rz-w" data-edge="w"></div>
+  <div class="rz rz-ne" data-edge="ne"></div>
+  <div class="rz rz-nw" data-edge="nw"></div>
+  <div class="rz rz-se" data-edge="se"></div>
+  <div class="rz rz-sw" data-edge="sw"></div>
+</div>
+
+<div id="popups"></div>
+<div class="jobs" id="jobs" aria-live="polite"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- Çakışma -->
+<dialog class="hud-dialog wide" id="dlg-conflict">
+  <form method="dialog">
+    <div class="dlg-body">
+      <h2 class="dlg-head">Aynı adlı öğe</h2>
+      <div class="dlg-content">
+        <p id="cf-text"></p>
+        <div class="cf-cards">
+          <div class="cf-card"><span class="cf-label">GELEN</span><span id="cf-src"></span></div>
+          <div class="cf-card"><span class="cf-label">HEDEFTEKİ</span><span id="cf-dest"></span></div>
+        </div>
+        <label class="check"><input type="checkbox" id="cf-all"> Kalan çakışmalara da uygula</label>
+      </div>
+      <div class="btns">
+        <button value="replace" class="primary" id="cf-replace">Değiştir</button>
+        <button value="keep">İkisini de tut</button>
+        <button value="skip">Atla</button>
+        <button value="cancel">İptal</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<!-- Genel onay -->
+<dialog class="hud-dialog" id="dlg-confirm">
+  <form method="dialog">
+    <div class="dlg-body">
+      <h2 class="dlg-head" id="cfm-title">Onay</h2>
+      <div class="dlg-content"><p id="cfm-text"></p></div>
+      <div class="btns">
+        <button value="ok" class="primary" id="cfm-ok">Tamam</button>
+        <button value="cancel">Vazgeç</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<!-- Özellikler -->
+<dialog class="hud-dialog wide" id="dlg-props">
+  <form method="dialog">
+    <div class="dlg-body">
+      <h2 class="dlg-head">Özellikler</h2>
+      <div class="dlg-content">
+        <div class="pr-top"><span class="pr-icon" id="pr-icon"></span><span class="pr-name" id="pr-name"></span></div>
+        <dl class="pr-rows" id="pr-rows"></dl>
+      </div>
+      <div class="btns"><button value="ok" class="primary">Tamam</button></div>
+    </div>
+  </form>
+</dialog>
+
+<!-- Kısayollar -->
+<dialog class="hud-dialog wide" id="dlg-keys">
+  <form method="dialog">
+    <div class="dlg-body">
+      <h2 class="dlg-head">Klavye kısayolları</h2>
+      <div class="dlg-content"><div class="keys" id="keys-list"></div></div>
+      <div class="btns"><button value="ok" class="primary">Tamam</button></div>
+    </div>
+  </form>
+</dialog>
+
+<!-- Hakkında -->
+<dialog class="hud-dialog" id="dlg-about">
+  <form method="dialog">
+    <div class="dlg-body">
+      <h2 class="dlg-head">NeuralNav hakkında</h2>
+      <div class="dlg-content">
+        <p class="about-mark" aria-hidden="true">NV-4</p>
+        <p>Dosya gezgini, Neo-İstanbul ağından. NeuralCalc ve NeuralPad ile aynı ailedendir.</p>
+        <p class="hint">Sürüm 1.0 · Sildiğin öğeler Geri Dönüşüm Kutusu'na gider; kalıcı silme (Shift+Del) her seferinde onay ister.</p>
+      </div>
+      <div class="btns"><button value="ok" class="primary">Tamam</button></div>
+    </div>
+  </form>
+</dialog>
+
+<script src="app.js"></script>
+</body>
+</html>

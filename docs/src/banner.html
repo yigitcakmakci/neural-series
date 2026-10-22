@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="neural.css">
+<style>
+  html, body { width: 1280px; height: 440px; }
+  .hero { position: absolute; left: 56px; top: 92px; right: 56px; }
+  .kicker { display: flex; align-items: center; gap: 12px; color: var(--dim); font: 15px/1 var(--font-mono); letter-spacing: .18em; }
+  .kicker b { color: var(--cyan); font-weight: 400; }
+  h1 {
+    margin: 18px 0 0; color: var(--ink);
+    font: 700 104px/0.95 var(--font-display); letter-spacing: .03em;
+    text-shadow: -3px 0 rgba(0, 240, 255, .55), 3px 0 rgba(255, 42, 79, .45);
+  }
+  h1 span { color: var(--yellow); }
+  .sub { margin-top: 16px; max-width: 760px; color: #b9bccb; font: 600 23px/1.3 var(--font-body); }
+  .units { position: absolute; left: 56px; right: 56px; bottom: 34px; display: flex; gap: 14px; }
+  .unit {
+    flex: 1; display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+    background: rgba(12, 13, 21, .92); border: 1px solid var(--line);
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+  }
+  .unit img { width: 46px; height: 46px; }
+  .unit .t { display: flex; flex-direction: column; gap: 5px; }
+  .unit .n { color: var(--ink); font: 700 19px/1 var(--font-display); }
+  .unit .d { color: var(--dim); font: 600 14px/1 var(--font-body); letter-spacing: .04em; }
+  .tag { position: absolute; right: 56px; top: 98px; text-align: right; }
+  .tag .v { color: var(--yellow); font: 700 30px/1 var(--font-display); }
+  .tag .c { margin-top: 8px; color: var(--cyan); font: 15px/1 var(--font-mono); letter-spacing: .2em; }
+</style>
+</head>
+<body>
+<div class="device"><div class="body">
+  <div class="band">
+    <span class="code">NS-1</span><span class="name">NEURAL SERIES</span>
+    <span class="readout">WINDOWS 10 / 11 // x64</span><span class="hazard"></span>
+  </div>
+  <div class="screen"></div>
+  <div class="hero">
+    <div class="kicker"><b>&gt;_</b> NEURAL SYSTEMS // DESKTOP SUITE</div>
+    <h1>NEURAL <span>SERIES</span></h1>
+    <div class="sub">Five cyberpunk desktop apps for Windows: a calculator, a notepad, a file explorer, a terminal and a web browser.</div>
+  </div>
+  <div class="tag"><div class="v">v1.0.0</div><div class="c">NEO-ISTANBUL</div></div>
+  <div class="units">
+    <div class="unit"><img src="../../apps/neuralcalc/icon.png" alt=""><div class="t"><span class="chip">KX-9</span><span class="n">NeuralCalc</span></div></div>
+    <div class="unit"><img src="../../apps/neuralpad/icon.png" alt=""><div class="t"><span class="chip">NP-7</span><span class="n">NeuralPad</span></div></div>
+    <div class="unit"><img src="../../apps/neuralnav/icon.png" alt=""><div class="t"><span class="chip">NV-4</span><span class="n">NeuralNav</span></div></div>
+    <div class="unit"><img src="../../apps/neuralterm/icon.png" alt=""><div class="t"><span class="chip">NT-5</span><span class="n">NeuralTerm</span></div></div>
+    <div class="unit"><img src="../../apps/neuralweb/icon.png" alt=""><div class="t"><span class="chip">NW-1</span><span class="n">NeuralWeb</span></div></div>
+  </div>
+</div></div>
+</body>
+</html>

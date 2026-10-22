@@ -1,0 +1,60 @@
+/* NeuralWeb new tab: clock, Google search, most visited sites. */
+body.ntp { display: flex; flex-direction: column; overflow-x: hidden; }
+.ntp-main { flex: 1; display: flex; flex-direction: column; align-items: center; width: min(820px, calc(100% - 48px)); margin: 0 auto; padding: 9vh 0 40px; }
+.ntp-brand { display: flex; align-items: center; gap: 10px; color: var(--accent); }
+.theme-daylight .ntp-brand { color: var(--ink); }
+.ntp-brand .m { padding: 5px 9px 5px 8px; color: var(--band-fg); background: var(--band-bg); font: 700 .95rem/1 var(--font-display); clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 0 100%); }
+.ntp-brand .n { font: 700 .74rem/1 var(--font-body); letter-spacing: .32em; }
+.ntp-brand .hz { width: 34px; height: 10px; background: repeating-linear-gradient(-45deg, currentColor 0 4px, transparent 4px 8px); }
+.clock {
+  margin-top: 18px; font: 600 clamp(4.2rem, 11vw, 7.4rem)/1 var(--font-display); letter-spacing: .02em; font-variant-numeric: tabular-nums;
+  color: var(--ink); text-shadow: 0 0 22px var(--glow), 2px 0 0 color-mix(in srgb, var(--accent-2) 45%, transparent), -2px 0 0 color-mix(in srgb, var(--frame-end) 40%, transparent);
+}
+.date { margin-top: 6px; color: var(--dim); font: .9rem/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
+
+.shield-line { margin-top: 10px; padding: 4px 10px; color: var(--dim); font: .78rem/1 var(--font-mono); letter-spacing: .12em; box-shadow: inset 0 0 0 1px var(--line); }
+.shield-line b { color: var(--accent-2); font-weight: 400; }
+.search {
+  display: flex; align-items: center; gap: 12px; width: 100%; height: 54px; margin-top: 34px; padding: 0 6px 0 18px;
+  background: var(--panel); box-shadow: inset 0 0 0 1px var(--line);
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+}
+.search:focus-within { box-shadow: inset 0 0 0 1px var(--accent), inset 0 0 26px var(--glow); }
+.search svg { width: 20px; height: 20px; color: var(--accent-2); flex: 0 0 auto; }
+.search input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; color: var(--ink); font: 600 1.25rem/1 var(--font-body); }
+.search input::placeholder { color: var(--dim); }
+.go {
+  height: 40px; padding: 0 20px; border: 0; color: var(--on-accent); background: var(--accent); font: 700 .85rem/1 var(--font-display); letter-spacing: .16em; cursor: pointer;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%);
+}
+.go:hover { filter: brightness(1.08); }
+
+.import {
+  display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 18px; padding: 14px 16px;
+  background: var(--panel-2); box-shadow: inset 3px 0 0 var(--accent-2), inset 0 0 0 1px var(--line);
+}
+.import-txt { flex: 1; display: grid; gap: 3px; }
+.import-txt b { font: 700 1.05rem/1.2 var(--font-display); }
+.import-txt span { color: var(--dim); }
+.import .btn { text-decoration: none; }
+
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; width: 100%; margin-top: 30px; }
+.tile {
+  position: relative; display: grid; justify-items: center; gap: 10px; padding: 18px 10px 14px; color: var(--ink);
+  background: var(--panel); box-shadow: inset 0 0 0 1px var(--line);
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  transition: background-color .12s, box-shadow .12s;
+}
+.tile:hover, .tile:focus-visible { background: var(--panel-2); box-shadow: inset 0 0 0 1px var(--accent-2), inset 0 0 20px var(--glow); outline: none; }
+.tile .ic { display: grid; place-items: center; width: 44px; height: 44px; background: var(--panel-3); clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 0 100%); }
+.tile .ic img, .tile .ic svg { width: 22px; height: 22px; }
+.tile .ic .letter { font: 700 1.3rem/1 var(--font-display); color: var(--accent); }
+.theme-daylight .tile .ic .letter { color: var(--ink); }
+.tile .t { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 600 .98rem/1.2 var(--font-body); }
+.tile .h { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dim); font: .72rem/1 var(--font-mono); }
+.tiles-empty { grid-column: 1 / -1; padding: 20px; color: var(--dim); font: .86rem/1.5 var(--font-mono); text-align: center; }
+
+.ntp-foot { display: flex; justify-content: center; gap: 4px; padding: 0 0 22px; }
+.ntp-foot a { padding: 8px 12px; color: var(--dim); font: 700 .74rem/1 var(--font-display); letter-spacing: .14em; text-transform: uppercase; }
+.ntp-foot a:hover { color: var(--on-accent); background: var(--accent); }
+@media (max-width: 640px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

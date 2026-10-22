@@ -1,0 +1,11 @@
+# dependencies (restored by build.ps1 with npm ci)
+node_modules/
+
+# build output
+out/
+
+# sandboxes the unit tests create next to themselves
+tests/neuralnav/ops-sandbox/
+tests/neuralweb/store-sandbox/
+
+*.log

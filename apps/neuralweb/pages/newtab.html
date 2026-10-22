@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="tr" class="theme-neon">
+<head>
+<meta charset="utf-8">
+<title>Yeni sekme</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="pages.css">
+<link rel="stylesheet" href="newtab.css">
+</head>
+<body class="ntp">
+<div class="bg" aria-hidden="true"><div class="beam"></div></div>
+<main class="ntp-main">
+  <div class="ntp-brand" aria-hidden="true"><span class="m">NW-1</span><span class="n">NEURALWEB</span><span class="hz"></span></div>
+  <div class="clock" id="clock">--:--</div>
+  <div class="date" id="date"></div>
+  <div class="shield-line" id="shield-line" hidden></div>
+  <form class="search" id="search" role="search">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M7 3a4 4 0 1 1 0 8a4 4 0 0 1 0-8zM10 10l3.5 3.5"/></svg>
+    <input id="q" type="text" autocomplete="off" spellcheck="false" placeholder="Google'da ara veya adres yaz" aria-label="Google'da ara veya adres yaz">
+    <button class="go" type="submit">ARA</button>
+  </form>
+  <section class="import" id="import" hidden>
+    <div class="import-txt">
+      <b>Edge'den mi geliyorsun?</b>
+      <span>Yer imlerini ve tarama geçmişini tek seferde NeuralWeb'e aktar.</span>
+    </div>
+    <a class="btn primary" href="neural://settings/#import">Aktar</a>
+    <button class="btn" id="import-later" type="button">Daha sonra</button>
+  </section>
+  <section class="tiles" id="tiles" aria-label="Sık ziyaret edilenler"></section>
+</main>
+<footer class="ntp-foot">
+  <a href="neural://history/">Geçmiş</a>
+  <a href="neural://bookmarks/">Yer imleri</a>
+  <a href="neural://passwords/">Şifreler</a>
+  <a href="neural://downloads/">İndirilenler</a>
+  <a href="neural://settings/">Ayarlar</a>
+</footer>
+<script src="pages.js"></script>
+<script src="newtab.js"></script>
+</body>
+</html>
