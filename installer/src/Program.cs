@@ -45,7 +45,7 @@ namespace NeuralSetup
 
             var o = new Options { Test = arg("test") != null };
             if (arg("hedef") != null) o.Root = Path.GetFullPath(arg("hedef"));
-            else if (payload == null) o.Root = Path.GetDirectoryName(Path.GetDirectoryName(self)); // <kök>\Ortak\NeuralKaldir.exe
+            else if (payload == null) o.Root = Path.GetDirectoryName(Path.GetDirectoryName(self)); // <root>\Ortak\NeuralKaldir.exe
             else o.Root = Engine.ExistingRoot() ?? Engine.DefaultRoot();
 
             bool existing = Apps.All.Any(a => Directory.Exists(Path.Combine(o.Root, a.Id, "Program")));

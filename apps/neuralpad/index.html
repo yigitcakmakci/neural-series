@@ -15,7 +15,7 @@
   <div class="frame">
     <div class="app frame-inner" id="app">
 
-      <!-- Üst şerit: marka, menü, belge adı, pencere tuşları (sürüklenebilir) -->
+      <!-- Top band: brand, menu, document name, window buttons (draggable) -->
       <header class="band">
         <div class="brand" aria-hidden="true"><span class="brand-model">NP-7</span><span class="brand-name">NEURALPAD</span></div>
         <nav class="menubar" id="menubar" role="menubar" aria-label="Ana menü"></nav>
@@ -28,20 +28,20 @@
         </div>
       </header>
 
-      <!-- Sekmeler -->
+      <!-- Tabs -->
       <div class="tabbar" id="tabbar" role="tablist" aria-label="Açık belgeler">
         <div class="tabs" id="tabs"></div>
         <button class="tab-new" id="tab-new" type="button" title="Yeni sekme (Ctrl+N)" aria-label="Yeni sekme">+</button>
       </div>
 
-      <!-- Yazı yüzeyi -->
+      <!-- Writing surface -->
       <main class="slab" id="slab">
         <div class="beam-track" aria-hidden="true"><div class="beam"></div></div>
         <div class="editors" id="editors">
           <div class="backdrop ed-text" id="backdrop" aria-hidden="true"></div>
         </div>
 
-        <!-- Bul / Değiştir paneli -->
+        <!-- Find / Replace panel -->
         <section class="findbar" id="findbar" hidden aria-label="Bul ve değiştir">
           <div class="find-row">
             <button class="fb-btn fb-toggle" id="fb-toggle" type="button" title="Değiştir'i göster/gizle" aria-label="Değiştir'i göster/gizle" aria-expanded="false"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5L8 6l-3.5 3.5"/></svg></button>
@@ -65,7 +65,7 @@
         </section>
       </main>
 
-      <!-- Durum çubuğu -->
+      <!-- Status bar -->
       <footer class="statusbar" id="statusbar">
         <span id="st-pos">Sat 1, Süt 1</span>
         <span id="st-chars">0 karakter</span>
@@ -76,7 +76,7 @@
     </div>
   </div>
 
-  <!-- Boyutlandırma tutamakları -->
+  <!-- Resize handles -->
   <div class="rz rz-n" data-edge="n"></div>
   <div class="rz rz-s" data-edge="s"></div>
   <div class="rz rz-e" data-edge="e"></div>
@@ -87,11 +87,11 @@
   <div class="rz rz-sw" data-edge="sw"></div>
 </div>
 
-<!-- Açılır menü katmanı -->
+<!-- Drop-down menu layer -->
 <div id="popups"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<!-- Git diyaloğu -->
+<!-- Go To dialog -->
 <dialog class="hud-dialog" id="dlg-goto">
   <form method="dialog">
     <div class="dlg-body">
@@ -110,7 +110,7 @@
   </form>
 </dialog>
 
-<!-- Yazı tipi diyaloğu -->
+<!-- Font dialog -->
 <dialog class="hud-dialog wide" id="dlg-font">
   <form method="dialog">
     <div class="dlg-body">
@@ -145,7 +145,7 @@
   </form>
 </dialog>
 
-<!-- Kaydetme onayı -->
+<!-- Save confirmation -->
 <dialog class="hud-dialog" id="dlg-confirm">
   <form method="dialog">
     <div class="dlg-body">
@@ -160,7 +160,7 @@
   </form>
 </dialog>
 
-<!-- Kısayollar -->
+<!-- Shortcuts -->
 <dialog class="hud-dialog wide" id="dlg-keys">
   <form method="dialog">
     <div class="dlg-body">
@@ -171,7 +171,7 @@
   </form>
 </dialog>
 
-<!-- Hakkında -->
+<!-- About -->
 <dialog class="hud-dialog" id="dlg-about">
   <form method="dialog">
     <div class="dlg-body">
@@ -186,7 +186,7 @@
   </form>
 </dialog>
 
-<!-- Yazdırma alanı -->
+<!-- Print area -->
 <div id="print-area" aria-hidden="true"><div id="print-title"></div><pre id="print-text"></pre></div>
 
 <script src="app.js"></script>

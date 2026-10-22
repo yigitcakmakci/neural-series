@@ -247,7 +247,7 @@ namespace NeuralSetup
             }
             f.Step = p == Page.Welcome ? 0 : p == Page.Apps ? 1 : p == Page.Windows ? 2 : p == Page.Work ? 3 : p == Page.Done || p == Page.Fail ? 4
                 : p == Page.UWelcome ? 0 : p == Page.UWork ? 1 : 2;
-            // Enter always means the main button of the page, never an extra one such as "Varsayılan tarayıcıyı seç…".
+            // Enter always means the main button of the page, never an extra one such as "Varsayılan tarayıcıyı seç…" (choose the default browser).
             // Focus() as well: after the work page disabled Next, Windows has no focus at all while WinForms still
             // counts Next as the active control, so setting ActiveControl alone would change nothing.
             if (f.Next.Visible && f.Next.Enabled)

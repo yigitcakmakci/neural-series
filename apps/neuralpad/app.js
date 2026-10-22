@@ -1,5 +1,5 @@
 /* ============================================================
-   NeuralPad — Not Defteri davranışı (Taş Tablet'in mantığı üzerine)
+   NeuralPad — Notepad behavior (built on the logic of Taş Tablet)
    ============================================================ */
 'use strict';
 (async () => {
@@ -10,7 +10,7 @@ const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
 const readJSON = k => { try { return JSON.parse(localStorage.getItem(k)) || null; } catch { return null; } };
 const newUid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 
-/* Masaüstü kabuğu (Electron). Tarayıcıda açılırsa dosya işlemleri devre dışı kalır. */
+/* Desktop shell (Electron). Opened in a plain browser, the file operations stay disabled. */
 const NOOP = () => {};
 const NO_SHELL = { ok: false, error: 'Bu işlem yalnızca masaüstü uygulamasında çalışır.' };
 const np = window.np || {
@@ -40,12 +40,12 @@ const fb = {
 const IS_EXTRA_WINDOW = new URLSearchParams(location.search).has('yeni');
 const SETTINGS_KEY = 'neuralpad.settings';
 
-// Dışarıdan gelen dosyalar (ikinci kez açılış) başlangıç bitene kadar sıraya alınır
+// Files handed in from outside (a second launch) wait in a queue until startup has finished
 const incoming = [];
 let started = false;
 np.onOpenFiles(paths => { if (started) openPaths(paths); else incoming.push(...paths); });
 
-/* ---------------- Ayarlar ---------------- */
+/* ---------------- Settings ---------------- */
 const FONTS = [
   { name: 'Chakra Petch', css: '"Chakra Petch", "Rajdhani", "Segoe UI", sans-serif' },
   { name: 'Rajdhani', css: '"Rajdhani", "Segoe UI", sans-serif' },
@@ -71,14 +71,14 @@ const DEFAULTS = {
 };
 const S = Object.assign({}, DEFAULTS, readJSON(SETTINGS_KEY));
 if (!THEMES.some(t => t.id === S.theme)) S.theme = DEFAULTS.theme;
-// Sürüm 2: varsayılan yazı tipi hesap makinesinin ekran yazı tipine (Chakra Petch) geçti
+// Settings version 2: the default font changed to the calculator's screen font (Chakra Petch)
 if ((S.v || 1) < 2) {
   Object.assign(S, { fontFamily: DEFAULTS.fontFamily, fontStyle: DEFAULTS.fontStyle, fontWeight: DEFAULTS.fontWeight, fontSize: DEFAULTS.fontSize, v: 2 });
   saveSettings();
 }
 
 function saveSettings() {
-  try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(S)); } catch { /* depolama kapalı olabilir */ }
+  try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(S)); } catch { /* storage may be unavailable */ }
 }
 
 function applySettings() {
@@ -99,7 +99,7 @@ function applySettings() {
   refreshBackdrop();
 }
 
-/* ---------------- Sekmeler ---------------- */
+/* ---------------- Tabs ---------------- */
 let tabs = [];
 let active = null;
 
@@ -132,7 +132,7 @@ function wireTextarea(tab) {
   for (const ev of ['keyup', 'mouseup', 'select', 'focus']) ta.addEventListener(ev, updateStatus);
   ta.addEventListener('scroll', syncBackdropScroll);
   ta.addEventListener('keydown', e => {
-    // Not Defteri gibi: Tab karakter ekler, odak değiştirmez
+    // As in Notepad: Tab inserts a tab character instead of moving the focus
     if (e.key === 'Tab' && !e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
       e.preventDefault();
       insertText('\t');
@@ -249,8 +249,8 @@ function closeWindow() {
   np.close();
 }
 
-/* ---------------- Kodlama ve satır sonu ---------------- */
-let ansiMap = null; // Windows-1254 (Türkçe ANSI) için karakter → bayt
+/* ---------------- Encoding and line endings ---------------- */
+let ansiMap = null; // Character → byte for Windows-1254 (Turkish ANSI)
 function getAnsiMap() {
   if (ansiMap) return ansiMap;
   ansiMap = new Map();
@@ -304,11 +304,11 @@ function encodeText(text, eol, enc) {
   // ANSI
   const map = getAnsiMap();
   const out = new Uint8Array(t.length);
-  for (let i = 0; i < t.length; i++) out[i] = map.get(t[i]) ?? 0x3F; // eşlenemeyen → '?'
+  for (let i = 0; i < t.length; i++) out[i] = map.get(t[i]) ?? 0x3F; // unmappable → '?'
   return out;
 }
 
-/* ---------------- Dosya işlemleri ---------------- */
+/* ---------------- File operations ---------------- */
 function rememberDir(p) {
   const d = dirName(p);
   if (d && d !== S.lastDir) { S.lastDir = d; saveSettings(); }
@@ -347,7 +347,7 @@ function loadIntoTab(bytes, name, path) {
   activate(tab);
   tab.ta.setSelectionRange(0, 0);
   tab.ta.scrollTop = 0;
-  // Klasik .LOG özelliği: ilk satırı ".LOG" olan dosyaya açılışta zaman damgası eklenir
+  // The classic .LOG feature: a file whose first line is ".LOG" gets a timestamp appended when it is opened
   if (/^\.LOG(\n|$)/.test(text)) {
     tab.ta.setSelectionRange(text.length, text.length);
     insertText((text.endsWith('\n') ? '' : '\n') + timestamp() + '\n');
@@ -406,7 +406,7 @@ function printDoc() {
   window.print();
 }
 
-// Sürükle-bırak ile dosya açma
+// Opening files by drag and drop
 window.addEventListener('dragover', e => {
   if ([...e.dataTransfer.types].includes('Files')) {
     e.preventDefault();
@@ -424,7 +424,7 @@ window.addEventListener('drop', async e => {
   }
 }, true);
 
-/* ---------------- Düzenle ---------------- */
+/* ---------------- Edit ---------------- */
 function insertText(str, ta = active?.ta) {
   if (!ta) return;
   ta.focus();
@@ -480,7 +480,7 @@ function insertDate() {
   insertText(timestamp());
 }
 
-/* ---------------- Bul / Değiştir ---------------- */
+/* ---------------- Find / Replace ---------------- */
 const foldTr = s => {
   if (S.matchCase) return s;
   const low = s.toLocaleLowerCase('tr-TR');
@@ -601,7 +601,7 @@ function replaceAll() {
   const back = document.activeElement;
   ta.focus();
   ta.select();
-  insertText(out); // tek adımda geri alınabilir
+  insertText(out); // can be undone in a single step
   ta.setSelectionRange(caret, caret);
   ta.scrollTop = top;
   back?.focus();
@@ -634,7 +634,7 @@ fb.bar.addEventListener('keydown', e => {
   if (e.key === 'Escape') { e.preventDefault(); closeFind(); }
 });
 
-/* Ayna katmanı: eşleşmeleri vurgular, imleç konumunu ölçer */
+/* Mirror layer: highlights the matches and measures the caret position */
 let bdQueued = false;
 function refreshBackdrop() {
   if (bdQueued) return;
@@ -692,7 +692,7 @@ function scrollToIndex(idx) {
   renderBackdrop();
 }
 
-/* ---------------- Git ---------------- */
+/* ---------------- Go To ---------------- */
 function lineOf(v, pos) {
   let n = 1, i = -1;
   while ((i = v.indexOf('\n', i + 1)) !== -1 && i < pos) n++;
@@ -721,7 +721,7 @@ async function openGoto() {
   updateStatus();
 }
 
-/* ---------------- Biçim / Görünüm ---------------- */
+/* ---------------- Format / View ---------------- */
 function toggleWrap() {
   S.wordWrap = !S.wordWrap;
   saveSettings();
@@ -785,7 +785,7 @@ async function openFont() {
   active?.ta.focus();
 }
 
-/* ---------------- Durum çubuğu ---------------- */
+/* ---------------- Status bar ---------------- */
 const EOL_NAMES = { CRLF: 'Windows (CRLF)', LF: 'Unix (LF)', CR: 'Macintosh (CR)' };
 let stQueued = false;
 function updateStatus() {
@@ -812,7 +812,7 @@ document.addEventListener('selectionchange', () => {
   if (active && document.activeElement === active.ta) updateStatus();
 });
 
-/* ---------------- Diyaloglar ---------------- */
+/* ---------------- Dialogs ---------------- */
 function ask(dlg) {
   return new Promise(res => {
     closeMenus(false);
@@ -861,7 +861,7 @@ function openShortcuts() {
   ask($('#dlg-keys')).then(() => active?.ta.focus());
 }
 
-/* ---------------- Menüler ---------------- */
+/* ---------------- Menus ---------------- */
 const MENUS = [
   { label: 'Dosya', items: [
     { label: 'Yeni sekme', key: 'Ctrl+N', run: newTab },
@@ -1004,7 +1004,7 @@ function renderPopup(items, x, y, level) {
     b.innerHTML = `<span class="chk">${checked ? (it.radio ? '●' : '✓') : ''}</span><span>${esc(it.label)}</span><span class="k">${esc(it.key || '')}</span><span class="arr">${it.sub ? '›' : ''}</span>`;
     if (it.enabled && !it.enabled()) b.disabled = true;
     b._item = it;
-    b.addEventListener('mousedown', e => e.preventDefault()); // düzenleyici seçimini koru
+    b.addEventListener('mousedown', e => e.preventDefault()); // keep the editor's selection
     b.addEventListener('click', () => {
       if (it.sub) { openSub(pop, b, true); return; }
       closeMenus(true);
@@ -1134,7 +1134,7 @@ document.addEventListener('mousedown', e => {
 window.addEventListener('blur', () => closeMenus(false));
 window.addEventListener('resize', () => { closeMenus(false); refreshBackdrop(); });
 
-/* ---------------- Klavye kısayolları ---------------- */
+/* ---------------- Keyboard shortcuts ---------------- */
 const SHORTCUTS = {
   'Ctrl+N': newTab, 'Ctrl+Alt+N': newTab,
   'Ctrl+Shift+N': newWindow,
@@ -1167,7 +1167,7 @@ window.addEventListener('keydown', e => {
     if (e.key === '0' || e.code === 'Numpad0') { e.preventDefault(); setZoom(100); return; }
   }
 
-  // Harfler fiziksel tuşa göre (AltGr / Türkçe klavyede de çalışsın)
+  // Letters by physical key (so shortcuts also work with AltGr and on a Turkish keyboard)
   const key = /^Key[A-Z]$/.test(e.code) ? e.code.slice(3) : e.key;
   const id = (ctrl ? 'Ctrl+' : '') + (e.altKey ? 'Alt+' : '') + (e.shiftKey ? 'Shift+' : '') + key;
   const fn = SHORTCUTS[id];
@@ -1200,9 +1200,9 @@ tabsEl.addEventListener('wheel', e => {
   if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) { tabsEl.scrollLeft += e.deltaY; e.preventDefault(); }
 }, { passive: false });
 
-/* ---------------- Pencere: tuşlar, boyutlandırma, kapatma ---------------- */
+/* ---------------- Window: buttons, resizing, closing ---------------- */
 for (const id of ['win-min', 'win-max', 'win-close']) {
-  $('#' + id).addEventListener('mousedown', e => e.preventDefault()); // düzenleyici odağını koru
+  $('#' + id).addEventListener('mousedown', e => e.preventDefault()); // keep the editor's focus
 }
 $('#win-min').addEventListener('click', () => np.minimize());
 $('#win-max').addEventListener('click', () => np.toggleMaximize());
@@ -1231,7 +1231,7 @@ for (const h of document.querySelectorAll('.rz')) {
   });
 }
 
-// Ana pencere kapanırken oturumu saklar; ek pencerelerde kaydedilmemiş belgeler için sorar
+// The main window keeps the session when it closes; extra windows ask about unsaved documents
 let closing = false;
 np.onCloseRequest(async () => {
   np.closeAck();
@@ -1257,7 +1257,7 @@ np.onCloseRequest(async () => {
   }
 });
 
-/* ---------------- Oturum (sekmeleri hatırlama) ---------------- */
+/* ---------------- Session (remembering the tabs) ---------------- */
 let sessTimer = null;
 function scheduleSession() {
   if (IS_EXTRA_WINDOW || !started) return;
@@ -1265,7 +1265,7 @@ function scheduleSession() {
   sessTimer = setTimeout(saveSessionNow, 500);
 }
 
-// Kaydedilmiş ve değişmemiş dosyaların metni saklanmaz; açılışta diskten yeniden okunur.
+// The text of saved, unchanged files is not stored; it is read from disk again at startup.
 function saveSessionNow() {
   if (IS_EXTRA_WINDOW || !started) return;
   clearTimeout(sessTimer);
@@ -1314,7 +1314,7 @@ async function restoreSession() {
 window.addEventListener('beforeunload', () => saveSessionNow());
 document.addEventListener('visibilitychange', () => { if (document.hidden) saveSessionNow(); });
 
-/* ---------------- Bildirim ---------------- */
+/* ---------------- Toast ---------------- */
 let toastTimer = null;
 function toast(msg) {
   toastEl.textContent = msg;
@@ -1323,7 +1323,7 @@ function toast(msg) {
   toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2800);
 }
 
-/* ---------------- Başlat ---------------- */
+/* ---------------- Start ---------------- */
 buildMenubar();
 applySettings();
 if (IS_EXTRA_WINDOW || !(await restoreSession())) activate(createTab());

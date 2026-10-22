@@ -53,7 +53,7 @@ function invalidName(name) {
   return "";
 }
 
-// "Yeni klasör", "Yeni klasör (2)", ...
+// "Yeni klasör" (New folder), "Yeni klasör (2)", ...
 async function uniqueName(dir, name, isDir) {
   if (!(await lstatOrNull(path.join(dir, name)))) return name;
   const [base, ext] = splitName(name, isDir);
@@ -62,7 +62,7 @@ async function uniqueName(dir, name, isDir) {
     if (!(await lstatOrNull(path.join(dir, candidate)))) return candidate;
   }
 }
-// Explorer's copy names: "dosya - Kopya.txt", "dosya - Kopya (2).txt"
+// Explorer's copy names on Turkish Windows: "file - Kopya.txt", "file - Kopya (2).txt"
 async function uniqueCopyName(dir, name, isDir) {
   const [base, ext] = splitName(name, isDir);
   const first = `${base} - Kopya${ext}`;

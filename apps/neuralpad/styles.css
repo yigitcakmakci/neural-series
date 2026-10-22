@@ -15,7 +15,7 @@
   --danger: #ff2a4f;
 }
 
-/* Neon (varsayılan) */
+/* Neon (default) */
 :root, .theme-neon {
   --panel: #0c0d15;
   --panel-2: #141725;
@@ -124,7 +124,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: transparent;
 body { font-family: var(--font-body); font-size: 15px; color: var(--ink); }
 button, input, select { font: inherit; color: inherit; }
 
-/* ---- Pencere ve kesik köşeli çerçeve ---- */
+/* ---- Window and its cut-corner frame ---- */
 .window { position: fixed; inset: 0; }
 .frame {
   position: absolute;
@@ -142,7 +142,7 @@ button, input, select { font: inherit; color: inherit; }
   clip-path: polygon(0 0, calc(100% - var(--cut) + 1.2px) 0, 100% calc(var(--cut) - 1.2px), 100% 100%, calc(var(--cut) - 1.2px) 100%, 0 calc(100% - var(--cut) + 1.2px));
 }
 
-/* ---- Üst şerit ---- */
+/* ---- Top band ---- */
 .band {
   display: flex;
   align-items: center;
@@ -220,7 +220,7 @@ html.is-max .win-btn .ic-max { display: none; }
   .band { justify-content: space-between; }
 }
 
-/* ---- Sekmeler ---- */
+/* ---- Tabs ---- */
 .tabbar {
   display: flex;
   align-items: flex-end;
@@ -280,8 +280,8 @@ html.is-max .win-btn .ic-max { display: none; }
 .tab-new:hover { color: var(--on-accent); background: var(--accent); box-shadow: none; }
 .tab-new:focus-visible { outline: 2px solid var(--accent-2); outline-offset: -3px; }
 
-/* ---- Yazı yüzeyi ---- */
-/* Hesap makinesi ekranı gibi: ince tarama çizgileri, kenarlarda hafif parıltı ve yukarıdan aşağı süzülen ışın */
+/* ---- Writing surface ---- */
+/* Like the calculator's screen: fine scanlines, a soft glow along the edges and a beam gliding from top to bottom */
 .slab {
   position: relative;
   min-height: 0;
@@ -307,7 +307,7 @@ html.is-max .win-btn .ic-max { display: none; }
 @keyframes boot { 0% { opacity: 1; } 8% { opacity: .3; } 12% { opacity: 1; } 20% { opacity: .55; } 26%, 100% { opacity: 1; } }
 .editors { position: absolute; inset: 0; }
 
-/* Metin alanı ve onun ayna katmanı aynı ölçüleri paylaşır */
+/* The text area and its mirror layer share the same metrics */
 .ed-text {
   position: absolute;
   inset: 0;
@@ -357,7 +357,7 @@ textarea.ed-text::-webkit-scrollbar-thumb { background: var(--line); border: 3px
 textarea.ed-text::-webkit-scrollbar-thumb:hover { background-color: var(--dim); }
 .backdrop::-webkit-scrollbar-thumb { background: transparent; }
 
-/* ---- Durum çubuğu ---- */
+/* ---- Status bar ---- */
 .statusbar {
   display: flex;
   align-items: center;
@@ -381,7 +381,7 @@ textarea.ed-text::-webkit-scrollbar-thumb:hover { background-color: var(--dim); 
   #st-eol, #st-enc { display: none; }
 }
 
-/* ---- Boyutlandırma tutamakları ---- */
+/* ---- Resize handles ---- */
 .rz { position: absolute; z-index: 40; -webkit-app-region: no-drag; app-region: no-drag; }
 .rz-n { top: 0; left: 14px; right: 24px; height: 5px; cursor: ns-resize; }
 .rz-s { bottom: 0; left: 24px; right: 14px; height: 5px; cursor: ns-resize; }
@@ -393,7 +393,7 @@ textarea.ed-text::-webkit-scrollbar-thumb:hover { background-color: var(--dim); 
 .rz-se { bottom: 0; right: 0; width: 14px; height: 14px; cursor: nwse-resize; }
 html.is-max .rz { display: none; }
 
-/* ---- Bul / Değiştir ---- */
+/* ---- Find / Replace ---- */
 .findbar {
   position: absolute;
   top: 10px;
@@ -449,7 +449,7 @@ html.is-max .rz { display: none; }
 .find-opts input { accent-color: var(--accent-2); }
 @media (max-width: 700px) { .fb-count { display: none; } }
 
-/* ---- Açılır menüler ---- */
+/* ---- Drop-down menus ---- */
 .popup {
   position: fixed;
   z-index: 100;
@@ -486,7 +486,7 @@ html.is-max .rz { display: none; }
 .mi:hover .arr, .mi:focus .arr, .mi.open .arr { color: inherit; }
 .mi:disabled { color: var(--dim); background: transparent; opacity: .55; cursor: default; }
 
-/* ---- Bildirim ---- */
+/* ---- Toast ---- */
 .toast {
   position: fixed;
   left: 50%;
@@ -505,7 +505,7 @@ html.is-max .rz { display: none; }
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-/* ---- Diyaloglar ---- */
+/* ---- Dialogs ---- */
 .hud-dialog {
   width: min(92vw, 440px);
   padding: 0;
@@ -592,7 +592,7 @@ html.is-max .rz { display: none; }
 .about-mark { font: 700 2.6rem/1 var(--font-display) !important; color: var(--accent); text-align: center; letter-spacing: .04em; }
 .theme-daylight .about-mark { color: var(--ink); }
 
-/* ---- Yazdırma ---- */
+/* ---- Printing ---- */
 #print-area { display: none; }
 @media print {
   html, body { background: #fff; overflow: visible; height: auto; }

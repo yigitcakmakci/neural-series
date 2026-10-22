@@ -1,5 +1,5 @@
 /* ============================================================
-   NeuralNav — dosya gezgini davranışı
+   NeuralNav — file explorer behavior
    ============================================================ */
 'use strict';
 (async () => {
@@ -24,7 +24,7 @@ const el = {
   popups: $('#popups'), jobs: $('#jobs'), toast: $('#toast'),
 };
 
-/* ---------------- Ayarlar ---------------- */
+/* ---------------- Settings ---------------- */
 const SETTINGS_KEY = 'neuralnav.settings';
 const THEMES = [
   { id: 'neon', name: 'Neon' },
@@ -36,10 +36,10 @@ const DEFAULTS = { view: 'details', sortKey: 'name', sortDir: 1, showHidden: fal
 const S = Object.assign({}, DEFAULTS, readJSON(SETTINGS_KEY));
 if (!THEMES.some(t => t.id === S.theme)) S.theme = DEFAULTS.theme;
 if (!Array.isArray(S.pins)) S.pins = [];
-function saveSettings() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(S)); } catch { /* depolama kapalı olabilir */ } }
+function saveSettings() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(S)); } catch { /* storage may be unavailable */ } }
 function applyTheme() { for (const t of THEMES) root.classList.toggle('theme-' + t.id, t.id === S.theme); }
 
-/* ---------------- Biçimlendirme ve türler ---------------- */
+/* ---------------- Formatting and file types ---------------- */
 const collator = new Intl.Collator('tr', { numeric: true, sensitivity: 'base' });
 const dtf = new Intl.DateTimeFormat('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 const fmtDate = ms => ms ? dtf.format(new Date(ms)) : '';
@@ -84,7 +84,7 @@ const PLAYABLE = new Set(['mp4', 'webm', 'm4v', 'mov', 'mp3', 'wav', 'ogg', 'm4a
 const KNOWN_LABELS = { desktop: 'Masaüstü', downloads: 'İndirilenler', documents: 'Belgeler', pictures: 'Resimler', music: 'Müzik', videos: 'Videolar' };
 const KNOWN_ICONS = { desktop: 'i-desktop', downloads: 'i-download', documents: 'i-documents', pictures: 'i-pictures', music: 'i-music', videos: 'i-videos' };
 
-/* ---------------- Yollar ---------------- */
+/* ---------------- Paths ---------------- */
 const joinPath = (dir, name) => (dir.endsWith('\\') ? dir : dir + '\\') + name;
 const isDriveRoot = p => /^[a-z]:\\?$/i.test(p);
 function rootOf(p) {
@@ -112,10 +112,10 @@ function fileURL(p) {
   return 'file:///' + p.split('\\').map((s, i) => (i === 0 ? s : encodeURIComponent(s))).join('/');
 }
 
-/* ---------------- Konumlar ---------------- */
+/* ---------------- Places ---------------- */
 let places = { home: '', known: [], drives: [], neuralPad: false };
 async function loadPlaces() {
-  try { places = await nv.places(); } catch { /* son bilinen liste kalır */ }
+  try { places = await nv.places(); } catch { /* the last known list stays */ }
 }
 const userName = () => baseName(places.home || 'Kullanıcı');
 function driveInfo(p) {
@@ -144,7 +144,7 @@ function locIcon(loc) {
   return 'i-folder';
 }
 
-/* ---------------- Öğeler ---------------- */
+/* ---------------- Items ---------------- */
 function toItem(dir, e) {
   const name = e.n;
   const isDir = !!e.d;
@@ -161,7 +161,7 @@ function toItem(dir, e) {
 }
 const shownName = it => (S.showExt || it.isDir || !it.ext ? it.name : it.name.slice(0, -(it.ext.length + 1)));
 
-/* ---------------- Sekmeler ---------------- */
+/* ---------------- Tabs ---------------- */
 let tabs = [];
 let active = null;
 const newTabState = () => ({ id: uid(), loc: null, history: [], hi: -1, entries: [], items: [], sel: new Set(), anchor: -1, focus: -1, scroll: 0, filter: '', search: null, token: 0 });
@@ -206,7 +206,7 @@ function cycleTab(dir) {
   activateTab(tabs[(tabs.indexOf(active) + dir + tabs.length) % tabs.length]);
 }
 
-/* ---------------- Gezinme ---------------- */
+/* ---------------- Navigation ---------------- */
 async function navigate(tab, loc, { push = true, select = null, keep = false } = {}) {
   const token = ++tab.token;
   let entries = [];
@@ -300,7 +300,7 @@ async function openPathArg(p) {
   else await addTab(parentOf(r.path) || 'pc', { select: r.path });
 }
 
-/* ---------------- Sıralama ve süzme ---------------- */
+/* ---------------- Sorting and filtering ---------------- */
 function rebuild(tab) {
   const source = tab.search ? tab.search.results : tab.entries;
   const f = tab.filter.trim().toLocaleLowerCase('tr-TR');
@@ -334,7 +334,7 @@ function resort() {
   renderContent();
 }
 
-/* ---------------- Seçim ---------------- */
+/* ---------------- Selection ---------------- */
 const selItems = (t = active) => t.items.filter(i => t.sel.has(i.path));
 const selPaths = (t = active) => selItems(t).map(i => i.path);
 function selectOnly(i) {
@@ -393,7 +393,7 @@ function selectionChanged() {
   schedulePreview();
 }
 
-/* ---------------- Çizim ---------------- */
+/* ---------------- Rendering ---------------- */
 const ROW_H = 30, TILE_W = 124, TILE_H = 132, GRID_PAD = 10;
 let L = { grid: false, cols: 1 };
 let lastRange = null;
@@ -570,7 +570,7 @@ function tileHTML(i) {
   return `<div class="tile${itemClass(it, i)}" data-i="${i}" draggable="true" style="left:${left}px;top:${top}px" title="${esc(it.name)}">${iconHTML(it, true)}<span class="nm">${esc(shownName(it))}</span></div>`;
 }
 
-/* Gerçek simgeler (uygulamalar, kısayollar) ve küçük resimler istendikçe yüklenir */
+/* Real icons (programs, shortcuts) and thumbnails are loaded on demand */
 const visuals = new Map();
 const visualPending = new Set();
 let visualQueue = [];
@@ -672,7 +672,7 @@ function updateCommands() {
   el.preview.hidden = !S.preview;
 }
 
-/* ---------------- Önizleme ---------------- */
+/* ---------------- Preview ---------------- */
 let previewTimer = 0;
 let previewToken = 0;
 function schedulePreview() {
@@ -714,7 +714,7 @@ async function renderPreview() {
   el.preview.innerHTML = `<div class="pv-media">${media}</div><div class="pv-name">${esc(it.name)}</div><dl class="pv-meta"><dt>Tür</dt><dd>${esc(it.type)}</dd>${it.isDir ? '' : `<dt>Boyut</dt><dd>${fmtSize(it.size)}</dd>`}${extra}<dt>Değiştirme</dt><dd>${fmtDate(it.mtime)}</dd><dt>Oluşturma</dt><dd>${fmtDate(it.ctime)}</dd>${active.search ? `<dt>Konum</dt><dd>${esc(parentOf(it.path) || '')}</dd>` : ''}</dl>`;
 }
 
-/* ---------------- Açma ---------------- */
+/* ---------------- Opening ---------------- */
 async function openItem(it, { inNewTab = false } = {}) {
   if (it.isDir) {
     if (inNewTab) addTab(it.path, { activate: false });
@@ -741,7 +741,7 @@ function openSelection() {
   for (const d of dirs) addTab(d.path, { activate: false });
 }
 
-/* ---------------- Pano, yeni öğe, silme, yeniden adlandırma ---------------- */
+/* ---------------- Clipboard, new item, delete, rename ---------------- */
 let cutSet = new Set();
 async function toClipboard(op) {
   const paths = selPaths();
@@ -868,7 +868,7 @@ function startRename(target) {
   input.addEventListener('dblclick', e => e.stopPropagation());
 }
 
-/* ---------------- Geri alma ---------------- */
+/* ---------------- Undo ---------------- */
 const undoStack = [];
 function pushUndo(u) { undoStack.push(u); if (undoStack.length > 40) undoStack.shift(); }
 async function undo() {
@@ -896,7 +896,7 @@ async function undo() {
   }
 }
 
-/* ---------------- Kopyalama / taşıma işleri ---------------- */
+/* ---------------- Copy / move jobs ---------------- */
 // The page names each job before starting it, so even a job that finishes at once finds its record.
 const jobs = new Map();
 function startJob(op, sources, destDir, extra = {}) {
@@ -972,7 +972,7 @@ async function pumpConflicts() {
   pumpConflicts();
 }
 
-/* ---------------- Arama ---------------- */
+/* ---------------- Search ---------------- */
 function startSearch(q) {
   const t = active;
   const dir = currentDir(t) || (t.search && t.search.root);
@@ -1019,7 +1019,7 @@ nv.onSearch(({ token, items, done, truncated }) => {
   });
 });
 
-/* ---------------- Özellikler ---------------- */
+/* ---------------- Properties ---------------- */
 let sizeTokens = [];
 nv.onSizeProgress(p => { const h = sizeHandlers.get(p.token); if (h) h(p); });
 const sizeHandlers = new Map();
@@ -1080,7 +1080,7 @@ async function showProps(items) {
   el.scroller.focus({ preventScroll: true });
 }
 
-/* ---------------- Diyaloglar ve bildirim ---------------- */
+/* ---------------- Dialogs and toast ---------------- */
 function ask(dlg) {
   return new Promise(res => {
     closeMenus(false);
@@ -1119,7 +1119,7 @@ function openShortcuts() {
   ask($('#dlg-keys'));
 }
 
-/* ---------------- Menüler ---------------- */
+/* ---------------- Menus ---------------- */
 let menuState = null;
 const CHECK = '<svg><use href="#i-chev"/></svg>';
 
@@ -1334,7 +1334,7 @@ async function copyPaths() {
   try { await navigator.clipboard.writeText(text); toast('Yol panoya kopyalandı.'); } catch { toast('Yol kopyalanamadı.'); }
 }
 
-/* ---------------- Komut çubuğu ve araç çubuğu ---------------- */
+/* ---------------- Command bar and toolbar ---------------- */
 el.cmdbar.addEventListener('click', e => {
   const b = e.target.closest('[data-cmd]');
   if (!b || b.disabled) return;
@@ -1410,7 +1410,7 @@ el.head.addEventListener('click', e => {
   if (b) setSort(b.dataset.sort);
 });
 
-/* ---------------- Kenar çubuğu ve Bu Bilgisayar ---------------- */
+/* ---------------- Sidebar and This PC ---------------- */
 function placeClick(e) {
   const b = e.target.closest('[data-path], [data-action]');
   if (!b) return;
@@ -1436,7 +1436,7 @@ el.sidebar.addEventListener('contextmenu', e => {
   openMenu(items, e.clientX, e.clientY, null);
 });
 
-/* ---------------- Fare: seçim, açma, sağ tık, çerçeveyle seçme ---------------- */
+/* ---------------- Mouse: selecting, opening, right-click, marquee selection ---------------- */
 let pendingSingle = -1;
 const indexOf = e => { const t = e.target.closest('[data-i]'); return t ? +t.dataset.i : -1; };
 el.scroller.addEventListener('mousedown', e => {
@@ -1549,7 +1549,7 @@ function startMarquee(e) {
   raf = requestAnimationFrame(tick);
 }
 
-/* ---------------- Sürükle bırak ---------------- */
+/* ---------------- Drag and drop ---------------- */
 let dragOut = null;
 el.scroller.addEventListener('dragstart', e => {
   const i = indexOf(e);
@@ -1610,7 +1610,7 @@ window.addEventListener('drop', e => {
   startJob(dropEffect(e, t.dir, paths), paths, t.dir);
 });
 
-/* ---------------- Klavye ---------------- */
+/* ---------------- Keyboard ---------------- */
 const isTyping = node => node && (node.tagName === 'INPUT' || node.tagName === 'TEXTAREA' || node.isContentEditable);
 const GLOBAL_KEYS = {
   'Ctrl+T': () => addTab('pc'),
@@ -1694,7 +1694,7 @@ window.addEventListener('mouseup', e => {
   else if (e.button === 4) { e.preventDefault(); goForward(); }
 });
 
-/* ---------------- Pencere ---------------- */
+/* ---------------- Window ---------------- */
 for (const id of ['win-min', 'win-max', 'win-close']) $('#' + id).addEventListener('mousedown', e => e.preventDefault());
 $('#win-min').addEventListener('click', () => nv.minimize());
 $('#win-max').addEventListener('click', () => nv.toggleMaximize());
@@ -1728,7 +1728,7 @@ nv.onCloseRequest(async () => {
   nv.confirmClose();
 });
 
-/* ---------------- Değişiklik izleme, konum yenileme ---------------- */
+/* ---------------- Watching for changes, refreshing places ---------------- */
 nv.onChanged(dir => {
   for (const t of tabs) if (t.loc && !t.search && samePath(t.loc, dir)) refresh(t);
 });
@@ -1741,7 +1741,7 @@ async function refreshPlaces() {
 window.addEventListener('focus', refreshPlaces);
 setInterval(() => { if (!document.hidden) refreshPlaces(); }, 30000);
 
-/* ---------------- Oturum ---------------- */
+/* ---------------- Session ---------------- */
 let sessTimer = 0;
 let started = false;
 function saveSession() {
@@ -1752,7 +1752,7 @@ function saveSession() {
   }, 400);
 }
 
-/* ---------------- Başlat ---------------- */
+/* ---------------- Start ---------------- */
 applyTheme();
 await loadPlaces();
 nv.watcherGet().then(w => { watcher = w; }).catch(() => {});

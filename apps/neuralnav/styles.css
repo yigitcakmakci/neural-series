@@ -11,7 +11,7 @@
   --row-h: 30px;
 }
 
-/* Neon (varsayılan) */
+/* Neon (default) */
 :root, .theme-neon {
   --panel: #0c0d15;
   --panel-2: #141725;
@@ -121,7 +121,7 @@ button, input, select { font: inherit; color: inherit; }
 .sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
 svg { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linejoin: miter; stroke-linecap: square; }
 
-/* ---- Pencere ---- */
+/* ---- Window ---- */
 .window { position: fixed; inset: 0; }
 .frame {
   position: absolute;
@@ -139,7 +139,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linejoin: mite
   clip-path: polygon(0 0, calc(100% - var(--cut) + 1.2px) 0, 100% calc(var(--cut) - 1.2px), 100% 100%, calc(var(--cut) - 1.2px) 100%, 0 calc(100% - var(--cut) + 1.2px));
 }
 
-/* ---- Üst şerit ---- */
+/* ---- Top band ---- */
 .band {
   display: flex;
   align-items: center;
@@ -187,7 +187,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linejoin: mite
 html.is-max .win-btn .ic-restore { display: block; }
 html.is-max .win-btn .ic-max { display: none; }
 
-/* ---- Sekmeler ---- */
+/* ---- Tabs ---- */
 .tabbar {
   display: flex;
   align-items: flex-end;
@@ -237,7 +237,7 @@ html.is-max .win-btn .ic-max { display: none; }
 .theme-daylight .tab-new { color: var(--ink); }
 .tab-new:hover { color: var(--on-accent); background: var(--accent); box-shadow: none; }
 
-/* ---- Araç çubuğu: gezinme, adres, arama ---- */
+/* ---- Toolbar: navigation, address, search ---- */
 .toolbar {
   display: flex;
   align-items: center;
@@ -324,7 +324,7 @@ html.is-max .win-btn .ic-max { display: none; }
 #search-clear svg { width: 12px; height: 12px; }
 #search-clear:hover { color: var(--danger); }
 
-/* ---- Komut çubuğu ---- */
+/* ---- Command bar ---- */
 .cmdbar {
   display: flex;
   align-items: center;
@@ -352,7 +352,7 @@ html.is-max .win-btn .ic-max { display: none; }
 .sep { width: 1px; height: 20px; margin: 0 6px; background: var(--line); }
 .grow { flex: 1; }
 
-/* ---- Ana alan ---- */
+/* ---- Main area ---- */
 .main { display: grid; grid-template-columns: 224px minmax(0, 1fr) auto; min-height: 0; }
 
 .sidebar {
@@ -393,7 +393,7 @@ html.is-max .win-btn .ic-max { display: none; }
 .bar > i { display: block; height: 100%; background: var(--accent-2); }
 .bar.full > i { background: var(--danger); }
 
-/* Hesap makinesi ekranı gibi: tarama çizgileri, kenar parıltısı, süzülen ışın */
+/* Like the calculator's screen: scanlines, edge glow, gliding beam */
 .content {
   position: relative;
   min-width: 0;
@@ -488,7 +488,7 @@ html.is-max .win-btn .ic-max { display: none; }
 .c-loc { font-family: var(--font-body); font-size: .88rem; direction: rtl; text-align: left; } /* keep the end of long paths visible */
 .row.hid .ic, .tile.hid .ic { opacity: .5; }
 
-/* Dosya türü simgeleri */
+/* File type icons */
 .ic { position: relative; display: grid; place-items: center; flex: 0 0 auto; width: 20px; height: 20px; --ic-a: var(--dim); --ic-b: var(--line); --ic-bg: var(--screen); }
 .ic > svg { width: 100%; height: 100%; stroke: none; }
 .ic > img { width: 100%; height: 100%; object-fit: contain; }
@@ -502,7 +502,7 @@ html.is-max .win-btn .ic-max { display: none; }
 .cat-archive, .cat-slide { --ic-a: var(--c-orange); }
 .cat-drive { --ic-a: var(--accent-2); }
 
-/* Kutucuk görünümü */
+/* Tile view */
 .tile {
   position: absolute;
   width: 116px;
@@ -546,7 +546,7 @@ html.is-max .win-btn .ic-max { display: none; }
 }
 .empty { position: absolute; inset: 60px 0 auto; z-index: 1; text-align: center; color: var(--dim); font: .9rem/1.4 var(--font-mono); letter-spacing: .06em; pointer-events: none; }
 
-/* Bu Bilgisayar */
+/* This PC */
 .pc-view { position: relative; z-index: 1; min-height: 0; overflow-y: auto; padding: 16px 22px 24px; grid-row: 1 / -1; }
 .pc-sec + .pc-sec { margin-top: 22px; }
 .pc-sec h3 { margin: 0 0 10px; font: 700 .76rem/1 var(--font-display); letter-spacing: .18em; color: var(--dim); }
@@ -576,7 +576,7 @@ html.is-max .win-btn .ic-max { display: none; }
 .pc-sub { font: .76rem/1 var(--font-mono); color: var(--dim); }
 .pc-card .bar { height: 6px; }
 
-/* Önizleme bölmesi */
+/* Preview pane */
 .preview {
   width: 300px;
   min-height: 0;
@@ -608,7 +608,7 @@ html.is-max .win-btn .ic-max { display: none; }
 .pv-meta dt, .pr-rows dt { font: .7rem/1.5 var(--font-mono); letter-spacing: .1em; color: var(--dim); text-transform: uppercase; }
 .pv-meta dd, .pr-rows dd { margin: 0; min-width: 0; font: 500 .9rem/1.4 var(--font-body); word-break: break-word; user-select: text; }
 
-/* ---- Durum çubuğu ---- */
+/* ---- Status bar ---- */
 .statusbar {
   display: flex;
   align-items: center;
@@ -629,7 +629,7 @@ html.is-max .win-btn .ic-max { display: none; }
 #st-drive { margin-left: auto; display: flex; align-items: center; gap: 8px; box-shadow: none; }
 #st-drive .bar { width: 70px; }
 
-/* ---- Boyutlandırma ---- */
+/* ---- Resizing ---- */
 .rz { position: absolute; z-index: 40; -webkit-app-region: no-drag; app-region: no-drag; }
 .rz-n { top: 0; left: 14px; right: 24px; height: 5px; cursor: ns-resize; }
 .rz-s { bottom: 0; left: 24px; right: 14px; height: 5px; cursor: ns-resize; }
@@ -641,7 +641,7 @@ html.is-max .win-btn .ic-max { display: none; }
 .rz-se { bottom: 0; right: 0; width: 14px; height: 14px; cursor: nwse-resize; }
 html.is-max .rz { display: none; }
 
-/* ---- Menüler ---- */
+/* ---- Menus ---- */
 .popup {
   position: fixed;
   z-index: 100;
@@ -677,7 +677,7 @@ html.is-max .rz { display: none; }
 .mi:hover .k, .mi:focus .k, .mi.open .k, .mi:hover .chk, .mi:focus .chk, .mi.open .chk, .mi:hover .arr, .mi:focus .arr, .mi.open .arr { color: inherit; }
 .mi:disabled { color: var(--dim); background: transparent; opacity: .5; cursor: default; }
 
-/* ---- İşlem paneli ---- */
+/* ---- Jobs panel ---- */
 .jobs { position: fixed; right: 26px; bottom: 36px; z-index: 150; display: grid; gap: 8px; width: min(360px, calc(100vw - 60px)); }
 .job {
   display: grid;
@@ -695,7 +695,7 @@ html.is-max .rz { display: none; }
 .job .bar > i { transition: width .15s; }
 .job-detail { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: .74rem/1.2 var(--font-mono); color: var(--dim); }
 
-/* ---- Bildirim ---- */
+/* ---- Toast ---- */
 .toast {
   position: fixed;
   left: 50%;
@@ -714,7 +714,7 @@ html.is-max .rz { display: none; }
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-/* ---- Diyaloglar ---- */
+/* ---- Dialogs ---- */
 .hud-dialog { width: min(92vw, 440px); padding: 0; border: 0; color: var(--ink); background: transparent; -webkit-app-region: no-drag; app-region: no-drag; }
 .hud-dialog.wide { width: min(94vw, 560px); }
 .hud-dialog::backdrop {

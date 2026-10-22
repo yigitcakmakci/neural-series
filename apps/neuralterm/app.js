@@ -1,5 +1,5 @@
 /* ============================================================
-   NeuralTerm — terminal davranışı
+   NeuralTerm — terminal behavior
    ============================================================ */
 'use strict';
 (async () => {
@@ -12,13 +12,13 @@ const nt = window.nt;
 const root = document.documentElement;
 const el = { tabs: $('#tabs'), terms: $('#terms'), title: $('#band-title'), popups: $('#popups'), toast: $('#toast'), shell: $('#st-shell'), size: $('#st-size'), font: $('#st-font') };
 
-/* ---------------- Ayarlar ---------------- */
+/* ---------------- Settings ---------------- */
 const SETTINGS_KEY = 'neuralterm.settings';
 const THEMES = [{ id: 'neon', name: 'Neon' }, { id: 'ice', name: 'Buz' }, { id: 'alarm', name: 'Alarm' }, { id: 'daylight', name: 'Gündüz' }];
 const S = Object.assign({ theme: 'neon', fontSize: 15, shell: 'powershell' }, readJSON(SETTINGS_KEY));
-const saveSettings = () => { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(S)); } catch { /* depolama kapalı */ } };
+const saveSettings = () => { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(S)); } catch { /* storage unavailable */ } };
 
-// ANSI renkleri: Neural serisi paleti; Gündüz teması açık zemin için koyu tonlar kullanır.
+// ANSI colors: the Neural series palette; the daylight theme uses dark tones for its light ground.
 const DARK = {
   black: '#0c0d15', red: '#ff2a4f', green: '#3dff9a', yellow: '#fcee0a', blue: '#3d8bff', magenta: '#ff4fd8', cyan: '#00f0ff', white: '#c8c6b8',
   brightBlack: '#5b6178', brightRed: '#ff6b84', brightGreen: '#7dffba', brightYellow: '#fff66b', brightBlue: '#7aaeff', brightMagenta: '#ff8ae5', brightCyan: '#7af8ff', brightWhite: '#ffffff',
@@ -39,7 +39,7 @@ function applyTheme() {
   for (const t of tabs) t.term.options.theme = termTheme();
 }
 
-/* ---------------- Sekmeler ---------------- */
+/* ---------------- Tabs ---------------- */
 let info = { shells: [], home: '' };
 let tabs = [];
 let active = null;
@@ -148,7 +148,7 @@ function renderStatus() {
   el.font.textContent = `${S.fontSize} pt`;
 }
 
-/* ---------------- Kabuk olayları ---------------- */
+/* ---------------- Shell events ---------------- */
 const byId = id => tabs.find(t => t.id === id);
 nt.onStarted(({ id, cwd }) => { const t = byId(id); if (t) { t.cwd = cwd; renderTabs(); } });
 nt.onData(({ id, data }) => { const t = byId(id); if (t) t.term.write(data); });
@@ -164,7 +164,7 @@ nt.onExit(({ id, code, error }) => {
   if (t === active) renderStatus();
 });
 
-/* ---------------- Pano ve tuşlar ---------------- */
+/* ---------------- Clipboard and keys ---------------- */
 let toastTimer = 0;
 function toast(msg) {
   el.toast.textContent = msg;
@@ -184,7 +184,7 @@ async function paste(tab) {
   const text = await nt.clipRead();
   if (text && !tab.dead) tab.term.paste(text.replace(/\r\n/g, '\n'));
 }
-// Windows Terminal davranışı: seçim varsa sağ tık kopyalar, yoksa yapıştırır.
+// As in Windows Terminal: a right-click copies when there is a selection, otherwise it pastes.
 function rightClick(tab) {
   if (!copySelection(tab)) paste(tab);
 }
@@ -234,7 +234,7 @@ document.addEventListener('wheel', e => {
   setFont(S.fontSize + (e.deltaY < 0 ? 1 : -1));
 }, { passive: false });
 
-/* ---------------- Menüler ---------------- */
+/* ---------------- Menus ---------------- */
 let menu = null;
 function openMenu(items, btn) {
   closeMenu();
@@ -301,7 +301,7 @@ $('#menu-btn').addEventListener('click', e => openMenu([
   { label: 'NeuralTerm hakkında', run: () => ask($('#dlg-about')) },
 ], e.currentTarget));
 
-/* ---------------- Diyaloglar ---------------- */
+/* ---------------- Dialogs ---------------- */
 function ask(dlg) {
   return new Promise(res => {
     closeMenu();
@@ -321,7 +321,7 @@ function openShortcuts() {
   ask($('#dlg-keys'));
 }
 
-/* ---------------- Pencere ---------------- */
+/* ---------------- Window ---------------- */
 for (const id of ['win-min', 'win-max', 'win-close']) $('#' + id).addEventListener('mousedown', e => e.preventDefault());
 $('#win-min').addEventListener('click', () => nt.minimize());
 $('#win-max').addEventListener('click', () => nt.toggleMaximize());
@@ -346,7 +346,7 @@ nt.onCloseRequest(async count => {
 });
 new ResizeObserver(() => { if (active) active.fit.fit(); }).observe(el.terms);
 
-/* ---------------- Başlat ---------------- */
+/* ---------------- Start ---------------- */
 applyTheme();
 info = await nt.info();
 if (!info.shells.some(s => s.id === S.shell)) S.shell = info.shells[0]?.id;

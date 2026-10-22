@@ -12,7 +12,7 @@
 </head>
 <body>
 
-<!-- Simge seti: arayüz simgeleri (24) ve dosya türü simgeleri (32) -->
+<!-- Icon set: interface icons (24) and file type icons (32) -->
 <svg class="sprite" aria-hidden="true">
   <defs>
     <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
@@ -73,7 +73,7 @@
   <div class="frame">
     <div class="app frame-inner" id="app">
 
-      <!-- Üst şerit (sürüklenebilir) -->
+      <!-- Top band (draggable) -->
       <header class="band">
         <div class="brand" aria-hidden="true"><span class="brand-model">NV-4</span><span class="brand-name">NEURALNAV</span></div>
         <div class="band-title" id="band-title">Bu Bilgisayar</div>
@@ -85,13 +85,13 @@
         </div>
       </header>
 
-      <!-- Sekmeler -->
+      <!-- Tabs -->
       <div class="tabbar" role="tablist" aria-label="Açık konumlar">
         <div class="tabs" id="tabs"></div>
         <button class="tab-new" id="tab-new" type="button" title="Yeni sekme (Ctrl+T)" aria-label="Yeni sekme">+</button>
       </div>
 
-      <!-- Gezinme, adres, arama -->
+      <!-- Navigation, address, search -->
       <div class="toolbar">
         <div class="nav-btns">
           <button class="tb" id="nav-back" type="button" title="Geri (Alt+Sol)" aria-label="Geri"><svg><use href="#i-back"/></svg></button>
@@ -110,7 +110,7 @@
         </label>
       </div>
 
-      <!-- Komutlar -->
+      <!-- Commands -->
       <div class="cmdbar" id="cmdbar">
         <button class="cmd" data-cmd="new" type="button" title="Yeni öğe"><svg><use href="#i-plus"/></svg><span>Yeni</span></button>
         <span class="sep"></span>
@@ -153,7 +153,7 @@
     </div>
   </div>
 
-  <!-- Boyutlandırma tutamakları -->
+  <!-- Resize handles -->
   <div class="rz rz-n" data-edge="n"></div>
   <div class="rz rz-s" data-edge="s"></div>
   <div class="rz rz-e" data-edge="e"></div>
@@ -168,7 +168,7 @@
 <div class="jobs" id="jobs" aria-live="polite"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<!-- Çakışma -->
+<!-- Conflict -->
 <dialog class="hud-dialog wide" id="dlg-conflict">
   <form method="dialog">
     <div class="dlg-body">
@@ -191,7 +191,7 @@
   </form>
 </dialog>
 
-<!-- Genel onay -->
+<!-- Generic confirmation -->
 <dialog class="hud-dialog" id="dlg-confirm">
   <form method="dialog">
     <div class="dlg-body">
@@ -205,7 +205,7 @@
   </form>
 </dialog>
 
-<!-- Özellikler -->
+<!-- Properties -->
 <dialog class="hud-dialog wide" id="dlg-props">
   <form method="dialog">
     <div class="dlg-body">
@@ -219,7 +219,7 @@
   </form>
 </dialog>
 
-<!-- Kısayollar -->
+<!-- Shortcuts -->
 <dialog class="hud-dialog wide" id="dlg-keys">
   <form method="dialog">
     <div class="dlg-body">
@@ -230,7 +230,7 @@
   </form>
 </dialog>
 
-<!-- Hakkında -->
+<!-- About -->
 <dialog class="hud-dialog" id="dlg-about">
   <form method="dialog">
     <div class="dlg-body">

@@ -1,4 +1,4 @@
-// Neural serisi görünümü WinForms ile: pahlı köşeli pencere, sarı bant, tarama çizgili ekran, kendi çizdiğimiz denetimler.
+// The Neural series look in WinForms: a chamfered window, the yellow band, a scanlined screen and controls drawn by hand.
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -408,7 +408,7 @@ namespace NeuralSetup
         }
     }
 
-    // A path field with a dark frame and a "Değiştir" button next to it.
+    // A path field with a dark frame and a "Değiştir" (Change) button next to it.
     class PathBox : Control
     {
         public readonly TextBox Box;
