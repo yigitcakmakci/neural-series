@@ -38,6 +38,7 @@ namespace NeuralSetup
             new AppInfo("NeuralTerm", "NT-5", "Terminal: PowerShell ve Komut İstemi", "neuralterm.ico", "NeuralTerm Terminal", "NeuralTerm NT-5 Neural serisi terminal", "NeuralTerm NT-5 terminal", "NeuralTerm", true),
             new AppInfo("NeuralWeb", "NW-1", "Web tarayıcısı: kalkan ve şifre yöneticisiyle", "neuralweb.ico", "NeuralWeb", "NeuralWeb NW-1 Neural serisi web tarayıcısı", "NeuralWeb NW-1 web tarayıcısı", "NeuralWeb", false),
             new AppInfo("NeuralView", "VW-3", "Resim görüntüleyici", "neuralview.ico", "NeuralView Resim Görüntüleyici", "NeuralView VW-3 cyberpunk resim görüntüleyici", "NeuralView VW-3 resim görüntüleyici", "NeuralView", false),
+            new AppInfo("NeuralDeck", "DK-0", "Başlatıcı ve komut paleti", "neuraldeck.ico", "NeuralDeck Komut Paleti", "NeuralDeck DK-0 cyberpunk başlatıcı ve komut paleti", "NeuralDeck DK-0 komut paleti", "NeuralDeck", false),
         };
         // The programs of the first release (1.0). An installation whose manifest has no "Bilinen" line was made by a
         // setup that knew only these, so any other program is new to it and is offered as checked when updating.
@@ -52,6 +53,7 @@ namespace NeuralSetup
         public HashSet<string> Apps = new HashSet<string>();
         public bool StartMenu = true, PadOpenWith = true, NavMenu = true, NavDefault, NavWatch, TermCommands = true, WebRegister = true, WindowsIcons;
         public bool ViewOpenWith = true;
+        public bool DeckAutostart;
         public bool RemoveData;
         public bool Test;
     }
@@ -109,7 +111,7 @@ namespace NeuralSetup
             Directory.CreateDirectory(o.Root);
             Directory.CreateDirectory(Path.Combine(o.Root, "Ortak"));
             log("Kurulum klasörü: " + o.Root);
-            StopWatcher();
+            StopBackground();
 
             // Weights for the progress bar: the shared runtime, then each program (copy + stamp), then Windows.
             var apps = Apps.All.Where(a => o.Apps.Contains(a.Id)).ToList();
@@ -150,6 +152,7 @@ namespace NeuralSetup
             WriteUninstallEntry();
             Notify();
             if (o.NavWatch && o.NavDefault && o.Apps.Contains("NeuralNav") && !o.Test) StartWatcher();
+            if ((o.DeckAutostart || deckWasRunning) && o.Apps.Contains("NeuralDeck") && !o.Test) StartDeck();
             progress(1, "Kurulum tamamlandı");
             log("Bitti.");
         }
@@ -185,6 +188,7 @@ namespace NeuralSetup
             if (o.Apps.Contains("NeuralTerm")) { if (o.TermCommands) RegisterTerm(r); else UnregisterTerm(r); }
             if (o.Apps.Contains("NeuralWeb")) { if (o.WebRegister) RegisterWeb(r); else UnregisterWeb(r); }
             if (o.Apps.Contains("NeuralView")) { if (o.ViewOpenWith) RegisterView(r); else UnregisterView(r); }
+            if (o.Apps.Contains("NeuralDeck")) { if (o.DeckAutostart) r.Set(RunKey, "NeuralDeck", Q(ExePath("NeuralDeck")) + " --arka-plan"); else UnsetDeckRun(r); }
             if (o.WindowsIcons) SetIcons(r); else UnsetIcons(r);
             log(o.Test ? "  Windows kayıtları test anahtarına yazıldı" : "  Windows kayıtları güncellendi");
 
@@ -328,6 +332,12 @@ namespace NeuralSetup
             }
             r.DeleteTree(@"Software\Classes\Folder\shell\NeuralNav");
             UnsetWatch(r);
+        }
+        const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
+        void UnsetDeckRun(Reg r)
+        {
+            string v = r.Get(RunKey, "NeuralDeck");
+            if (v != null && v.IndexOf("NeuralDeck.exe", StringComparison.OrdinalIgnoreCase) >= 0) r.DeleteValue(RunKey, "NeuralDeck");
         }
         void UnsetWatch(Reg r)
         {
@@ -486,6 +496,7 @@ namespace NeuralSetup
                 "NeuralNavMenu=" + B(has("NeuralNav") && now.NavMenu), "NeuralNavVarsayilan=" + B(has("NeuralNav") && now.NavDefault),
                 "NeuralNavIzleyici=" + B(has("NeuralNav") && now.NavWatch), "NeuralTermKomut=" + B(has("NeuralTerm") && now.TermCommands),
                 "NeuralWebKayit=" + B(has("NeuralWeb") && now.WebRegister), "NeuralViewAc=" + B(has("NeuralView") && now.ViewOpenWith),
+                "NeuralDeckBaslangic=" + B(has("NeuralDeck") && now.DeckAutostart),
                 "WindowsSimgeleri=" + B(now.WindowsIcons),
                 "Bilinen=" + string.Join(",", Apps.All.Select(a => a.Id)),
             };
@@ -526,10 +537,10 @@ namespace NeuralSetup
         public void Uninstall()
         {
             log("Kaldırılıyor: " + o.Root);
-            StopWatcher();
+            StopBackground();
             progress(0.05, "Windows kayıtları geri alınıyor");
             var r = R;
-            UnregisterPad(r); UnregisterNavMenu(r); UnsetNavDefault(r); UnregisterTerm(r); UnregisterWeb(r); UnregisterView(r); UnsetIcons(r);
+            UnregisterPad(r); UnregisterNavMenu(r); UnsetNavDefault(r); UnregisterTerm(r); UnregisterWeb(r); UnregisterView(r); UnsetDeckRun(r); UnsetIcons(r);
             log(o.NavDefault ? "  Windows kayıtları geri alındı; klasörleri yine Windows Gezgini açar" : "  Windows kayıtları geri alındı");
 
             progress(0.15, "Kısayollar siliniyor");
@@ -601,12 +612,23 @@ namespace NeuralSetup
             }
             return list;
         }
-        void StopWatcher()
+        // Programs that run in the background with nothing to save: the setup stops them itself instead of asking.
+        static readonly string[] Background = { "nvwatch", "NeuralDeck" };
+        public static bool IsBackground(Process p) { return Background.Any(n => p.ProcessName.Equals(n, StringComparison.OrdinalIgnoreCase)); }
+        bool deckWasRunning;
+        void StopBackground()
         {
-            foreach (var p in RunningIn(o.Root).Where(x => x.ProcessName.Equals("nvwatch", StringComparison.OrdinalIgnoreCase)))
+            var stopped = new HashSet<string>(); // NeuralDeck is several processes of the same name (Electron)
+            foreach (var p in RunningIn(o.Root).Where(IsBackground))
             {
-                try { p.Kill(); p.WaitForExit(3000); log("  Gezgin izleyicisi durduruldu"); } catch { }
+                bool deck = p.ProcessName.Equals("NeuralDeck", StringComparison.OrdinalIgnoreCase);
+                try { p.Kill(); p.WaitForExit(3000); stopped.Add(deck ? "NeuralDeck durduruldu" : "Gezgin izleyicisi durduruldu"); deckWasRunning |= deck; } catch { }
             }
+            foreach (var s in stopped) log("  " + s);
+        }
+        void StartDeck()
+        {
+            try { Process.Start(new ProcessStartInfo(ExePath("NeuralDeck"), "--arka-plan") { UseShellExecute = false }); log("  NeuralDeck arka planda başlatıldı"); } catch { }
         }
         void StartWatcher()
         {
@@ -690,6 +712,8 @@ namespace NeuralSetup
                 o.WebRegister = has(@"Software\Clients\StartMenuInternet\NeuralWeb\shell\open\command", "", "NeuralWeb.exe");
             if (Directory.Exists(Path.Combine(o.Root, "NeuralView", "Program")))
                 o.ViewOpenWith = has(@"Software\Classes\NeuralView.Image\shell\open\command", "", "NeuralView.exe");
+            if (Directory.Exists(Path.Combine(o.Root, "NeuralDeck", "Program")))
+                o.DeckAutostart = has(@"Software\Microsoft\Windows\CurrentVersion\Run", "NeuralDeck", "NeuralDeck.exe");
             string icon = r.GetRaw(@"Software\Microsoft\Windows\CurrentVersion\Explorer\CLSID\{20D04FE0-3AEA-1069-A2D8-08002B30309D}\DefaultIcon", "");
             o.WindowsIcons = icon != null && (icon.IndexOf(@"\Simgeler\", StringComparison.OrdinalIgnoreCase) >= 0 || icon.IndexOf("NeuralIcons", StringComparison.OrdinalIgnoreCase) >= 0);
         }

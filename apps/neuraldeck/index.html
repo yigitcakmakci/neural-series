@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="tr" class="theme-neon">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NeuralDeck</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" type="image/png" href="icon.png">
+</head>
+<body>
+<div class="window">
+  <div class="frame">
+    <div class="app frame-inner" id="app">
+      <header class="band">
+        <div class="brand" aria-hidden="true"><span class="brand-model">DK-0</span><span class="brand-name">NEURALDECK</span></div>
+        <span class="band-hint" id="band-hint"></span>
+        <span class="hazard" aria-hidden="true"></span>
+      </header>
+
+      <div class="prompt">
+        <span class="caret" aria-hidden="true">&gt;_</span>
+        <input id="q" type="text" spellcheck="false" autocomplete="off" aria-label="Komut"
+          placeholder="Program, komut ya da hesap: nav, term, pad, view, web, ara, tema, =12*7">
+      </div>
+      <div class="warn" id="warn" role="alert" hidden></div>
+
+      <ul class="results" id="results" role="listbox" aria-label="Öneriler"></ul>
+
+      <section class="settings" id="settings" aria-label="Ayarlar" hidden>
+        <h2 class="set-head">AYARLAR</h2>
+        <div class="set-row">
+          <div class="set-txt"><b>Paneli açan kısayol</b><small>Her yerden NeuralDeck'i açar. Değiştirmek için düğmeye bas, sonra yeni tuşlara.</small></div>
+          <button class="key" id="set-shortcut" type="button"></button>
+        </div>
+        <p class="set-msg" id="set-msg" role="status"></p>
+        <div class="set-row">
+          <div class="set-txt"><b>Windows açılışında başlat</b><small>Neural kurulum programındaki "NeuralDeck: açılışta başlat" seçeneğiyle açılıp kapanır.</small></div>
+        </div>
+        <div class="set-row">
+          <div class="set-txt"><b>Tema</b><small>NeuralDeck serinin temasını izler. Değiştirmek için: tema neon, tema buz, tema alarm, tema gündüz.</small></div>
+        </div>
+        <div class="set-foot"><button class="btn" id="set-back" type="button">Geri</button></div>
+      </section>
+
+      <footer class="foot">
+        <span><kbd>↑</kbd><kbd>↓</kbd> seç</span><span><kbd>Enter</kbd> çalıştır</span><span><kbd>Tab</kbd> tamamla</span><span><kbd>Esc</kbd> kapat</span>
+        <span class="toast" id="toast" role="status" aria-live="polite"></span>
+      </footer>
+    </div>
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

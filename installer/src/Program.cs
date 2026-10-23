@@ -4,7 +4,7 @@
 // Scripting and tests:
 //   /test                              keeps every Windows change under HKCU\Software\NeuralSetupTest and <target>\_test
 //   /hedef:<folder>  /sessiz (silent)  /gunluk:<log file>  /veriler (also delete settings and personal data)
-//   /uygulamalar:NeuralCalc,NeuralWeb  /secenekler:baslat,pad,navmenu,navvarsayilan,izleyici,nt,web,view,simge
+//   /uygulamalar:NeuralCalc,NeuralWeb  /secenekler:baslat,pad,navmenu,navvarsayilan,izleyici,nt,web,view,deck,simge
 //   /onizle:programlar|windows|kurulum|tamam|hata   (with /test: open the wizard on that page)
 using System;
 using System.Collections.Generic;
@@ -61,7 +61,7 @@ namespace NeuralSetup
                 var on = new HashSet<string>(arg("secenekler").Split(',').Select(x => x.Trim().ToLowerInvariant()));
                 o.StartMenu = on.Contains("baslat"); o.PadOpenWith = on.Contains("pad"); o.NavMenu = on.Contains("navmenu");
                 o.NavDefault = on.Contains("navvarsayilan"); o.NavWatch = on.Contains("izleyici"); o.TermCommands = on.Contains("nt");
-                o.WebRegister = on.Contains("web"); o.WindowsIcons = on.Contains("simge"); o.ViewOpenWith = on.Contains("view");
+                o.WebRegister = on.Contains("web"); o.WindowsIcons = on.Contains("simge"); o.ViewOpenWith = on.Contains("view"); o.DeckAutostart = on.Contains("deck");
             }
             o.RemoveData = arg("veriler") != null;
 
@@ -88,7 +88,7 @@ namespace NeuralSetup
             int code = 0;
             try
             {
-                var running = Engine.RunningIn(o.Root).Where(p => !p.ProcessName.Equals("nvwatch", StringComparison.OrdinalIgnoreCase)).ToList();
+                var running = Engine.RunningIn(o.Root).Where(p => !Engine.IsBackground(p)).ToList();
                 if (running.Count > 0) throw new Exception("Açık programlar: " + string.Join(", ", running.Select(p => p.ProcessName).Distinct()));
                 var engine = new Engine(o, null, log);
                 if (uninstall) { engine.Uninstall(); engine.ScheduleSelfDelete(); }

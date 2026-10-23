@@ -11,7 +11,7 @@ the following third-party work. Each remains under its own license.
 - Copyright (c) Electron contributors; Copyright (c) 2013-2020 GitHub Inc.
 - Source: <https://github.com/electron/electron>
 
-The shared runtime of all six apps. Electron includes Chromium, Node.js and their dependencies. Their license texts
+The shared runtime of all seven apps. Electron includes Chromium, Node.js and their dependencies. Their license texts
 are installed with every app as `LICENSE` (Electron) and `LICENSES.chromium.html` (Chromium and everything it bundles),
 in `Neural\Ortak\Electron` and in each `Neural\<App>\Program` folder.
 

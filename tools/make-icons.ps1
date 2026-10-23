@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Draws every icon of the Neural series: the six app icons, the setup icon and the optional Windows icon set.
+  Draws every icon of the Neural series: the seven app icons, the setup icon and the optional Windows icon set.
 
 .DESCRIPTION
   All icons share one tile: a yellow chamfered frame (top-right and bottom-left corners cut) around a dark core,
@@ -107,6 +107,13 @@ $apps = [ordered]@{
     & $stroke $yellowC 12 @(62, 70, 194, 70, 194, 186, 62, 186) $true
     & $poly $Y @(74, 176, 112, 118, 134, 148, 154, 128, 182, 176)
     & $rect $C 140 86 26 26
+  }
+  'neuraldeck' = {   # command palette: an input bar with a cyan prompt over two result rows
+    & $stroke $yellowC 10 @(56, 66, 200, 66, 200, 108, 56, 108) $true
+    & $poly $C @(70, 76, 84, 76, 100, 87, 84, 98, 70, 98, 86, 87)
+    & $rect $C 108 82 30 10
+    & $rect $Y 56 126 144 20
+    & $rect $Y 56 160 96 20
   }
 }
 foreach ($name in $apps.Keys) { Save-Icon (Join-Path $Root "apps\$name\$name.ico") $apps[$name] (Join-Path $Root "apps\$name\icon.png") }

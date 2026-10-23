@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Builds the six Neural programs and the Windows setup from a clean clone.
+  Builds the seven Neural programs and the Windows setup from a clean clone.
 
 .DESCRIPTION
   1. npm ci       Electron, xterm.js, the bundled typefaces (@fontsource) and NeuralWeb's ad blocker, at the
@@ -108,7 +108,10 @@ $head = "<!doctype html>`n<html lang=`"tr`" class=`"is-shell`">`n<head>`n<meta c
   "<meta name=`"viewport`" content=`"width=device-width, initial-scale=1`">`n<meta name=`"color-scheme`" content=`"dark`">`n" +
   "<link rel=`"icon`" type=`"image/png`" href=`"icon.png`">`n</head>`n<body>"
 $body = [IO.File]::ReadAllText("$apps\neuralcalc\neuralcalc.html", [Text.Encoding]::UTF8)
+# the engine (shared with NeuralDeck) lies next to the page in the installed program
+$body = $body.Replace('<script src="../shared/calc-engine.js"></script>', '<script src="calc-engine.js"></script>')
 [IO.File]::WriteAllText("$calc\index.html", $head + $body + "`n</body>`n</html>`n", (New-Object Text.UTF8Encoding($false)))
+Copy-Item "$apps\shared\calc-engine.js" "$calc\calc-engine.js"
 Copy-Fonts "$calc\fonts" @('fonts.css')
 
 # NeuralPad NP-7, with the extra typefaces of its editor font menu
@@ -149,8 +152,14 @@ Invoke-Csc @('/target:winexe', '/platform:x64', "/r:$wm\Windows.Foundation.winmd
 Copy-Files "$apps\neuralview" "$stage\apps\NeuralView" @('index.html', 'styles.css', 'app.js', 'main.js', 'preload.js', 'meta.js', 'package.json', 'icon.png', 'neuralview.ico')
 Copy-Fonts "$stage\apps\NeuralView\fonts" @('fonts.css')
 
-# The series theme module, next to the main.js of every program with themes (NeuralCalc has none)
-foreach ($a in 'NeuralPad', 'NeuralNav', 'NeuralTerm', 'NeuralWeb', 'NeuralView') { Copy-Item "$apps\shared\theme-sync.js" "$stage\apps\$a\theme-sync.js" }
+# NeuralDeck DK-0, with the calculator engine it shares with NeuralCalc
+$deck = "$stage\apps\NeuralDeck"
+Copy-Files "$apps\neuraldeck" $deck @('index.html', 'styles.css', 'app.js', 'main.js', 'preload.js', 'commands.js', 'package.json', 'icon.png', 'neuraldeck.ico')
+Copy-Item "$apps\shared\calc-engine.js" "$deck\calc-engine.js"
+Copy-Fonts "$deck\fonts" @('fonts.css')
+
+# The series theme module, next to the main.js of every program that follows the series theme (NeuralCalc has none)
+foreach ($a in 'NeuralPad', 'NeuralNav', 'NeuralTerm', 'NeuralWeb', 'NeuralView', 'NeuralDeck') { Copy-Item "$apps\shared\theme-sync.js" "$stage\apps\$a\theme-sync.js" }
 
 # Windows icon set (optional in the setup: This PC, Recycle Bin, Network, user folder)
 Copy-Files (Join-Path $root 'assets\windows-icons') "$stage\simgeler" (Get-ChildItem (Join-Path $root 'assets\windows-icons') -Filter *.ico | ForEach-Object Name)

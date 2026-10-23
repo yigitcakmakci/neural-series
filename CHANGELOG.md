@@ -4,6 +4,33 @@ All notable changes to Neural Series are listed here. Versions follow [Semantic 
 Every major and minor release carries a codename from the map of Neo-Istanbul; patch releases keep the codename of
 their line.
 
+## 1.3.0 "Levent" (2026-10-23)
+
+A new unit joins the series: **NeuralDeck DK-0**, a launcher and command palette. All seven apps are at 1.3.0. Run the
+new setup over an existing installation: it adds NeuralDeck and keeps your options, settings and personal data.
+
+### New: NeuralDeck DK-0
+
+- Waits in the background (icon in the notification area) and drops a panel in at the top of the screen on
+  **`Alt+Space`**. The shortcut can be changed under *ayarlar*; when another program already holds it, NeuralDeck says
+  so instead of failing silently. `Esc` or a click elsewhere puts the panel away.
+- Fuzzy matching over the apps (name, model code, Turkish description, letters in order), arrow keys, `Enter` to run,
+  `Tab` to complete a command word or a path.
+- Commands, in Turkish and English: `=`/`calc`/`hesap` (calculator, `Enter` copies the result), `nav`/`gez` and
+  `term`/`nt` with path completion, `pad` and `view` with recently opened files, `web` (http/https only), `ara`/`search`
+  (Google in NeuralWeb), `tema`/`theme` (the series theme), `ayarlar`/`settings`.
+- Starts only the Neural apps and web addresses, with arguments as an array and never through a shell; the page asks
+  the main process for suggestions and can only name one of them by its number. Commands for apps that are not
+  installed are greyed out.
+
+### Changed
+
+- **NeuralCalc:** its engine (lexer, evaluator, number format) moved to `apps\shared\calc-engine.js`, which NeuralDeck
+  uses too; the calculator works as before.
+- **Setup:** new option *"NeuralDeck: açılışta başlat"* (start NeuralDeck with Windows, off by default). The
+  setup and the uninstaller stop a running NeuralDeck themselves, like the Explorer watcher, and an update starts it
+  again when it was running.
+
 ## 1.2.1 "Galata" (2026-10-23)
 
 All six apps are at 1.2.1. Run the new setup over an existing installation; options, settings and personal data are

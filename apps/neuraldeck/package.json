@@ -1,0 +1,8 @@
+{
+  "name": "neuraldeck",
+  "productName": "NeuralDeck",
+  "version": "1.3.0",
+  "description": "NeuralDeck DK-0 cyberpunk başlatıcı ve komut paleti",
+  "private": true,
+  "main": "main.js"
+}
