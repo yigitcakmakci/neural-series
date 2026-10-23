@@ -7,21 +7,17 @@ const fsp = fs.promises;
 const path = require("path");
 const { spawn, spawnSync } = require("child_process");
 const ops = require("./ops");
-// The series theme: next to main.js when installed, in apps\shared when run from source.
-const themeSync = require(fs.existsSync(path.join(__dirname, "theme-sync.js")) ? "./theme-sync" : "../shared/theme-sync");
+// Shared with the series: next to main.js when installed, in apps\shared when run from source.
+const shared = (name) => require(fs.existsSync(path.join(__dirname, `${name}.js`)) ? `./${name}` : `../shared/${name}`);
+const themeSync = shared("theme-sync");
+// The other programs of the series: pictures open in NeuralView, notes in NeuralPad, folders in NeuralTerm on request.
+const handoff = shared("handoff").create({ self: "NeuralNav", shell });
 
 app.setAppUserModelId("NeuralNav.NV4");
 
 const MIN_W = 680;
 const MIN_H = 420;
 const helper = new ops.Helper(path.join(__dirname, "nvhelper.exe"));
-// Another program of the series: <root>\<Name>\Program\<Name>.exe, next to wherever this one was installed.
-function sibling(name) {
-  const local = path.resolve(path.dirname(process.execPath), "..", "..", name, "Program", `${name}.exe`);
-  return fs.existsSync(local) ? local : path.join(process.env.USERPROFILE || "", "Neural", name, "Program", `${name}.exe`);
-}
-const NEURALPAD = sibling("NeuralPad");
-const NEURALVIEW = sibling("NeuralView");
 const WT = path.join(process.env.LOCALAPPDATA || "", "Microsoft", "WindowsApps", "wt.exe");
 
 let mainWin = null;
@@ -241,7 +237,7 @@ ipcMain.handle("nv:places", async () => {
   for (const key of KNOWN) { try { known.push({ key, path: app.getPath(key) }); } catch (e) { /* not available */ } }
   let drives;
   try { drives = await helper.call("drives"); } catch (e) { drives = await fallbackDrives(); }
-  return { home: app.getPath("home"), known, drives, neuralPad: fs.existsSync(NEURALPAD), neuralView: fs.existsSync(NEURALVIEW) };
+  return { home: app.getPath("home"), known, drives, neuralPad: !!handoff.exe("NeuralPad"), neuralView: !!handoff.exe("NeuralView") };
 });
 
 ipcMain.handle("nv:list", async (_e, dir) => {
@@ -295,7 +291,8 @@ const detached = (cmd, args, opts = {}) => {
     return false;
   }
 };
-ipcMain.handle("nv:open", async (_e, p) => (await shell.openPath(String(p))) || "");
+// Opening files (double-click, Enter): pictures in NeuralView, notes in NeuralPad, everything else with its Windows program.
+ipcMain.handle("nv:open", (_e, paths) => handoff.openFiles([].concat(paths).map(String)));
 ipcMain.handle("nv:read-link", (_e, p) => {
   try { return shell.readShortcutLink(String(p)).target || ""; } catch (e) { return ""; }
 });
@@ -303,14 +300,13 @@ ipcMain.handle("nv:read-link", (_e, p) => {
 ipcMain.on("nv:open-with", (_e, p) => {
   detached("rundll32.exe", ["shell32.dll,OpenAs_RunDLL " + String(p)], { windowsVerbatimArguments: true });
 });
-ipcMain.handle("nv:open-neuralpad", (_e, paths) => fs.existsSync(NEURALPAD) && detached(NEURALPAD, paths.map(String)));
+ipcMain.handle("nv:open-neuralpad", (_e, paths) => handoff.start("NeuralPad", [].concat(paths)));
 // NeuralView shows one image at a time and steps through its folder, so only the first selected image is passed.
-ipcMain.handle("nv:open-neuralview", (_e, p) => fs.existsSync(NEURALVIEW) && detached(NEURALVIEW, [String(p)]));
-const NEURALTERM = sibling("NeuralTerm");
+ipcMain.handle("nv:open-neuralview", (_e, p) => handoff.start("NeuralView", [p]));
 ipcMain.on("nv:open-terminal", (_e, dir) => {
   const d = String(dir);
-  if (fs.existsSync(NEURALTERM)) detached(NEURALTERM, [d]);
-  else if (fs.existsSync(WT)) detached(WT, ["-d", d]);
+  if (handoff.start("NeuralTerm", [d])) return;
+  if (fs.existsSync(WT)) detached(WT, ["-d", d]);
   else detached("powershell.exe", ["-NoExit"], { cwd: d });
 });
 /* ---------- background watcher that hands new Explorer windows to NeuralNav ---------- */

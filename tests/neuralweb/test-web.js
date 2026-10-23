@@ -39,6 +39,12 @@ fs.writeFileSync(path.join(edge, "Default", "Bookmarks"), JSON.stringify({ roots
   other: { type: "folder", children: [{ type: "url", name: "Hacker News", url: "https://news.ycombinator.com/" }] },
   synced: { type: "folder", children: [] },
 } }));
+// A fake series installation for the hand-offs: the programs are only names, and NEURAL_TEST_LAUNCH logs what would
+// start (or go to Windows) instead.
+const fakeRoot = path.join(box, "Neural");
+for (const n of ["NeuralView", "NeuralPad", "NeuralNav"]) { const p = path.join(fakeRoot, n, "Program", `${n}.exe`); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, ""); }
+const launchLog = path.join(box, "launch.jsonl");
+const launched = () => { try { return fs.readFileSync(launchLog, "utf8").trim().split("\n").filter(Boolean).map(JSON.parse); } catch (e) { return []; } };
 const h = new DatabaseSync(path.join(edge, "Default", "History"));
 h.exec("CREATE TABLE urls (id INTEGER PRIMARY KEY, url TEXT, title TEXT, visit_count INTEGER, typed_count INTEGER, last_visit_time INTEGER, hidden INTEGER)");
 const ins = h.prepare("INSERT INTO urls (url, title, visit_count, typed_count, last_visit_time, hidden) VALUES (?, ?, ?, 0, ?, 0)");
@@ -60,6 +66,8 @@ const server = http.createServer((req, res) => {
     case "/download":
       res.writeHead(200, { "content-type": "application/octet-stream", "content-disposition": 'attachment; filename="neural-test.bin"', "content-length": 4096 });
       return res.end(Buffer.alloc(4096, 7));
+    case "/resim-indir": res.writeHead(200, { "content-type": "image/png", "content-disposition": 'attachment; filename="neural-resim.png"' }); return res.end(PNG);
+    case "/not-indir": res.writeHead(200, { "content-type": "text/plain; charset=utf-8", "content-disposition": 'attachment; filename="neural-not.txt"' }); return res.end("Neo-İstanbul notu");
     case "/favicon.png": res.writeHead(200, { "content-type": "image/png" }); return res.end(PNG);
     default: res.writeHead(404); return res.end("yok");
   }
@@ -67,7 +75,7 @@ const server = http.createServer((req, res) => {
 
 let app = null;
 function launch() {
-  app = spawn(EXE, [...ARGS, `--remote-debugging-port=${PORT}`], { env: { ...process.env, NEURALWEB_PROFILE: profile, NEURALWEB_EDGE_DIR: edge }, stdio: "ignore" });
+  app = spawn(EXE, [...ARGS, `--remote-debugging-port=${PORT}`], { env: { ...process.env, NEURALWEB_PROFILE: profile, NEURALWEB_EDGE_DIR: edge, NEURAL_ROOT: fakeRoot, NEURAL_TEST_LAUNCH: launchLog }, stdio: "ignore" });
   return app;
 }
 // Real keystrokes (DevTools key events skip Electron's shortcut layer); sent only while NeuralWeb is in front.
@@ -214,6 +222,33 @@ async function waitFor(fn, ms = 10000) {
   snap("web-test-download.png");
   await page1.evaluate(`document.getElementById("dl").click(); return 1;`);
   check(await waitFor(() => fs.existsSync(path.join(dlDir, "neural-test (1).bin"))), "aynı adlı dosya üzerine yazılmıyor: 'neural-test (1).bin'");
+
+  console.log("indirilenler seri programlarında");
+  // One at a time: a second navigation would cancel the first download before its answer arrives.
+  const fetchFile = (u) => page1.evaluate(`const a = document.createElement("a"); a.href = ${JSON.stringify(u)}; a.download = ""; document.body.append(a); a.click(); a.remove(); return 1;`);
+  const resim = path.join(dlDir, "neural-resim.png"), not = path.join(dlDir, "neural-not.txt");
+  await fetchFile("/resim-indir");
+  await waitFor(() => fs.existsSync(resim));
+  await fetchFile("/not-indir");
+  check(await waitFor(() => fs.existsSync(resim) && fs.existsSync(not)), "resim ve metin dosyası iniyor");
+  const tabsBefore = await tabsCount();
+  await U(`nw.cmd("downloads"); return 1;`);
+  const dls = await attach(await tabTarget((u) => u.startsWith("neural://downloads")));
+  const press = (name, title) => dls.evaluate(`const r = [...document.querySelectorAll(".drow")].find(x => x.querySelector(".dname")?.textContent === ${JSON.stringify(name)}); const b = r && [...r.querySelectorAll("button")].find(x => x.title === ${JSON.stringify(title)}); if (b) b.click(); return !!b;`);
+  const logged = (fn) => waitFor(() => launched().find(fn));
+  await waitFor(() => press("neural-resim.png", "Aç"));
+  check(await logged((l) => l.by === "NeuralWeb" && l.program === "NeuralView" && l.args[0] === resim), "indirilen resim NeuralView'de açılıyor", JSON.stringify(launched()));
+  await press("neural-not.txt", "Aç");
+  check(await logged((l) => l.program === "NeuralPad" && l.args[0] === not), "indirilen metin dosyası NeuralPad'de açılıyor", JSON.stringify(launched()));
+  await press("neural-test.bin", "Aç");
+  check(await logged((l) => l.windows === "open" && l.target === file), "başka türden bir dosya Windows'un programına gidiyor (test günlüğüne)", JSON.stringify(launched()));
+  await press("neural-resim.png", "Klasörde göster");
+  check(await logged((l) => l.program === "NeuralNav" && l.args[0] === resim), "Klasörde göster NeuralNav'ı dosya seçili açıyor", JSON.stringify(launched()));
+  await dls.evaluate(`document.getElementById("open-dir").click(); return 1;`);
+  check(await logged((l) => l.program === "NeuralNav" && l.args[0] === dlDir), "İndirme klasörünü aç NeuralNav'da açıyor", JSON.stringify(launched()));
+  dls.close();
+  await U(`nw.cmd("closeTab"); return 1;`);
+  await waitFor(async () => (await tabsCount()) === tabsBefore);
 
   console.log("hata sayfası");
   const closed = await new Promise((r) => { const t = http.createServer(); t.listen(0, "127.0.0.1", () => { const p = t.address().port; t.close(() => r(p)); }); });

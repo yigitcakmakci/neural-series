@@ -19,6 +19,9 @@ contextBridge.exposeInMainWorld("nt", {
   info: () => ipcRenderer.invoke("nt:info"),
   clipRead: () => ipcRenderer.invoke("nt:clip-read"),
   clipWrite: (text) => ipcRenderer.send("nt:clip-write", String(text)),
+  // links in the output: which candidate paths exist; open a path in NeuralNav or an address in NeuralWeb
+  linkCheck: (base, cands) => ipcRenderer.invoke("nt:link-check", String(base || ""), cands),
+  openLink: (kind, target) => ipcRenderer.invoke("nt:open-link", String(kind), String(target)),
   // shells
   spawn: (id, shellId, cwd, cols, rows) => ipcRenderer.send("nt:spawn", String(id), String(shellId), String(cwd || ""), cols | 0, rows | 0),
   input: (id, text) => ipcRenderer.send("nt:input", String(id), String(text)),

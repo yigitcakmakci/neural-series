@@ -35,7 +35,7 @@ contextBridge.exposeInMainWorld("nv", {
   watch: (dir) => ipcRenderer.send("nv:watch", String(dir || "")),
   onChanged: on("nv:changed"),
   // opening
-  open: (p) => ipcRenderer.invoke("nv:open", String(p)),
+  open: (paths) => ipcRenderer.invoke("nv:open", [].concat(paths).map(String)),
   readLink: (p) => ipcRenderer.invoke("nv:read-link", String(p)),
   openWith: (p) => ipcRenderer.send("nv:open-with", String(p)),
   openInNeuralPad: (paths) => ipcRenderer.invoke("nv:open-neuralpad", paths.map(String)),

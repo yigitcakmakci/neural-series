@@ -747,8 +747,9 @@ function openSelection() {
   if (!items.length) return;
   if (items.length === 1) { openItem(items[0]); return; }
   const dirs = items.filter(i => i.isDir);
+  // Together, so NeuralPad opens the notes in one window and NeuralView gets a single picture.
   const files = items.filter(i => !i.isDir).slice(0, 15);
-  for (const f of files) nv.open(f.path);
+  if (files.length) nv.open(files.map(f => f.path)).then(err => { if (err) toast(`Açılamadı: ${err}`); });
   for (const d of dirs) addTab(d.path, { activate: false });
 }
 

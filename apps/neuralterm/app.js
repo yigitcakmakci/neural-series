@@ -84,6 +84,7 @@ function newTab(shellId = S.shell, cwd = '') {
   term.onResize(({ cols, rows }) => { tab.cols = cols; tab.rows = rows; if (!tab.dead) nt.resize(id, cols, rows); if (tab === active) renderStatus(); });
   term.onTitleChange(t => { tab.title = t; renderTabs(); if (tab === active) renderTitle(); });
   term.attachCustomKeyEventHandler(e => keyHandler(e, tab));
+  term.registerLinkProvider({ provideLinks: (y, done) => { provideLinks(tab, y).then(done, () => done(undefined)); } });
   box.addEventListener('contextmenu', e => { e.preventDefault(); rightClick(tab); });
   activate(tab);
   fit.fit();
@@ -160,7 +161,7 @@ function renderStatus() {
 
 /* ---------------- Shell events ---------------- */
 const byId = id => tabs.find(t => t.id === id);
-nt.onStarted(({ id, cwd }) => { const t = byId(id); if (t) { t.cwd = cwd; renderTabs(); } });
+nt.onStarted(({ id, cwd }) => { const t = byId(id); if (t) { t.cwd = cwd; renderTabs(); if (t === active) renderStatus(); } });
 nt.onData(({ id, data }) => { const t = byId(id); if (t) t.term.write(data); });
 nt.onExit(({ id, code, error }) => {
   const t = byId(id);
@@ -173,6 +174,76 @@ nt.onExit(({ id, code, error }) => {
   renderTabs();
   if (t === active) renderStatus();
 });
+
+/* ---------------- Links: Ctrl+click a path (NeuralNav) or a web address (NeuralWeb) ---------------- */
+const LINKS = window.NeuralTermLinks;
+const tip = $('#link-tip');
+// A line as the shell wrote it (rows the terminal wrapped joined again), with each character's cell.
+function logicalLine(buf, top) {
+  const cell = buf.getNullCell();
+  let text = '';
+  const cells = [];
+  for (let y = top; ; y++) {
+    const line = buf.getLine(y);
+    if (!line || (y > top && !line.isWrapped)) break;
+    for (let x = 0; x < line.length; x++) {
+      line.getCell(x, cell);
+      const w = cell.getWidth();
+      if (!w) continue;
+      const ch = cell.getChars() || ' ';
+      for (let k = 0; k < ch.length; k++) cells.push({ x, y, w });
+      text += ch;
+    }
+  }
+  text = text.replace(/\s+$/, '');
+  return { text, cells: cells.slice(0, text.length) };
+}
+const lineTop = (buf, y) => { while (y > 0 && buf.getLine(y)?.isWrapped) y--; return y; };
+// The line itself first, then the lines above it (for the nearest prompt or listing header).
+function* linesUp(buf, top) {
+  for (let y = top, n = 0; y >= 0 && n < 400; y--, n++) if (!buf.getLine(y)?.isWrapped) yield logicalLine(buf, y).text;
+}
+async function provideLinks(tab, row) {
+  const buf = tab.term.buffer.active;
+  const top = lineTop(buf, row - 1);
+  const { text, cells } = logicalLine(buf, top);
+  if (!text.trim()) return undefined;
+  const found = LINKS.find(text);
+  let links = found.urls;
+  if (found.paths.length) {
+    const base = LINKS.baseDir(linesUp(buf, top)) || tab.cwd || info.home;
+    const hits = await nt.linkCheck(base, found.paths.map(c => c.variants));
+    links = links.concat(LINKS.choose(found.paths, hits)).sort((a, b) => a.start - b.start);
+  }
+  const out = [];
+  for (const l of links) {
+    const a = cells[l.start], b = cells[l.end - 1];
+    if (!a || !b || a.y + 1 > row || b.y + 1 < row) continue;
+    out.push({
+      range: { start: { x: a.x + 1, y: a.y + 1 }, end: { x: b.x + b.w, y: b.y + 1 } },
+      text: l.target,
+      decorations: { underline: true, pointerCursor: true },
+      activate: (e) => { if (e.ctrlKey) openLink(l); },
+      hover: (e) => showTip(l, e),
+      leave: hideTip,
+    });
+  }
+  return out.length ? out : undefined;
+}
+async function openLink(l) {
+  hideTip();
+  const err = await nt.openLink(l.kind, l.target);
+  if (err) toast(err);
+}
+function showTip(l, e) {
+  const where = l.kind === 'url' ? (info.handoff?.web ? "NeuralWeb'de aç" : 'tarayıcıda aç')
+    : !info.handoff?.nav ? "Windows Gezgini'nde göster" : l.isDir ? "NeuralNav'da aç" : "NeuralNav'da göster";
+  tip.textContent = `Ctrl+tıkla: ${where}`;
+  tip.style.left = Math.min(e.clientX + 14, innerWidth - 260) + 'px';
+  tip.style.top = Math.min(e.clientY + 18, innerHeight - 40) + 'px';
+  tip.classList.add('show');
+}
+function hideTip() { tip.classList.remove('show'); }
 
 /* ---------------- Clipboard and keys ---------------- */
 let toastTimer = 0;
@@ -329,6 +400,7 @@ const SHORTCUTS = [
   ['Sonraki / önceki sekme', 'Ctrl+Tab / Ctrl+Shift+Tab'], ['Yeni pencere', 'Ctrl+Shift+N'],
   ['Kopyala', 'Ctrl+C (seçim varken) / Ctrl+Shift+C'], ['Yapıştır', 'Ctrl+V / Ctrl+Shift+V'], ['Sağ tık', 'Seçim varsa kopyalar, yoksa yapıştırır'],
   ['Yazı boyutu', 'Ctrl+= / Ctrl+- / Ctrl+0 / Ctrl+Tekerlek'], ['Çalışan komutu durdur', 'Ctrl+C (seçim yokken)'],
+  ['Yolu NeuralNav\'da, adresi NeuralWeb\'de aç', 'Ctrl+tıklama'],
 ];
 function openShortcuts() {
   $('#keys-list').innerHTML = SHORTCUTS.map(([a, k]) => `<span>${esc(a)}</span><span class="kk">${esc(k)}</span>`).join('');

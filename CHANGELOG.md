@@ -4,6 +4,36 @@ All notable changes to Neural Series are listed here. Versions follow [Semantic 
 Every major and minor release carries a codename from the map of Neo-Istanbul; patch releases keep the codename of
 their line.
 
+## 1.4.0 "Kadikoy" (2026-10-23)
+
+The apps hand off to each other: each piece of work goes to the Neural app made for it. All seven apps are at 1.4.0.
+Run the new setup over an existing installation; options, settings and personal data are kept.
+
+### New
+
+- **NeuralNav:** double-click or `Enter` opens pictures in NeuralView and `.txt`, `.md` and `.log` files in NeuralPad.
+  With several files selected, NeuralView gets the first picture (it pages through the folder itself) and NeuralPad all
+  the notes in one window. Other files open with their Windows program, as before.
+- **NeuralTerm:** `Ctrl`+click a path in the output to open it in NeuralNav (a folder, or a file's folder with the file
+  selected), or a web address to open it in NeuralWeb. Paths are underlined under the pointer with a hint; absolute
+  paths, network shares and relative paths count, a relative path being read from the folder of the nearest prompt
+  (`PS C:\…>`, `C:\…>`) or `Directory:` header above it. Only paths that exist become links, and a slow network drive
+  cannot freeze the window.
+- **NeuralWeb downloads:** *Aç* opens a picture in NeuralView and a `.txt`, `.md` or `.log` file in NeuralPad;
+  *Klasörde göster* and *İndirme klasörünü aç* open NeuralNav (the file selected).
+- When the app a hand-off needs is not installed, Windows takes over: File Explorer, the default browser, or the
+  file's default app.
+
+### Changed
+
+- The hand-offs live in one module, `apps\shared\handoff.js`, used by NeuralNav, NeuralTerm and NeuralWeb: the program
+  for each kind of file, where the other apps are, and how they start (their executable with an argument array, never
+  through a shell).
+
+### Fixed
+
+- **NeuralTerm:** after `Enter` restarts a shell that had ended, the status bar no longer keeps saying *sonlandı*.
+
 ## 1.3.0 "Levent" (2026-10-23)
 
 A new unit joins the series: **NeuralDeck DK-0**, a launcher and command palette. All seven apps are at 1.3.0. Run the

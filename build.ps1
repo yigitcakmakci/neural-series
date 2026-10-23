@@ -127,7 +127,7 @@ Invoke-Csc @('/target:winexe', '/reference:Microsoft.CSharp.dll', '/reference:Sy
 
 # NeuralTerm NT-5, with its pseudo-console bridge and xterm.js
 $term = "$stage\apps\NeuralTerm"
-Copy-Files "$apps\neuralterm" $term @('index.html', 'styles.css', 'app.js', 'main.js', 'preload.js', 'package.json', 'icon.png', 'neuralterm.ico')
+Copy-Files "$apps\neuralterm" $term @('index.html', 'styles.css', 'app.js', 'links.js', 'main.js', 'preload.js', 'package.json', 'icon.png', 'neuralterm.ico')
 Copy-Fonts "$term\fonts" @('fonts.css')
 Invoke-Csc @('/target:exe', '/unsafe', '/platform:x64', "/out:$term\ntpty.exe", "$apps\neuralterm\ntpty.cs")
 New-Item -ItemType Directory -Force "$term\vendor" | Out-Null
@@ -160,6 +160,8 @@ Copy-Fonts "$deck\fonts" @('fonts.css')
 
 # The series theme module, next to the main.js of every program that follows the series theme (NeuralCalc has none)
 foreach ($a in 'NeuralPad', 'NeuralNav', 'NeuralTerm', 'NeuralWeb', 'NeuralView', 'NeuralDeck') { Copy-Item "$apps\shared\theme-sync.js" "$stage\apps\$a\theme-sync.js" }
+# The hand-off module (which series program opens a file, a folder or an address), next to the programs that hand off
+foreach ($a in 'NeuralNav', 'NeuralTerm', 'NeuralWeb') { Copy-Item "$apps\shared\handoff.js" "$stage\apps\$a\handoff.js" }
 
 # Windows icon set (optional in the setup: This PC, Recycle Bin, Network, user folder)
 Copy-Files (Join-Path $root 'assets\windows-icons') "$stage\simgeler" (Get-ChildItem (Join-Path $root 'assets\windows-icons') -Filter *.ico | ForEach-Object Name)

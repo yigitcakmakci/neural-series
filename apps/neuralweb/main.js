@@ -8,8 +8,11 @@ const path = require("path");
 const { Store, hostOf } = require("./store");
 const { Shield, bareHost } = require("./shield");
 const { Vault, originOf: loginOrigin } = require("./passwords");
-// The series theme: next to main.js when installed, in apps\shared when run from source.
-const { ThemeSync } = require(fs.existsSync(path.join(__dirname, "theme-sync.js")) ? "./theme-sync" : "../shared/theme-sync");
+// Shared with the series: next to main.js when installed, in apps\shared when run from source.
+const shared = (name) => require(fs.existsSync(path.join(__dirname, `${name}.js`)) ? `./${name}` : `../shared/${name}`);
+const { ThemeSync } = shared("theme-sync");
+// Downloads open in the series' programs: pictures in NeuralView, notes in NeuralPad, their folder in NeuralNav.
+const handoff = shared("handoff").create({ self: "NeuralWeb", shell });
 
 app.setAppUserModelId("NeuralWeb.NW1");
 // Tests run against a throwaway profile.
@@ -26,11 +29,6 @@ const HELPERS = { dpapi: path.join(__dirname, "nwdpapi.exe"), hello: path.join(_
 const PAGES_DIR = path.join(__dirname, "pages");
 const FONTS_DIR = path.join(__dirname, "fonts");
 const ZOOM_STEPS = [0.25, 0.33, 0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5];
-// NeuralNav from the same installation (<root>\NeuralNav\Program), wherever the setup put the series.
-const NEURALNAV = (() => {
-  const local = path.resolve(path.dirname(process.execPath), "..", "..", "NeuralNav", "Program", "NeuralNav.exe");
-  return fs.existsSync(local) ? local : path.join(process.env.USERPROFILE || "", "Neural", "NeuralNav", "Program", "NeuralNav.exe");
-})();
 
 let store = null;
 let shield = null;
@@ -971,8 +969,8 @@ function downloadAction(w, v) {
   const rec = downloadList().find((d) => d.id === v.id);
   const item = v.id && downloadItems.get(v.id);
   switch (v.action) {
-    case "open": if (rec && rec.path) shell.openPath(rec.path); break;
-    case "show": if (rec && rec.path) shell.showItemInFolder(rec.path); break;
+    case "open": if (rec && rec.path) handoff.openFiles([rec.path]); break;
+    case "show": if (rec && rec.path) handoff.showInNav(rec.path); break;
     case "cancel": if (item) item.cancel(); break;
     case "pause": if (item) item.pause(); break;
     case "resume": if (item && item.canResume()) item.resume(); break;
@@ -1251,7 +1249,7 @@ const pageApi = {
     broadcastPages("history");
     return true;
   },
-  openDownloadsDir: () => { shell.openPath(store.s.downloadDir); return true; },
+  openDownloadsDir: () => { handoff.showInNav(store.s.downloadDir); return true; },
   openDefaultApps: () => { shell.openExternal("ms-settings:defaultapps?registeredAppUser=NeuralWeb"); return true; },
   open: (ctx, url) => { navigate(ctx.w, ctx.t, url); return true; },
   openNewTab: (ctx, url) => { createTab(ctx.w, { url: resolveInput(url) || NEWTAB, index: ctx.w.tabs.indexOf(ctx.t) + 1, background: true }); return true; },

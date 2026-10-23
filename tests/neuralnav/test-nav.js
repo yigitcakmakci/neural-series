@@ -31,6 +31,13 @@ fs.copyFileSync(path.join(ROOT, "NeuralNav", "Program", "resources", "app", "ico
 mk("gizli.txt", "gizli");
 mk("ac.bat", '@echo acildi> "%~dp0acildi.txt"\r\n');
 execFileSync("attrib", ["+h", path.join(BOX, "gizli.txt")]);
+// Hand-offs go to a fake series installation and into a log (NEURAL_TEST_LAUNCH): nothing starts, nothing goes to Windows.
+const FAKE = path.join(OUT, "nav-handoff");
+fs.rmSync(FAKE, { recursive: true, force: true });
+for (const n of ["NeuralView", "NeuralPad", "NeuralTerm"]) { const p = path.join(FAKE, n, "Program", `${n}.exe`); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, ""); }
+const LOG = path.join(FAKE, "launch.jsonl");
+const logged = () => { try { return fs.readFileSync(LOG, "utf8").trim().split("\n").filter(Boolean).map(JSON.parse); } catch (e) { return []; } };
+const waitLog = async (fn) => { for (let i = 0; i < 40; i++) { const hit = logged().find(fn); if (hit) return hit; await sleep(150); } return null; };
 
 /* ---------- CDP ---------- */
 async function connect() {
@@ -78,7 +85,7 @@ function snap(name) {
 }
 
 (async () => {
-  const app = spawn(EXE, [BOX, `--user-data-dir=${PROFILE}`, `--remote-debugging-port=${PORT}`], { stdio: "ignore", detached: false });
+  const app = spawn(EXE, [BOX, `--user-data-dir=${PROFILE}`, `--remote-debugging-port=${PORT}`], { env: { ...process.env, NEURAL_ROOT: FAKE, NEURAL_TEST_LAUNCH: LOG }, stdio: "ignore", detached: false });
   const cdp = await connect();
   const run = (body) => cdp.evaluate(PRELUDE + body);
 
@@ -99,8 +106,10 @@ function snap(name) {
     }
   };
   await realDouble("ac.bat");
-  for (let i = 0; i < 40 && !fs.existsSync(path.join(BOX, "acildi.txt")); i++) await sleep(150);
-  check(fs.existsSync(path.join(BOX, "acildi.txt")), "a real double-click on a file opens it with its Windows program");
+  check(await waitLog((l) => l.by === "NeuralNav" && l.windows === "open" && l.target === path.join(BOX, "ac.bat")), "a real double-click on a file hands it to its Windows program (test log)", JSON.stringify(logged()));
+  check(!fs.existsSync(path.join(BOX, "acildi.txt")), "in the test nothing is really started");
+  await realDouble("resim.png");
+  check(await waitLog((l) => l.program === "NeuralView" && l.args.length === 1 && l.args[0] === path.join(BOX, "resim.png")), "a real double-click on a picture opens it in NeuralView", JSON.stringify(logged()));
   await realDouble("Klasör B");
   r = await run(`await wait(() => q('.crumb.last')?.textContent === 'Klasör B'); return crumbs();`);
   check(r.endsWith("Klasör B"), "a real double-click on a folder opens it", r);
@@ -108,6 +117,14 @@ function snap(name) {
   fs.rmSync(path.join(BOX, "ac.bat"));
   fs.rmSync(path.join(BOX, "acildi.txt"), { force: true });
   await run(`await wait(() => !rowByName('ac.bat')); return true;`);
+
+  console.log("hand-offs: several notes at once");
+  await run(`dbl(rowByName('Belgeler')); await wait(() => q('.crumb.last')?.textContent === 'Belgeler' && rowByName('not.txt')); key('a', { ctrl: true }); await new Promise(r => setTimeout(r, 100)); key('Enter'); return true;`);
+  const notes = [path.join(BOX, "Belgeler", "ikinci.md"), path.join(BOX, "Belgeler", "not.txt")];
+  r = await waitLog((l) => l.program === "NeuralPad");
+  check(r && r.args.slice().sort().join("|") === notes.join("|"), "Ctrl+A, Enter: one NeuralPad gets both notes", JSON.stringify(logged()));
+  await run(`key('Backspace'); await wait(() => q('.crumb.last')?.textContent === 'nav-sandbox'); return true;`);
+  check(logged().length === 3, "nothing else was handed off", JSON.stringify(logged()));
 
   console.log("selection and keyboard");
   r = await run(`key('End'); await wait(() => q('.row.sel')); return { sel: q('.row.sel .nm').textContent, status: status() };`);

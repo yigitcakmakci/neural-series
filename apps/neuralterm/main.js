@@ -1,13 +1,15 @@
 "use strict";
 // NeuralTerm NT-5 desktop shell: frameless transparent windows (same model as NeuralNav), and one ntpty.exe
 // pseudo-console bridge per tab that runs the shell and streams its output to the page.
-const { app, BrowserWindow, ipcMain, screen, Menu, clipboard } = require("electron");
+const { app, BrowserWindow, ipcMain, screen, Menu, clipboard, shell } = require("electron");
 const fs = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
 const { StringDecoder } = require("string_decoder");
-// The series theme: next to main.js when installed, in apps\shared when run from source.
-const themeSync = require(fs.existsSync(path.join(__dirname, "theme-sync.js")) ? "./theme-sync" : "../shared/theme-sync");
+// Shared with the series: next to main.js when installed, in apps\shared when run from source.
+const shared = (name) => require(fs.existsSync(path.join(__dirname, `${name}.js`)) ? `./${name}` : `../shared/${name}`);
+const themeSync = shared("theme-sync");
+const handoff = shared("handoff").create({ self: "NeuralTerm", shell });
 
 app.setAppUserModelId("NeuralTerm.NT5");
 
@@ -212,9 +214,41 @@ ipcMain.handle("nt:pending-dirs", (e) => {
   w.nt.dirs = [];
   return d;
 });
-ipcMain.handle("nt:info", () => ({ shells: shells().map(({ id, name }) => ({ id, name })), home: app.getPath("home") }));
+ipcMain.handle("nt:info", () => ({
+  shells: shells().map(({ id, name }) => ({ id, name })),
+  home: app.getPath("home"),
+  handoff: { nav: !!handoff.exe("NeuralNav"), web: !!handoff.exe("NeuralWeb") },
+}));
 ipcMain.handle("nt:clip-read", () => clipboard.readText());
 ipcMain.on("nt:clip-write", (_e, text) => clipboard.writeText(String(text)));
+
+/* ---------- links: paths and addresses in the output (Ctrl+click) ---------- */
+// Asynchronous on purpose: a missing network share or an offline drive must not freeze the windows.
+const statOf = (p) => Promise.race([
+  fs.promises.stat(p).then((s) => s, () => null),
+  new Promise((r) => setTimeout(() => r(null), 1500)),
+]);
+// For each candidate (its possible spellings, see links.js), the longest one that exists, resolved against the line's folder.
+ipcMain.handle("nt:link-check", async (_e, base, cands) => {
+  const dir = typeof base === "string" && path.isAbsolute(base) ? base : null;
+  const list = Array.isArray(cands) ? cands.slice(0, 200) : [];
+  return Promise.all(list.map(async (variants) => {
+    const tries = (Array.isArray(variants) ? variants : []).filter((v) => typeof v === "string" && v.length < 1024).slice(0, 30);
+    let best = null;
+    await Promise.all(tries.map(async (text) => {
+      const p = path.isAbsolute(text) && /^([A-Za-z]:[\\/]|\\\\)/.test(text) ? path.resolve(text) : dir ? path.resolve(dir, text) : null;
+      const s = p && (await statOf(p));
+      if (s && (!best || text.length > best.text.length)) best = { text, path: p, isDir: s.isDirectory() };
+    }));
+    return best;
+  }));
+});
+ipcMain.handle("nt:open-link", async (_e, kind, target) => {
+  const t = String(target);
+  if (kind === "url") return handoff.openUrl(t);
+  if (kind === "path" && path.isAbsolute(t) && (await statOf(t))) return handoff.showInNav(t);
+  return "Bulunamadı.";
+});
 
 /* ---------- shell sessions ---------- */
 const sessions = new Map();
