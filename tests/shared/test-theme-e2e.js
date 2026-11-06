@@ -68,7 +68,16 @@ const SYNC = "Temayı seriyle eşitle";
   try {
     for (const n of ["NeuralPad", "NeuralTerm", "NeuralView", "NeuralWeb"]) launch(n);
     for (const n of ["NeuralPad", "NeuralTerm", "NeuralView", "NeuralWeb"]) c[n] = await attach(await waitTarget(APPS[n].port, (t) => APPS[n].page.test(t.url), 30000));
-    const run = (n, body) => c[n].evaluate(PRELUDE + body);
+    // A program that has just started may swap its page once while the test attaches; then attach to it again.
+    const run = async (n, body) => {
+      for (let k = 0; ; k++) {
+        try { return await c[n].evaluate(PRELUDE + body); } catch (e) {
+          if (k >= 3 || !/context was destroyed/i.test(e.message)) throw e;
+          await sleep(500);
+          c[n] = await attach(await waitTarget(APPS[n].port, (t) => APPS[n].page.test(t.url), 30000));
+        }
+      }
+    };
     const themeOf = (n) => run(n, "await wait(() => theme()); return theme();");
     const all = async (names) => Object.fromEntries(await Promise.all(names.map(async (n) => [n, await themeOf(n)])));
     const setVia = (n, id) => (n === "NeuralWeb" ? run(n, `nw.cmd('theme', ${JSON.stringify(id)}); return 1;`) : run(n, MENU[n](NAMES[id]) + "return 1;"));
