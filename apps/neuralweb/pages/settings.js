@@ -1,11 +1,11 @@
 "use strict";
 const THEMES = [
-  ["neon", "Neon", "#fcee0a", "#0c0d15", "#00f0ff"],
-  ["ice", "Buz", "#00f0ff", "#0a1018", "#ff4fd8"],
-  ["alarm", "Alarm", "#ff2a4f", "#110a0d", "#fcee0a"],
-  ["daylight", "Gündüz", "#0a0a0c", "#fcee0a", "#007f8c"],
-];
-const PERM_LABEL = { media: "Kamera ve mikrofon", geolocation: "Konum", notifications: "Bildirimler", "clipboard-read": "Pano okuma", midi: "MIDI cihazları", midiSysex: "MIDI (tam erişim)" };
+  ["neon", "#fcee0a", "#0c0d15", "#00f0ff"],
+  ["ice", "#00f0ff", "#0a1018", "#ff4fd8"],
+  ["alarm", "#ff2a4f", "#110a0d", "#fcee0a"],
+  ["daylight", "#0a0a0c", "#fcee0a", "#007f8c"],
+].map(([id, ...colors]) => [id, T("theme." + id), ...colors]);
+const PERM_LABEL = { media: "perm.media", geolocation: "perm.geolocation", notifications: "perm.notifications", "clipboard-read": "perm.clipboard", midi: "perm.midi", midiSysex: "perm.midi-sysex" };
 let s = null;
 
 async function load() {
@@ -17,7 +17,7 @@ async function load() {
   $("#dl-dir").textContent = s.downloadDir;
   $("#ask-path").checked = !!s.askDownloadPath;
   renderPermissions();
-  $("#versions").textContent = `Sürüm ${s.versions.app} · Chromium ${s.versions.chrome} · Electron ${s.versions.electron}`;
+  $("#versions").textContent = `${T("set.version", { version: s.versions.app })} · Chromium ${s.versions.chrome} · Electron ${s.versions.electron}`;
 }
 function renderThemes() {
   const box = $("#themes");
@@ -41,16 +41,16 @@ function renderPermissions() {
   const box = $("#perm-list");
   box.replaceChildren();
   const sites = Object.entries(s.permissions || {}).filter(([, p]) => Object.keys(p).length);
-  if (!sites.length) { box.append(el("div", "empty", "Henüz hiçbir siteye izin vermedin ya da engellemedin. Bir site kamera, konum veya bildirim istediğinde verdiğin cevaplar burada listelenir.")); return; }
+  if (!sites.length) { box.append(el("div", "empty", T("set.perms.empty"))); return; }
   for (const [origin, perms] of sites) {
     const site = el("div", "perm-site");
     site.append(el("h3", null, origin.replace(/^https:\/\//, "")));
     for (const [perm, value] of Object.entries(perms)) {
       const item = el("div", "perm-item");
-      const rm = el("button", "btn", "Kaldır");
+      const rm = el("button", "btn", T("dlg.remove"));
       rm.type = "button";
-      rm.addEventListener("click", async () => { s.permissions = await neural.call("revokePermission", origin, perm); renderPermissions(); toast("İzin kaldırıldı; site bir dahaki sefere yeniden soracak."); });
-      item.append(el("span", null, PERM_LABEL[perm] || perm), el("span", "v" + (value === "block" ? " block" : ""), value === "allow" ? "İZİN VERİLDİ" : "ENGELLENDİ"), rm);
+      rm.addEventListener("click", async () => { s.permissions = await neural.call("revokePermission", origin, perm); renderPermissions(); toast(T("set.perms.removed")); });
+      item.append(el("span", null, PERM_LABEL[perm] ? T(PERM_LABEL[perm]) : perm), el("span", "v" + (value === "block" ? " block" : ""), T(value === "allow" ? "perm.allowed" : "perm.blocked")), rm);
       site.append(item);
     }
     box.append(site);
@@ -63,28 +63,45 @@ for (const r of document.querySelectorAll('input[name="startup"]')) r.addEventLi
 $("#ask-path").addEventListener("change", (e) => neural.call("setSetting", "askDownloadPath", e.target.checked));
 $("#dl-change").addEventListener("click", async () => { $("#dl-dir").textContent = await neural.call("chooseDownloadDir"); });
 $("#default-go").addEventListener("click", () => neural.call("openDefaultApps"));
+$("#default-text").replaceChildren(...rich(T("set.default.text"), { button: el("b", null, T("set.default.button")) }));
+
+/* ---------- language: the whole series, shown from each program's next start ---------- */
+const languages = NeuralI18n.languageChoices(window, (note) => { $("#lang-note").textContent = note; toast(note); });
+function renderLanguages() {
+  const box = $("#langs");
+  box.replaceChildren();
+  for (const l of languages()) {
+    const b = el("button", "btn" + (l.checked() ? " primary" : ""), l.label);
+    b.type = "button";
+    b.setAttribute("role", "radio");
+    b.setAttribute("aria-checked", String(l.checked()));
+    b.addEventListener("click", async () => { await l.pick(); renderLanguages(); });
+    box.append(b);
+  }
+}
+renderLanguages();
 
 /* ---------- shield ---------- */
-const fmtStamp = new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
+const fmtStamp = new Intl.DateTimeFormat(T.locale, { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
 async function loadShield(info) {
   const sh = info || await neural.call("shieldInfo");
   $("#sh-on").checked = sh.enabled;
-  $("#sh-stats").textContent = `Bugün ${sh.today.toLocaleString("tr-TR")} · Bugüne kadar ${sh.total.toLocaleString("tr-TR")}`;
+  $("#sh-stats").textContent = T("set.shield.stats.text", { today: sh.today.toLocaleString(T.locale), total: sh.total.toLocaleString(T.locale) });
   const lists = $("#sh-lists");
   lists.classList.toggle("bad", !!sh.error && !sh.updating);
-  if (sh.updating) lists.textContent = "Listeler indiriliyor ve hazırlanıyor…";
-  else if (sh.error && !sh.ready) lists.textContent = `Listeler indirilemedi: ${sh.error}`;
-  else if (sh.ready) lists.textContent = `EasyList, EasyPrivacy, uBlock Origin ve Peter Lowe · ${sh.rules.toLocaleString("tr-TR")} kural · son güncelleme ${sh.updated ? fmtStamp.format(new Date(sh.updated)) : "—"}${sh.error ? " · son deneme başarısız: " + sh.error : ""} · birkaç günde bir kendiliğinden yenilenir`;
-  else lists.textContent = "Listeler henüz indirilmedi.";
+  if (sh.updating) lists.textContent = T("set.shield.lists.loading");
+  else if (sh.error && !sh.ready) lists.textContent = T("set.shield.lists.failed", { error: sh.error });
+  else if (sh.ready) lists.textContent = T("set.shield.lists.ready", { rules: sh.rules.toLocaleString(T.locale), when: sh.updated ? fmtStamp.format(new Date(sh.updated)) : "—", failed: sh.error ? T("set.shield.lists.last-failed", { error: sh.error }) : "" });
+  else lists.textContent = T("set.shield.lists.none");
   $("#sh-update").disabled = sh.updating;
   const box = $("#sh-allow");
   box.replaceChildren();
-  if (!sh.allow.length) box.append(el("div", "empty", "Kalkanı kapattığın site yok. Bir sitede kapatmak için araç çubuğundaki kalkan simgesine bas."));
+  if (!sh.allow.length) box.append(el("div", "empty", T("set.shield.allow.empty")));
   for (const host of sh.allow) {
     const row = el("div", "allow-row");
-    const b = el("button", "btn", "Kaldır");
+    const b = el("button", "btn", T("dlg.remove"));
     b.type = "button";
-    b.addEventListener("click", async () => { loadShield(await neural.call("shieldAllow", host, false)); toast(`Kalkan ${host} için yeniden açık.`); });
+    b.addEventListener("click", async () => { loadShield(await neural.call("shieldAllow", host, false)); toast(T("set.shield.allow.removed", { host })); });
     row.append(el("span", null, host), b);
     box.append(row);
   }
@@ -94,7 +111,7 @@ $("#sh-update").addEventListener("click", async () => {
   $("#sh-update").disabled = true;
   const info = await neural.call("shieldUpdate");
   loadShield(info);
-  toast(info.error ? `Güncellenemedi: ${info.error}` : "Engelleme listeleri güncellendi.");
+  toast(info.error ? T("set.shield.update-failed", { error: info.error }) : T("set.shield.updated"));
 });
 
 /* ---------- Edge import ---------- */
@@ -104,7 +121,7 @@ async function loadProfiles() {
   sel.replaceChildren();
   for (const p of profiles) { const o = el("option", null, p.name); o.value = p.dir; sel.append(o); }
   if (!profiles.length) {
-    const o = el("option", null, "Edge profili bulunamadı");
+    const o = el("option", null, T("imp.no-profile"));
     o.value = "";
     sel.append(o);
     sel.disabled = true;
@@ -117,31 +134,32 @@ $("#imp-go").addEventListener("click", async () => {
   const bookmarks = $("#imp-marks").checked;
   const history = $("#imp-history").checked;
   const passwords = $("#imp-passwords").checked;
-  if (!bookmarks && !history && !passwords) { out.className = "result bad"; out.textContent = "Aktarılacak bir şey seçmedin."; return; }
+  if (!bookmarks && !history && !passwords) { out.className = "result bad"; out.textContent = T("imp.nothing"); return; }
   btn.disabled = true;
   out.className = "result";
-  out.textContent = "Aktarılıyor…";
+  out.textContent = T("imp.running");
   try {
     const r = await neural.call("importEdge", { profile: $("#edge-profile").value, bookmarks, history, passwords });
     const parts = [];
-    if (bookmarks) parts.push(`${r.bookmarks.toLocaleString("tr-TR")} yer imi`);
-    if (history) parts.push(`${r.history.toLocaleString("tr-TR")} geçmiş kaydı`);
+    const count = (key, n) => T(key, { n, num: n.toLocaleString(T.locale) });
+    if (bookmarks) parts.push(count("imp.n-bookmarks", r.bookmarks));
+    if (history) parts.push(count("imp.n-history", r.history));
     const errors = [...r.errors];
     const notes = [];
     if (passwords && r.passwords) {
       const p = r.passwords;
-      parts.push(`${p.added.toLocaleString("tr-TR")} şifre`);
-      if (p.same) notes.push(`${p.same} şifre zaten vardı`);
-      if (p.kept) notes.push(`${p.kept} hesapta NeuralWeb'deki şifre korundu`);
-      if (p.locked) notes.push(`${p.locked} şifreyi Edge kendine kilitlemiş; onları Edge'den CSV olarak dışa aktarıp Şifreler sayfasından içe aktarabilirsin`);
+      parts.push(count("imp.n-passwords", p.added));
+      if (p.same) notes.push(T("imp.note.same", { n: p.same }));
+      if (p.kept) notes.push(T("imp.note.kept", { n: p.kept }));
+      if (p.locked) notes.push(T("imp.note.locked", { n: p.locked }));
       errors.push(...p.errors);
     }
-    const list = parts.length > 1 ? `${parts.slice(0, -1).join(", ")} ve ${parts[parts.length - 1]}` : parts[0];
-    out.textContent = `${list} aktarıldı.${notes.length ? " " + notes.join("; ") + "." : ""}${errors.length ? " " + errors.join(" ") : ""}`;
+    const list = parts.length > 1 ? T("imp.and", { a: parts.slice(0, -1).join(", "), b: parts[parts.length - 1] }) : parts[0];
+    out.textContent = `${T("imp.done", { list })}${notes.length ? " " + notes.join("; ") + "." : ""}${errors.length ? " " + errors.join(" ") : ""}`;
     if (errors.length) out.className = "result bad";
   } catch (e) {
     out.className = "result bad";
-    out.textContent = "Aktarma başarısız oldu.";
+    out.textContent = T("imp.failed");
   }
   btn.disabled = false;
 });
@@ -149,13 +167,13 @@ $("#imp-go").addEventListener("click", async () => {
 /* ---------- clear browsing data ---------- */
 $("#clear-go").addEventListener("click", async () => {
   const what = { history: $("#c-history").checked, cookies: $("#c-cookies").checked, cache: $("#c-cache").checked, downloads: $("#c-downloads").checked };
-  if (!Object.values(what).some(Boolean)) { $("#clear-result").className = "result bad"; $("#clear-result").textContent = "Temizlenecek bir şey seçmedin."; return; }
-  if (!(await confirmBox("Verileri temizle", "Seçtiğin veriler bu bilgisayardaki NeuralWeb profilinden silinecek. Bu geri alınamaz.", "Temizle"))) return;
+  if (!Object.values(what).some(Boolean)) { $("#clear-result").className = "result bad"; $("#clear-result").textContent = T("set.clear.nothing"); return; }
+  if (!(await confirmBox(T("set.clear.go"), T("set.clear.confirm"), T("set.clear.yes")))) return;
   $("#clear-go").disabled = true;
   await neural.call("clearData", what);
   $("#clear-go").disabled = false;
   $("#clear-result").className = "result";
-  $("#clear-result").textContent = "Temizlendi.";
+  $("#clear-result").textContent = T("set.clear.done");
 });
 
 /* ---------- section list follows the scroll; #anchors open a section ---------- */

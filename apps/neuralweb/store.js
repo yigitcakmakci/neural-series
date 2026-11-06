@@ -29,12 +29,25 @@ class JsonFile {
 
 const hostOf = (url) => { try { return new URL(url).hostname; } catch (e) { return ""; } };
 let seq = Date.now();
+// The texts this module writes (names of the folders it creates, import errors) come from the program's translator
+// (main.js passes language.js's); without one, from lang\tr.json, as in the plain Node tests.
+let turkish = null;
+function defaultTexts() {
+  if (turkish) return turkish;
+  let words = {};
+  try { words = JSON.parse(fs.readFileSync(path.join(__dirname, "lang", "tr.json"), "utf8")); } catch (e) { /* no texts */ }
+  turkish = (key, vars) => String(typeof words[key] === "string" ? words[key] : key).replace(/\{(\w+)\}/g, (m, k) => (vars && vars[k] !== undefined ? String(vars[k]) : m));
+  return turkish;
+}
 const newId = () => (++seq).toString(36);
 
 class Store {
-  constructor(dir) {
+  // t: the program's texts; locale: how typed text is lower-cased for matching (tr-TR or en-GB).
+  constructor(dir, { t = null, locale = "tr-TR" } = {}) {
     fs.mkdirSync(dir, { recursive: true });
     this.dir = dir;
+    this.t = t || defaultTexts();
+    this.locale = locale;
     this.settings = new JsonFile(path.join(dir, "settings.json"), () => ({}));
     this.settings.data = Object.assign({
       theme: "neon",
@@ -51,8 +64,8 @@ class Store {
       shield: { enabled: true, allow: [], total: 0, day: "", today: 0, updated: 0, rules: 0, error: null },
     }, this.settings.data);
     this.bookmarks = new JsonFile(path.join(dir, "bookmarks.json"), () => ({
-      bar: { id: "bar", type: "folder", title: "Yer imleri çubuğu", children: [] },
-      other: { id: "other", type: "folder", title: "Diğer yer imleri", children: [] },
+      bar: { id: "bar", type: "folder", title: this.t("bm.bar"), children: [] },
+      other: { id: "other", type: "folder", title: this.t("bm.other"), children: [] },
     }));
     this.session = new JsonFile(path.join(dir, "session.json"), () => ({ windows: [] }));
     this.downloads = new JsonFile(path.join(dir, "downloads.json"), () => ({ items: [] }));
@@ -102,9 +115,9 @@ class Store {
   suggestions(text, limit = 6) {
     const like = `%${text}%`;
     const fromHistory = this.q.suggest.all(like, like, limit).map((r) => ({ type: "history", url: r.url, title: r.title }));
-    const t = text.toLocaleLowerCase("tr-TR");
+    const t = text.toLocaleLowerCase(this.locale);
     const fromBookmarks = this.allBookmarks()
-      .filter((b) => b.url.toLocaleLowerCase("tr-TR").includes(t) || (b.title || "").toLocaleLowerCase("tr-TR").includes(t))
+      .filter((b) => b.url.toLocaleLowerCase(this.locale).includes(t) || (b.title || "").toLocaleLowerCase(this.locale).includes(t))
       .slice(0, 3)
       .map((b) => ({ type: "bookmark", url: b.url, title: b.title }));
     const seen = new Set();
@@ -142,7 +155,7 @@ class Store {
   bookmarkFor(url) { return this.allBookmarks().find((b) => b.url === url) || null; }
   addBookmark({ parentId = "bar", title, url, type = "url", index = -1 }) {
     const parent = this.findNode(parentId) || this.roots.bar;
-    const node = type === "folder" ? { id: newId(), type, title: title || "Yeni klasör", children: [] } : { id: newId(), type: "url", title: title || url, url, added: Date.now() };
+    const node = type === "folder" ? { id: newId(), type, title: title || this.t("bm.new-folder"), children: [] } : { id: newId(), type: "url", title: title || url, url, added: Date.now() };
     if (index < 0 || index > parent.children.length) parent.children.push(node); else parent.children.splice(index, 0, node);
     this.bookmarks.save();
     return node;
@@ -191,7 +204,8 @@ class Store {
 
   /* ---------- Edge import ---------- */
   static edgeDir() { return process.env.NEURALWEB_EDGE_DIR || path.join(process.env.LOCALAPPDATA || "", "Microsoft", "Edge", "User Data"); }
-  static edgeProfiles(dir = Store.edgeDir()) {
+  // t names the profile Edge left unnamed.
+  static edgeProfiles(dir = Store.edgeDir(), t = defaultTexts()) {
     const out = [];
     try {
       const state = JSON.parse(fs.readFileSync(path.join(dir, "Local State"), "utf8"));
@@ -199,7 +213,7 @@ class Store {
         if (fs.existsSync(path.join(dir, key))) out.push({ dir: key, name: info.name || key });
       }
     } catch (e) { /* no Local State */ }
-    if (!out.length && fs.existsSync(path.join(dir, "Default"))) out.push({ dir: "Default", name: "Varsayılan" });
+    if (!out.length && fs.existsSync(path.join(dir, "Default"))) out.push({ dir: "Default", name: t("imp.default-profile") });
     return out;
   }
   importEdge({ profile = "Default", bookmarks = true, history = true, dir = Store.edgeDir() } = {}) {
@@ -216,19 +230,19 @@ class Store {
             into.children.push({ id: newId(), type: "url", title: n.name || n.url, url: n.url, added: webkitToMs(n.date_added) || Date.now() });
             result.bookmarks += 1;
           } else if (n.type === "folder") {
-            const folder = { id: newId(), type: "folder", title: n.name || "Klasör", children: [] };
+            const folder = { id: newId(), type: "folder", title: n.name || this.t("imp.folder"), children: [] };
             for (const c of n.children || []) convert(c, folder);
             if (folder.children.length) into.children.push(folder);
           }
         };
         const roots = data.roots || {};
         for (const c of (roots.bookmark_bar && roots.bookmark_bar.children) || []) convert(c, this.roots.bar);
-        const rest = { id: newId(), type: "folder", title: "Edge'den aktarılanlar", children: [] };
+        const rest = { id: newId(), type: "folder", title: this.t("imp.from-edge"), children: [] };
         for (const key of ["other", "synced"]) for (const c of (roots[key] && roots[key].children) || []) convert(c, rest);
         if (rest.children.length) this.roots.other.children.push(rest);
         this.bookmarks.save(true);
       } catch (e) {
-        result.errors.push(e.code === "ENOENT" ? "Edge yer imleri bulunamadı." : "Yer imleri okunamadı: " + e.message);
+        result.errors.push(e.code === "ENOENT" ? this.t("imp.err.bookmarks-missing") : this.t("imp.err.bookmarks", { error: e.message }));
       }
     }
     if (history) {
@@ -249,7 +263,7 @@ class Store {
         this.db.exec("COMMIT");
       } catch (e) {
         try { this.db.exec("ROLLBACK"); } catch (x) { /* nothing open */ }
-        result.errors.push(e.code === "EBUSY" ? "Edge açıkken geçmiş kopyalanamadı; Edge'i kapatıp yeniden deneyin." : e.code === "ENOENT" ? "Edge geçmişi bulunamadı." : "Geçmiş okunamadı: " + e.message);
+        result.errors.push(e.code === "EBUSY" ? this.t("imp.err.history-busy") : e.code === "ENOENT" ? this.t("imp.err.history-missing") : this.t("imp.err.history", { error: e.message }));
       } finally {
         try { fs.rmSync(tmp, { force: true }); } catch (e) { /* temp file */ }
       }

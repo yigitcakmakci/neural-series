@@ -20,36 +20,41 @@
 
       <div class="prompt">
         <span class="caret" aria-hidden="true">&gt;_</span>
-        <input id="q" type="text" spellcheck="false" autocomplete="off" aria-label="Komut"
-          placeholder="Program, komut ya da hesap: nav, term, pad, view, web, ara, tema, =12*7">
+        <input id="q" type="text" spellcheck="false" autocomplete="off" aria-label="Komut" data-i18n-aria-label="prompt.aria"
+          placeholder="Program, komut ya da hesap: nav, term, pad, view, web, ara, tema, =12*7" data-i18n-placeholder="prompt.placeholder">
       </div>
       <div class="warn" id="warn" role="alert" hidden></div>
 
-      <ul class="results" id="results" role="listbox" aria-label="Öneriler"></ul>
+      <ul class="results" id="results" role="listbox" aria-label="Öneriler" data-i18n-aria-label="results.aria"></ul>
 
-      <section class="settings" id="settings" aria-label="Ayarlar" hidden>
-        <h2 class="set-head">AYARLAR</h2>
+      <section class="settings" id="settings" aria-label="Ayarlar" data-i18n-aria-label="set.aria" hidden>
+        <h2 class="set-head" data-i18n="set.head">AYARLAR</h2>
         <div class="set-row">
-          <div class="set-txt"><b>Paneli açan kısayol</b><small>Her yerden NeuralDeck'i açar. Değiştirmek için düğmeye bas, sonra yeni tuşlara.</small></div>
+          <div class="set-txt"><b data-i18n="set.shortcut">Paneli açan kısayol</b><small data-i18n="set.shortcut.text">Her yerden NeuralDeck'i açar. Değiştirmek için düğmeye bas, sonra yeni tuşlara.</small></div>
           <button class="key" id="set-shortcut" type="button"></button>
         </div>
         <p class="set-msg" id="set-msg" role="status"></p>
         <div class="set-row">
-          <div class="set-txt"><b>Windows açılışında başlat</b><small>Neural kurulum programındaki "NeuralDeck: açılışta başlat" seçeneğiyle açılıp kapanır.</small></div>
+          <div class="set-txt"><b data-i18n="set.autostart">Windows açılışında başlat</b><small data-i18n="set.autostart.text">Neural kurulum programındaki "NeuralDeck: açılışta başlat" seçeneğiyle açılıp kapanır.</small></div>
         </div>
         <div class="set-row">
-          <div class="set-txt"><b>Tema</b><small>NeuralDeck serinin temasını izler. Değiştirmek için: tema neon, tema buz, tema alarm, tema gündüz.</small></div>
+          <div class="set-txt"><b data-i18n="set.theme">Tema</b><small data-i18n="set.theme.text">NeuralDeck serinin temasını izler. Değiştirmek için: tema neon, tema buz, tema alarm, tema gündüz.</small></div>
         </div>
-        <div class="set-foot"><button class="btn" id="set-back" type="button">Geri</button></div>
+        <div class="set-row">
+          <div class="set-txt"><b data-i18n="lang.menu">Dil · Language</b><small data-i18n="set.lang.text">Bütün Neural programlarının dili. Değişiklik, her program yeniden açıldığında görünür.</small></div>
+          <div class="set-langs" id="set-langs"></div>
+        </div>
+        <div class="set-foot"><button class="btn" id="set-back" type="button" data-i18n="set.back">Geri</button></div>
       </section>
 
       <footer class="foot">
-        <span><kbd>↑</kbd><kbd>↓</kbd> seç</span><span><kbd>Enter</kbd> çalıştır</span><span><kbd>Tab</kbd> tamamla</span><span><kbd>Esc</kbd> kapat</span>
+        <span><kbd>↑</kbd><kbd>↓</kbd> <span data-i18n="foot.select">seç</span></span><span><kbd>Enter</kbd> <span data-i18n="foot.run">çalıştır</span></span><span><kbd>Tab</kbd> <span data-i18n="foot.complete">tamamla</span></span><span><kbd>Esc</kbd> <span data-i18n="foot.close">kapat</span></span>
         <span class="toast" id="toast" role="status" aria-live="polite"></span>
       </footer>
     </div>
   </div>
 </div>
+<script src="../shared/i18n.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

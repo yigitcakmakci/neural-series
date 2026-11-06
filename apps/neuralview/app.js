@@ -9,10 +9,12 @@ const $ = (s, r = document) => r.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
 const readJSON = k => { try { return JSON.parse(localStorage.getItem(k)) || null; } catch { return null; } };
+// Interface texts in the series language (lang\*.json through language.js and i18n.js).
+const T = NeuralI18n.page(window);
 
 /* Desktop shell (Electron). Opened in a plain browser, the file operations stay disabled. */
 const NOOP = () => {};
-const NO_SHELL = { ok: false, error: 'Bu işlem yalnızca masaüstü uygulamasında çalışır.' };
+const NO_SHELL = { ok: false, error: T('err.no-shell') };
 const vw = window.vw || {
   minimize: NOOP, toggleMaximize: NOOP, setFull: NOOP, close: () => window.close(), closeAck: NOOP, confirmClose: () => window.close(),
   onCloseRequest: NOOP, onMaximized: NOOP, onFull: NOOP, resizeStart: NOOP, resizeEnd: NOOP,
@@ -42,17 +44,8 @@ let started = false;
 vw.onOpenPaths(paths => { if (started) openPath(paths[0]); else incoming.push(...paths); });
 
 /* ---------------- Settings ---------------- */
-const THEMES = [
-  { id: 'neon', name: 'Neon' },
-  { id: 'ice', name: 'Buz' },
-  { id: 'alarm', name: 'Alarm' },
-  { id: 'daylight', name: 'Gündüz' },
-];
-const SORTS = [
-  { id: 'name', name: 'Ad' },
-  { id: 'date', name: 'Değiştirilme tarihi' },
-  { id: 'size', name: 'Boyut' },
-];
+const THEMES = ['neon', 'ice', 'alarm', 'daylight'].map(id => ({ id, name: T('theme.' + id) }));
+const SORTS = ['name', 'date', 'size'].map(id => ({ id, name: T('sort.' + id) }));
 const INTERVALS = [2, 3, 5, 10];
 const DEFAULTS = { theme: 'neon', syncTheme: true, sort: 'name', desc: false, info: false, strip: true, checker: false, interval: 3, lastDir: '', v: 1 };
 const S = Object.assign({}, DEFAULTS, readJSON(SETTINGS_KEY));
@@ -96,16 +89,17 @@ const samePath = (a, b) => !!a && !!b && a.toLowerCase() === b.toLowerCase();
 const version = e => `${Math.round(e.mtime)}-${e.size}`;
 const urlOf = (scheme, e) => `${scheme}://f/${encodeURIComponent(e.path)}?v=${version(e)}`;
 
-const collator = new Intl.Collator('tr', { numeric: true, sensitivity: 'base' });
-const fmtN = n => n.toLocaleString('tr-TR');
+const collator = new Intl.Collator(T.lang, { numeric: true, sensitivity: 'base' });
+const fmtN = n => n.toLocaleString(T.locale);
+const bytes = n => T('size.bytes', { n, num: fmtN(n) });
 function fmtBytes(n) {
-  if (n < 1024) return `${fmtN(n)} bayt`;
+  if (n < 1024) return bytes(n);
   const units = ['KB', 'MB', 'GB'];
   let v = n / 1024, u = 0;
   while (v >= 1024 && u < units.length - 1) { v /= 1024; u++; }
-  return `${v.toLocaleString('tr-TR', { maximumFractionDigits: v < 10 ? 1 : 0 })} ${units[u]}`;
+  return `${v.toLocaleString(T.locale, { maximumFractionDigits: v < 10 ? 1 : 0 })} ${units[u]}`;
 }
-const fmtDate = ms => (ms > 0 ? new Date(ms).toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: 'short' }) : '—');
+const fmtDate = ms => (ms > 0 ? new Date(ms).toLocaleString(T.locale, { dateStyle: 'medium', timeStyle: 'short' }) : '—');
 
 let dir = null;        // folder of the open image
 let list = [];         // its images, sorted
@@ -133,7 +127,7 @@ async function openPath(p) {
   if (!p) return false;
   if (!(await settleRotation())) return false;
   const r = await vw.list(p);
-  if (!r.ok) { toast(`Açılamadı: ${r.error}`); return false; }
+  if (!r.ok) { toast(T('toast.open-failed', { error: r.error })); return false; }
   stopSlideshow();
   dir = r.dir;
   S.lastDir = dir;
@@ -141,7 +135,7 @@ async function openPath(p) {
   list = r.entries;
   sortList();
   let i = list.findIndex(e => samePath(e.path, p));
-  if (i < 0 && !samePath(r.dir, p)) toast(`Bu dosya NeuralView'in açtığı bir resim değil: ${baseName(p)}`);
+  if (i < 0 && !samePath(r.dir, p)) toast(T('toast.not-image', { name: baseName(p) }));
   if (i < 0) i = list.length ? 0 : -1;
   vw.watch(dir);
   renderStrip();
@@ -152,6 +146,11 @@ async function openPath(p) {
 async function openDialog() {
   const p = await vw.openDialog(dir || S.lastDir);
   if (p) await openPath(p);
+}
+
+// The empty screen's line, with the key in a <kbd>.
+function renderEmpty() {
+  $('#empty-text').innerHTML = esc(T(dir ? 'empty.none' : 'empty.text')).replace('{key}', '<kbd>Ctrl+O</kbd>');
 }
 
 // Shows image i of the list (or the empty screen).
@@ -167,9 +166,7 @@ async function show(i) {
     cur = null;
     viewport.replaceChildren();
     $('#empty').hidden = false;
-    $('#empty-text').innerHTML = dir
-      ? 'Bu klasörde NeuralView\'in açabileceği bir resim yok. Başka bir resim açmak için <kbd>Ctrl+O</kbd>.'
-      : 'Bir resim açmak için <kbd>Ctrl+O</kbd> tuşlarına bas ya da resmi buraya sürükle.';
+    renderEmpty();
     updateChrome();
     return;
   }
@@ -186,8 +183,7 @@ async function show(i) {
 
   if (kind === 'heic') {
     viewport.replaceChildren();
-    setNotice('HEIC açılamıyor',
-      'NeuralView, resimleri Chromium motoruyla çizer ve bu motor HEIC/HEIF biçimini çözemez. Resmi telefonundan ya da Fotoğraflar uygulamasından JPG veya PNG olarak dışa aktarıp yeniden aç. Bilgi paneli (I) dosyanın ayrıntılarını yine gösterir.');
+    setNotice(T('notice.heic'), T('notice.heic.text'));
     return;
   }
   const im = new Image();
@@ -201,7 +197,7 @@ async function show(i) {
   } catch {
     if (seq !== loadSeq) return;
     viewport.replaceChildren();
-    setNotice('Resim açılamadı', `"${e.name}" çözülemedi: dosya bozuk, yarım inmiş ya da uzantısıyla içeriği uyuşmuyor.`);
+    setNotice(T('notice.broken'), T('notice.broken.text', { name: e.name }));
     return;
   }
   if (seq !== loadSeq) return;
@@ -242,7 +238,7 @@ async function go(step, { wrapHud = true } = {}) {
   let i = index + step;
   if (i >= list.length || i < 0) {
     i = (i + list.length) % list.length;
-    if (wrapHud && list.length > 1) hud(step > 0 ? '↺ Klasörün başına dönüldü' : '↻ Klasörün sonuna geçildi');
+    if (wrapHud && list.length > 1) hud(T(step > 0 ? 'hud.wrapped-first' : 'hud.wrapped-last'));
   }
   await show(i);
 }
@@ -317,7 +313,7 @@ function zoomTo(s, cx, cy) {
   view.scale = s;
   view.fit = Math.abs(s - fitScale()) < 0.0005;
   applyView();
-  hud(`%${Math.round(s * 100)}`);
+  hud(T('zoom.pct', { n: Math.round(s * 100) }));
 }
 const zoomBy = (f, cx, cy) => cur && cur.ok && zoomTo(view.scale * f, cx, cy);
 function fit() {
@@ -325,7 +321,7 @@ function fit() {
   view.fit = true;
   animateOnce();
   applyView();
-  hud(`Sığdır · %${Math.round(view.scale * 100)}`);
+  hud(T('hud.fit', { n: Math.round(view.scale * 100) }));
 }
 function actualSize(cx, cy) {
   if (!cur || !cur.ok) return;
@@ -347,10 +343,10 @@ function rotationSupport() {
   if (!cur || !cur.ok) return null;
   const k = cur.kind;
   const animated = cur.meta && cur.meta.animated;
-  if (k === 'jpeg') return 'JPEG: pikseller değişmez, yalnızca EXIF yön bilgisi güncellenir (kayıpsız).';
-  if (k === 'png' && !animated) return 'PNG: resim döndürülüp kayıpsız olarak yeniden yazılır; dosyadaki ek metin bilgileri korunmaz.';
-  if (k === 'webp' && !animated) return 'WebP: resim döndürülüp en yüksek kalitede yeniden kodlanır.';
-  if (k === 'bmp') return 'BMP: resim döndürülüp yeniden yazılır.';
+  if (k === 'jpeg') return T('rot.jpeg');
+  if (k === 'png' && !animated) return T('rot.png');
+  if (k === 'webp' && !animated) return T('rot.webp');
+  if (k === 'bmp') return T('rot.bmp');
   return null;
 }
 function updateRotbar() {
@@ -359,7 +355,8 @@ function updateRotbar() {
   bar.hidden = !t;
   if (!t) return;
   const savable = !!rotationSupport();
-  $('#rot-text').textContent = savable ? `${t * 90}° döndürüldü · kaydedilmedi` : `${t * 90}° döndürüldü · ${FORMAT_NAMES[cur.kind] || 'bu biçim'} için yalnızca ekranda`;
+  $('#rot-text').textContent = savable ? T('rot.unsaved', { deg: t * 90 })
+    : T('rot.screen-only', { deg: t * 90, format: FORMAT_NAMES[cur.kind] || T('rot.this-format') });
   $('#rot-save').hidden = !savable;
 }
 
@@ -389,18 +386,18 @@ async function saveRotation() {
     } else {
       const type = c.kind === 'png' ? 'image/png' : 'image/webp';
       const blob = await toBlob(rotatedCanvas(t), type, 1);
-      if (!blob || blob.type !== type) throw new Error(`${FORMAT_NAMES[c.kind]} yazılamadı.`);
+      if (!blob || blob.type !== type) throw new Error(T('err.encode', { format: FORMAT_NAMES[c.kind] }));
       job = { kind: 'encoded', bytes: new Uint8Array(await blob.arrayBuffer()) };
     }
   } catch (err) {
-    toast(`Kaydedilemedi: ${err.message}`);
+    toast(T('toast.save-failed', { error: err.message }));
     return false;
   }
   const r = await vw.saveRotation(e.path, job);
-  if (!r.ok) { toast(`Kaydedilemedi: ${r.error}`); return false; }
+  if (!r.ok) { toast(T('toast.save-failed', { error: r.error })); return false; }
   e.size = r.size;
   e.mtime = r.mtime;
-  toast(`"${e.name}" döndürülmüş olarak kaydedildi.`);
+  toast(T('toast.rotation-saved', { name: e.name }));
   return true;
 }
 
@@ -409,8 +406,8 @@ async function settleRotation() {
   if (!cur || !cur.ok || !turns()) return true;
   const detail = rotationSupport();
   if (!detail) return true; // shown turned only; nothing to save
-  const r = await confirmDlg('Döndürme', `"${cur.entry.name}" ${turns() * 90}° döndürüldü. Kaydedilsin mi?`, detail,
-    [['save', 'Kaydet', 'primary'], ['discard', 'Kaydetme'], ['cancel', 'İptal']]);
+  const r = await confirmDlg(T('dlg.rotation'), T('dlg.rotation.text', { name: cur.entry.name, deg: turns() * 90 }), detail,
+    [['save', T('dlg.save'), 'primary'], ['discard', T('dlg.discard')], ['cancel', T('dlg.cancel')]]);
   if (r === 'cancel') return false;
   if (r === 'save' && !(await saveRotation())) return false;
   view.rot = 0;
@@ -419,11 +416,15 @@ async function settleRotation() {
 }
 
 async function saveRotationCmd() {
-  if (!cur || !cur.ok || !turns()) { toast('Kaydedilecek bir döndürme yok.'); return; }
+  if (!cur || !cur.ok || !turns()) { toast(T('toast.no-rotation')); return; }
   const detail = rotationSupport();
-  if (!detail) { toast(`${FORMAT_NAMES[cur.kind] || 'Bu'} biçiminde döndürme kaydedilemez; resim yalnızca ekranda döner.`); return; }
-  const r = await confirmDlg('Döndürmeyi kaydet', `"${cur.entry.name}" ${turns() * 90}° döndürülmüş olarak kaydedilsin mi?`, detail,
-    [['save', 'Kaydet', 'primary'], ['cancel', 'İptal']]);
+  if (!detail) {
+    const format = FORMAT_NAMES[cur.kind];
+    toast(format ? T('toast.rotate-unsupported', { format }) : T('toast.rotate-unsupported.any'));
+    return;
+  }
+  const r = await confirmDlg(T('dlg.save-rotation'), T('dlg.save-rotation.text', { name: cur.entry.name, deg: turns() * 90 }), detail,
+    [['save', T('dlg.save'), 'primary'], ['cancel', T('dlg.cancel')]]);
   if (r !== 'save' || !(await saveRotation())) return;
   await show(index); // the file on disk is now the turned image
   refreshThumb(cur && cur.entry);
@@ -438,32 +439,32 @@ function undoRotation() {
 
 /* ---------------- File operations ---------------- */
 async function copyImage() {
-  if (!cur || !cur.ok) { toast('Kopyalanacak bir resim yok.'); return; }
+  if (!cur || !cur.ok) { toast(T('toast.no-image')); return; }
   const blob = await toBlob(rotatedCanvas(turns()), 'image/png');
-  if (!blob) { toast('Resim panoya kopyalanamadı.'); return; }
+  if (!blob) { toast(T('err.copy-image')); return; }
   const r = await vw.copyImage(new Uint8Array(await blob.arrayBuffer()));
-  toast(r.ok ? 'Resim panoya kopyalandı.' : r.error);
+  toast(r.ok ? T('toast.image-copied') : r.error);
 }
 async function copyPath() {
   if (!cur) return;
   const r = await vw.copyText(cur.entry.path);
-  toast(r.ok ? 'Dosya yolu panoya kopyalandı.' : r.error);
+  toast(r.ok ? T('toast.path-copied') : r.error);
 }
 
 async function trashCurrent() {
   if (!cur) return;
   const e = cur.entry;
-  const r = await confirmDlg('Sil', `"${e.name}" Geri Dönüşüm Kutusu'na taşınsın mı?`, 'Geri Dönüşüm Kutusu\'ndan geri yükleyebilirsin.',
-    [['ok', 'Geri Dönüşüm Kutusu\'na taşı', 'danger'], ['cancel', 'İptal']]);
+  const r = await confirmDlg(T('dlg.delete'), T('dlg.delete.text', { name: e.name }), T('dlg.delete.hint'),
+    [['ok', T('dlg.delete.ok'), 'danger'], ['cancel', T('dlg.cancel')]]);
   if (r !== 'ok') return;
   const res = await vw.trash(e.path);
-  if (!res.ok) { toast(`Silinemedi: ${res.error}`); return; }
+  if (!res.ok) { toast(T('toast.delete-failed', { error: res.error })); return; }
   view.rot = 0;
   const i = list.indexOf(e);
   if (i >= 0) list.splice(i, 1);
   renderStrip();
   await show(Math.min(Math.max(i, 0), list.length - 1));
-  toast(`"${e.name}" Geri Dönüşüm Kutusu'na taşındı.`);
+  toast(T('toast.trashed', { name: e.name }));
 }
 
 async function renameCurrent() {
@@ -486,7 +487,7 @@ async function renameCurrent() {
     const name = input.value.trim();
     if (name === e.name) { dlg.close('cancel'); return; }
     if (extOf(name) !== extOf(e.name) && !kindOf(name)) {
-      err.textContent = 'Yeni uzantı bir resim uzantısı değil; dosya NeuralView listesinden çıkar.';
+      err.textContent = T('dlg.rename.not-image');
       if (!input.dataset.warned) { input.dataset.warned = '1'; return; }
     }
     const r = await vw.rename(e.path, name);
@@ -505,7 +506,7 @@ async function renameCurrent() {
     renderStrip();
     await show(Math.min(index, list.length - 1));
   } else resort();
-  toast(`Yeni adı: ${e.name}`);
+  toast(T('toast.renamed', { name: e.name }));
   stage.focus();
 }
 
@@ -513,7 +514,7 @@ async function showInNav() {
   if (!cur) return;
   const r = await vw.showInNav(cur.entry.path);
   if (!r.ok) toast(r.error);
-  else if (r.via !== 'NeuralNav') toast('NeuralNav kurulu değil; dosya Windows Gezgini\'nde gösterildi.');
+  else if (r.via !== 'NeuralNav') toast(T('toast.shown-in-explorer'));
 }
 
 // The folder changed on disk (another program, or our own rename/delete/save): list it again, keep the image.
@@ -556,11 +557,11 @@ vw.onFull(on => {
   requestAnimationFrame(() => { applyView(); });
 });
 function startSlideshow() {
-  if (!cur || list.length < 2) { toast('Slayt gösterisi için klasörde en az iki resim olmalı.'); return; }
+  if (!cur || list.length < 2) { toast(T('toast.slideshow-needs-two')); return; }
   slideshow = { timer: null, wasFull: isFull };
   if (!isFull) setFull(true);
   scheduleSlide();
-  hud(`▶ Slayt gösterisi · ${S.interval} sn · durdurmak için Boşluk`);
+  hud(T('hud.slideshow', { n: S.interval }));
 }
 function scheduleSlide() {
   if (!slideshow) return;
@@ -577,7 +578,7 @@ function stopSlideshow() {
   const was = slideshow.wasFull;
   slideshow = null;
   if (!was) setFull(false);
-  hud('■ Slayt gösterisi durdu');
+  hud(T('hud.slideshow-stopped'));
 }
 const toggleSlideshow = () => (slideshow ? stopSlideshow() : startSlideshow());
 
@@ -652,14 +653,15 @@ stripEl.addEventListener('wheel', ev => {
 }, { passive: false });
 
 /* ---------------- Information panel ---------------- */
-const ORIENTATIONS = { 1: 'Normal', 2: 'Yatay aynalı', 3: '180° döndürülmüş', 4: 'Dikey aynalı', 5: 'Aynalı, 90° sola', 6: '90° sağa döndürülmüş', 7: 'Aynalı, 90° sağa', 8: '90° sola döndürülmüş' };
+// EXIF orientation 1-8 (keys orient.1 ... orient.8); an unknown value shows as its number.
+const orientation = o => (T.has('orient.' + o) ? T('orient.' + o) : String(o));
 function exifDate(s) {
   const m = /^(\d{4}):(\d{2}):(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/.exec(String(s || ''));
   if (!m) return s ? String(s) : '';
   const d = new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0));
-  return isNaN(d) ? String(s) : d.toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: 'short' });
+  return isNaN(d) ? String(s) : d.toLocaleString(T.locale, { dateStyle: 'medium', timeStyle: 'short' });
 }
-const deg = (v, pos, neg) => `${Math.abs(v).toLocaleString('tr-TR', { minimumFractionDigits: 5, maximumFractionDigits: 5 })}° ${v < 0 ? neg : pos}`;
+const deg = (v, pos, neg) => `${Math.abs(v).toLocaleString(T.locale, { minimumFractionDigits: 5, maximumFractionDigits: 5 })}° ${v < 0 ? neg : pos}`;
 
 function renderInfo() {
   if (!S.info) return;
@@ -668,47 +670,54 @@ function renderInfo() {
   const sec = t => rows.push(`<div class="sec">${esc(t)}</div>`);
   let gps = null;
   if (!cur) {
-    rows.push('<dd>Açık bir resim yok.</dd>');
+    rows.push(`<dd>${esc(T('info.no-image'))}</dd>`);
   } else {
     const e = cur.entry, m = cur.meta || {};
     const w = cur.ok ? cur.w : m.width, h = cur.ok ? cur.h : m.height;
-    sec('DOSYA');
-    add('Ad', e.name);
-    add('Klasör', dir);
-    add('Biçim', (m.format || FORMAT_NAMES[cur.kind] || '?') + (m.animated ? ' · animasyonlu' : ''));
-    if (w && h) add('Boyutlar', `${fmtN(w)} × ${fmtN(h)} piksel${w * h >= 100000 ? ` · ${(w * h / 1e6).toLocaleString('tr-TR', { maximumFractionDigits: 1 })} MP` : ''}`);
-    add('Dosya boyutu', `${fmtBytes(e.size)} (${fmtN(e.size)} bayt)`);
-    add('Değiştirilme', fmtDate(e.mtime));
-    add('Oluşturma', fmtDate(e.ctime));
+    sec(T('info.sec.file'));
+    add(T('info.name'), e.name);
+    add(T('info.folder'), dir);
+    const format = m.format || FORMAT_NAMES[cur.kind] || '?';
+    add(T('info.format'), m.animated ? T('info.format.animated', { format }) : format);
+    if (w && h) {
+      const mp = (w * h / 1e6).toLocaleString(T.locale, { maximumFractionDigits: 1 });
+      add(T('info.dims'), T(w * h >= 100000 ? 'info.dims.mp' : 'info.dims.px', { w: fmtN(w), h: fmtN(h), mp }));
+    }
+    add(T('info.size'), `${fmtBytes(e.size)} (${bytes(e.size)})`);
+    add(T('info.modified'), fmtDate(e.mtime));
+    add(T('info.created'), fmtDate(e.ctime));
     const x = m.exif;
     if (x) {
       sec('EXIF');
       const camera = [x.make, x.model].filter(Boolean);
-      add('Kamera', camera.length === 2 && x.model.toLowerCase().startsWith(x.make.toLowerCase()) ? x.model : camera.join(' '));
-      add('Objektif', x.lens);
-      add('Çekim tarihi', exifDate(x.taken));
-      if (x.exposure > 0) add('Pozlama', x.exposure < 1 ? `1/${Math.round(1 / x.exposure)} sn` : `${x.exposure.toLocaleString('tr-TR')} sn`);
-      if (x.fNumber > 0) add('Diyafram', `f/${x.fNumber.toLocaleString('tr-TR', { maximumFractionDigits: 1 })}`);
+      add(T('info.camera'), camera.length === 2 && x.model.toLowerCase().startsWith(x.make.toLowerCase()) ? x.model : camera.join(' '));
+      add(T('info.lens'), x.lens);
+      add(T('info.taken'), exifDate(x.taken));
+      if (x.exposure > 0) add(T('info.exposure'), T('info.exposure.value', { v: x.exposure < 1 ? `1/${Math.round(1 / x.exposure)}` : x.exposure.toLocaleString(T.locale) }));
+      if (x.fNumber > 0) add(T('info.aperture'), `f/${x.fNumber.toLocaleString(T.locale, { maximumFractionDigits: 1 })}`);
       if (x.iso) add('ISO', String(x.iso));
-      if (x.focal > 0) add('Odak uzaklığı', `${x.focal.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} mm${x.focal35 ? ` (35 mm karşılığı ${x.focal35} mm)` : ''}`);
-      if (x.flash !== undefined) add('Flaş', x.flash & 1 ? 'Patladı' : 'Patlamadı');
-      if (x.orientation && x.orientation !== 1) add('Yön', ORIENTATIONS[x.orientation] || String(x.orientation));
-      add('Yazılım', x.software);
-      add('Sanatçı', x.artist);
-      add('Telif', x.copyright);
-      add('Açıklama', x.description);
+      if (x.focal > 0) {
+        const mm = x.focal.toLocaleString(T.locale, { maximumFractionDigits: 1 });
+        add(T('info.focal'), x.focal35 ? T('info.focal.equiv', { mm, mm35: x.focal35 }) : `${mm} mm`);
+      }
+      if (x.flash !== undefined) add(T('info.flash'), T(x.flash & 1 ? 'info.flash.on' : 'info.flash.off'));
+      if (x.orientation && x.orientation !== 1) add(T('info.orientation'), orientation(x.orientation));
+      add(T('info.software'), x.software);
+      add(T('info.artist'), x.artist);
+      add(T('info.copyright'), x.copyright);
+      add(T('info.description'), x.description);
       gps = x.gps;
       if (gps) {
-        sec('KONUM');
+        sec(T('info.sec.location'));
         if (Number.isFinite(gps.lat) && Number.isFinite(gps.lon)) {
-          add('Enlem', deg(gps.lat, 'K', 'G'));
-          add('Boylam', deg(gps.lon, 'D', 'B'));
-        } else add('Koordinatlar', 'Okunamadı');
-        if (Number.isFinite(gps.alt)) add('Yükseklik', `${gps.alt.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} m`);
+          add(T('info.lat'), deg(gps.lat, T('gps.n'), T('gps.s')));
+          add(T('info.lon'), deg(gps.lon, T('gps.e'), T('gps.w')));
+        } else add(T('info.coords'), T('info.coords.none'));
+        if (Number.isFinite(gps.alt)) add(T('info.alt'), `${gps.alt.toLocaleString(T.locale, { maximumFractionDigits: 1 })} m`);
       }
     } else if (cur.meta && ['jpeg', 'png', 'webp'].includes(cur.kind)) {
       sec('EXIF');
-      rows.push('<dd class="none">Bu dosyada EXIF bilgisi yok.</dd>');
+      rows.push(`<dd class="none">${esc(T('info.no-exif'))}</dd>`);
     }
   }
   $('#gps-warn').hidden = !gps;
@@ -729,7 +738,7 @@ function updateStatus() {
   $('#st-dims').textContent = w && h ? `${fmtN(w)} × ${fmtN(h)}` : '';
   $('#st-size').textContent = cur ? fmtBytes(cur.entry.size) : '';
   $('#st-fmt').textContent = cur ? (m && m.format) || FORMAT_NAMES[cur.kind] || '' : '';
-  $('#st-zoom').textContent = cur && cur.ok ? `%${Math.round(view.scale * 100)}${view.fit ? ' · sığdır' : ''}` : '';
+  $('#st-zoom').textContent = cur && cur.ok ? T(view.fit ? 'zoom.fit' : 'zoom.pct', { n: Math.round(view.scale * 100) }) : '';
 }
 function updateChrome() {
   updateTitle();
@@ -751,11 +760,11 @@ function hud(text) {
 }
 
 let toastTimer = null;
-function toast(msg) {
+function toast(msg, ms = 2800) {
   toastEl.textContent = msg;
   toastEl.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2800);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), ms);
 }
 
 /* ---------------- Dialogs ---------------- */
@@ -787,28 +796,28 @@ function confirmDlg(title, text, hint, buttons) {
 }
 
 const SHORTCUT_DOC = [
-  ['Sonraki / önceki resim', '→ / ← · Tekerlek'],
-  ['İlk / son resim', 'Home / End'],
-  ['Yakınlaştır / uzaklaştır', 'Ctrl+Tekerlek · + / -'],
-  ['Ekrana sığdır', '0 / Ctrl+0'],
-  ['Gerçek boyut (%100)', '1 / Ctrl+1'],
-  ['Sığdır ↔ %100', 'Çift tıklama'],
-  ['Kaydırma (büyütülmüşken)', 'Sürükle · ↑ / ↓'],
-  ['Sağa / sola döndür', 'R / Shift+R'],
-  ['Döndürmeyi kaydet', 'Ctrl+S'],
-  ['Bilgi paneli', 'I'],
-  ['Küçük resim şeridi', 'T'],
-  ['Tam ekran', 'F11'],
-  ['Slayt gösterisi', 'Boşluk'],
-  ['Tam ekrandan / slayttan çık', 'Esc'],
-  ['Resmi panoya kopyala', 'Ctrl+C'],
-  ['Dosya yolunu kopyala', 'Ctrl+Shift+C'],
-  ['Konumu NeuralNav\'da aç', 'Ctrl+E'],
-  ['Yeniden adlandır', 'F2'],
-  ['Geri Dönüşüm Kutusu\'na taşı', 'Del'],
-  ['Resim aç', 'Ctrl+O'],
-  ['Menüye geç', 'F10 / Alt'],
-  ['Bu liste', '? / F1'],
+  [T('keys.next-prev'), T('keys.next-prev.k')],
+  [T('keys.first-last'), 'Home / End'],
+  [T('keys.zoom'), T('keys.zoom.k')],
+  [T('keys.fit'), '0 / Ctrl+0'],
+  [T('keys.actual'), '1 / Ctrl+1'],
+  [T('keys.fit-toggle'), T('keys.fit-toggle.k')],
+  [T('keys.pan'), T('keys.pan.k')],
+  [T('keys.rotate'), 'R / Shift+R'],
+  [T('keys.save-rotation'), 'Ctrl+S'],
+  [T('keys.info'), 'I'],
+  [T('keys.strip'), 'T'],
+  [T('keys.full'), 'F11'],
+  [T('keys.slideshow'), T('key.space')],
+  [T('keys.leave'), 'Esc'],
+  [T('keys.copy-image'), 'Ctrl+C'],
+  [T('keys.copy-path'), 'Ctrl+Shift+C'],
+  [T('keys.show-in-nav'), 'Ctrl+E'],
+  [T('keys.rename'), 'F2'],
+  [T('keys.trash'), 'Del'],
+  [T('keys.open'), 'Ctrl+O'],
+  [T('keys.menu'), 'F10 / Alt'],
+  [T('keys.this-list'), '? / F1'],
 ];
 function openShortcuts() {
   $('#keys-list').innerHTML = SHORTCUT_DOC.map(([a, k]) => `<span>${esc(a)}</span><span class="kk">${esc(k)}</span>`).join('');
@@ -821,68 +830,71 @@ function openAbout() {
 /* ---------------- Menus ---------------- */
 const hasImage = () => !!(cur && cur.ok);
 const hasFile = () => !!cur;
+// The series language: a pick shows from the next start, so only the note changes now.
+const languages = NeuralI18n.languageChoices(window, note => toast(note, 6000));
 const MENUS = [
-  { label: 'Dosya', items: [
-    { label: 'Aç...', key: 'Ctrl+O', run: openDialog },
-    { label: 'Konumu NeuralNav\'da aç', key: 'Ctrl+E', run: showInNav, enabled: hasFile },
+  { label: T('menu.file'), items: [
+    { label: T('menu.open'), key: 'Ctrl+O', run: openDialog },
+    { label: T('menu.show-in-nav'), key: 'Ctrl+E', run: showInNav, enabled: hasFile },
     '-',
-    { label: 'Döndürmeyi kaydet', key: 'Ctrl+S', run: saveRotationCmd, enabled: () => hasImage() && !!turns() },
-    { label: 'Yeniden adlandır...', key: 'F2', run: renameCurrent, enabled: hasFile },
-    { label: 'Geri Dönüşüm Kutusu\'na taşı', key: 'Del', run: trashCurrent, enabled: hasFile },
+    { label: T('menu.save-rotation'), key: 'Ctrl+S', run: saveRotationCmd, enabled: () => hasImage() && !!turns() },
+    { label: T('menu.rename'), key: 'F2', run: renameCurrent, enabled: hasFile },
+    { label: T('menu.trash'), key: 'Del', run: trashCurrent, enabled: hasFile },
     '-',
-    { label: 'Çıkış', run: () => vw.close() },
+    { label: T('menu.exit'), run: () => vw.close() },
   ] },
-  { label: 'Düzenle', items: [
-    { label: 'Resmi kopyala', key: 'Ctrl+C', run: copyImage, enabled: hasImage },
-    { label: 'Dosya yolunu kopyala', key: 'Ctrl+Shift+C', run: copyPath, enabled: hasFile },
+  { label: T('menu.edit'), items: [
+    { label: T('menu.copy-image'), key: 'Ctrl+C', run: copyImage, enabled: hasImage },
+    { label: T('menu.copy-path'), key: 'Ctrl+Shift+C', run: copyPath, enabled: hasFile },
     '-',
-    { label: 'Sağa döndür', key: 'R', run: () => rotate(1), enabled: hasImage },
-    { label: 'Sola döndür', key: 'Shift+R', run: () => rotate(-1), enabled: hasImage },
-    { label: 'Döndürmeyi geri al', run: undoRotation, enabled: () => hasImage() && !!turns() },
+    { label: T('menu.rotate-right'), key: 'R', run: () => rotate(1), enabled: hasImage },
+    { label: T('menu.rotate-left'), key: 'Shift+R', run: () => rotate(-1), enabled: hasImage },
+    { label: T('menu.undo-rotation'), run: undoRotation, enabled: () => hasImage() && !!turns() },
   ] },
-  { label: 'Görünüm', items: [
-    { label: 'Ekrana sığdır', key: '0', run: fit, enabled: hasImage },
-    { label: 'Gerçek boyut (%100)', key: '1', run: () => actualSize(), enabled: hasImage },
-    { label: 'Yakınlaştır', key: '+', run: () => zoomBy(1.25), enabled: hasImage },
-    { label: 'Uzaklaştır', key: '-', run: () => zoomBy(0.8), enabled: hasImage },
+  { label: T('menu.view'), items: [
+    { label: T('menu.fit'), key: '0', run: fit, enabled: hasImage },
+    { label: T('menu.actual'), key: '1', run: () => actualSize(), enabled: hasImage },
+    { label: T('menu.zoom-in'), key: '+', run: () => zoomBy(1.25), enabled: hasImage },
+    { label: T('menu.zoom-out'), key: '-', run: () => zoomBy(0.8), enabled: hasImage },
     '-',
-    { label: 'Bilgi paneli', key: 'I', check: () => S.info, run: toggleInfo },
-    { label: 'Küçük resim şeridi', key: 'T', check: () => S.strip, run: () => setSetting('strip', !S.strip) },
-    { label: 'Saydamlıkta dama deseni', check: () => S.checker, run: () => setSetting('checker', !S.checker) },
-    { label: 'Tam ekran', key: 'F11', check: () => isFull, run: () => setFull(!isFull) },
-    { label: 'Slayt gösterisi', key: 'Boşluk', check: () => !!slideshow, run: toggleSlideshow },
+    { label: T('menu.info'), key: 'I', check: () => S.info, run: toggleInfo },
+    { label: T('menu.strip'), key: 'T', check: () => S.strip, run: () => setSetting('strip', !S.strip) },
+    { label: T('menu.checker'), check: () => S.checker, run: () => setSetting('checker', !S.checker) },
+    { label: T('menu.full'), key: 'F11', check: () => isFull, run: () => setFull(!isFull) },
+    { label: T('menu.slideshow'), key: T('key.space'), check: () => !!slideshow, run: toggleSlideshow },
     '-',
-    { label: 'Sırala', sub: () => [
+    { label: T('menu.sort'), sub: () => [
       ...SORTS.map(s => ({ label: s.name, radio: () => S.sort === s.id, run: () => { S.sort = s.id; saveSettings(); resort(); } })),
       '-',
-      { label: 'Ters sıra', check: () => S.desc, run: () => { S.desc = !S.desc; saveSettings(); resort(); } },
+      { label: T('menu.sort-desc'), check: () => S.desc, run: () => { S.desc = !S.desc; saveSettings(); resort(); } },
     ] },
-    { label: 'Slayt süresi', sub: () => INTERVALS.map(n => ({ label: `${n} saniye`, radio: () => S.interval === n, run: () => { S.interval = n; saveSettings(); scheduleSlide(); } })) },
-    { label: 'Tema', sub: () => [
+    { label: T('menu.interval'), sub: () => INTERVALS.map(n => ({ label: T('menu.interval.n', { n }), radio: () => S.interval === n, run: () => { S.interval = n; saveSettings(); scheduleSlide(); } })) },
+    { label: T('menu.theme'), sub: () => [
       ...THEMES.map(t => ({ label: t.name, radio: () => S.theme === t.id, run: () => setTheme(t.id) })),
       '-',
-      { label: 'Temayı seriyle eşitle', check: () => S.syncTheme, run: toggleThemeSync },
+      { label: T('menu.theme-sync'), check: () => S.syncTheme, run: toggleThemeSync },
     ] },
+    { label: T('lang.menu'), sub: () => languages().map(l => ({ label: l.label, radio: l.checked, run: l.pick })) },
   ] },
-  { label: 'Yardım', items: [
-    { label: 'Klavye kısayolları', key: 'F1', run: openShortcuts },
-    { label: 'NeuralView hakkında', run: openAbout },
+  { label: T('menu.help'), items: [
+    { label: T('menu.keys'), key: 'F1', run: openShortcuts },
+    { label: T('menu.about'), run: openAbout },
   ] },
 ];
 const CONTEXT_ITEMS = () => [
-  { label: 'Resmi kopyala', key: 'Ctrl+C', run: copyImage, enabled: hasImage },
-  { label: 'Dosya yolunu kopyala', key: 'Ctrl+Shift+C', run: copyPath, enabled: hasFile },
+  { label: T('menu.copy-image'), key: 'Ctrl+C', run: copyImage, enabled: hasImage },
+  { label: T('menu.copy-path'), key: 'Ctrl+Shift+C', run: copyPath, enabled: hasFile },
   '-',
-  { label: 'Sağa döndür', key: 'R', run: () => rotate(1), enabled: hasImage },
-  { label: 'Sola döndür', key: 'Shift+R', run: () => rotate(-1), enabled: hasImage },
-  { label: 'Ekrana sığdır', key: '0', run: fit, enabled: hasImage },
-  { label: 'Gerçek boyut (%100)', key: '1', run: () => actualSize(), enabled: hasImage },
+  { label: T('menu.rotate-right'), key: 'R', run: () => rotate(1), enabled: hasImage },
+  { label: T('menu.rotate-left'), key: 'Shift+R', run: () => rotate(-1), enabled: hasImage },
+  { label: T('menu.fit'), key: '0', run: fit, enabled: hasImage },
+  { label: T('menu.actual'), key: '1', run: () => actualSize(), enabled: hasImage },
   '-',
-  { label: 'Konumu NeuralNav\'da aç', key: 'Ctrl+E', run: showInNav, enabled: hasFile },
-  { label: 'Yeniden adlandır...', key: 'F2', run: renameCurrent, enabled: hasFile },
-  { label: 'Geri Dönüşüm Kutusu\'na taşı', key: 'Del', run: trashCurrent, enabled: hasFile },
+  { label: T('menu.show-in-nav'), key: 'Ctrl+E', run: showInNav, enabled: hasFile },
+  { label: T('menu.rename'), key: 'F2', run: renameCurrent, enabled: hasFile },
+  { label: T('menu.trash'), key: 'Del', run: trashCurrent, enabled: hasFile },
   '-',
-  { label: 'Bilgi paneli', key: 'I', check: () => S.info, run: toggleInfo },
+  { label: T('menu.info'), key: 'I', check: () => S.info, run: toggleInfo },
 ];
 
 let menuState = null; // { index, btn, stack: [popup, ...] }
@@ -1055,11 +1067,11 @@ function popupKey(e) {
     default:
       if (e.key.length === 1 && !e.ctrlKey && !e.altKey) {
         handled();
-        const ch = e.key.toLocaleLowerCase('tr-TR');
+        const ch = e.key.toLocaleLowerCase(T.locale);
         const start = cur_ + 1;
         for (let k = 0; k < items.length; k++) {
           const b = items[(start + k) % items.length];
-          if (b._item.label.toLocaleLowerCase('tr-TR').startsWith(ch)) { b.focus(); break; }
+          if (b._item.label.toLocaleLowerCase(T.locale).startsWith(ch)) { b.focus(); break; }
         }
       }
   }
@@ -1245,7 +1257,7 @@ $('#win-close').addEventListener('click', () => vw.close());
 vw.onMaximized(on => {
   root.classList.toggle('is-max', on);
   const b = $('#win-max');
-  const label = on ? 'Önceki boyuta dön' : 'Ekranı kapla';
+  const label = T(on ? 'win.restore' : 'win.maximize');
   b.setAttribute('aria-label', label);
   b.title = label;
 });
@@ -1286,6 +1298,7 @@ const seriesTheme = await vw.themeInit(S.theme, S.syncTheme);
 if (seriesTheme !== S.theme && THEMES.some(t => t.id === seriesTheme)) { S.theme = seriesTheme; saveSettings(); }
 buildMenubar();
 applySettings();
+renderEmpty();
 updateChrome();
 started = true;
 const first = [...(await vw.pendingPaths()), ...incoming.splice(0)][0];

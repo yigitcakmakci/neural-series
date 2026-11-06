@@ -3,6 +3,9 @@
 const { app, BrowserWindow, ipcMain, screen, Menu } = require("electron");
 const fs = require("fs");
 const path = require("path");
+// Shared with the series (the interface language): next to main.js when installed, in apps\shared from source.
+const shared = (name) => require(fs.existsSync(path.join(__dirname, `${name}.js`)) ? `./${name}` : `../shared/${name}`);
+const language = shared("language");
 
 app.setAppUserModelId("NeuralCalc.KX9");
 
@@ -55,7 +58,9 @@ if (!app.requestSingleInstanceLock()) {
     win.on("maximize", () => win.unmaximize());
     win.on("moved", savePos);
     win.on("closed", () => { win = null; });
-    win.loadFile(path.join(__dirname, "index.html"));
+    // build.ps1 wraps neuralcalc.html into index.html; from source the bare page is loaded.
+    const page = fs.existsSync(path.join(__dirname, "index.html")) ? "index.html" : "neuralcalc.html";
+    win.loadFile(path.join(__dirname, page));
   }
 
   // The page reports the size of the device (plus its transparent margin); the window wraps it exactly.
@@ -104,5 +109,9 @@ if (!app.requestSingleInstanceLock()) {
     win.focus();
   });
   app.on("window-all-closed", () => app.quit());
-  app.whenReady().then(createWindow);
+  app.whenReady().then(() => {
+    // The page's texts (lang\*.json), handed over through the preload before it draws.
+    language.load({ appDir: __dirname, name: "NeuralCalc", systemLanguages: app.getPreferredSystemLanguages() }).wire(ipcMain);
+    createWindow();
+  });
 }

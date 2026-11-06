@@ -1,4 +1,5 @@
 "use strict";
+require("../../tools/lang-env")(); // the programs it starts speak Turkish, the language of its checks
 // Extra checks on the installed NeuralWeb: links handed over by Windows, a second launch, menus, Google.
 const fs = require("fs");
 const path = require("path");

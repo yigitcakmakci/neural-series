@@ -18,18 +18,18 @@
         <div class="band-title" id="band-title">NeuralTerm</div>
         <span class="hazard" aria-hidden="true"></span>
         <div class="win-btns">
-          <button class="win-btn" id="win-min" type="button" aria-label="Simge durumuna küçült" title="Küçült"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 9.5h8"/></svg></button>
-          <button class="win-btn" id="win-max" type="button" aria-label="Ekranı kapla" title="Ekranı kapla"><svg class="ic-max" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5h7v7h-7z"/></svg><svg class="ic-restore" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5h5v5M2.5 4.5h5v5h-5z"/></svg></button>
-          <button class="win-btn close" id="win-close" type="button" aria-label="Kapat" title="Kapat"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button>
+          <button class="win-btn" id="win-min" type="button" aria-label="Simge durumuna küçült" title="Küçült" data-i18n-aria-label="win.minimize.aria" data-i18n-title="win.minimize"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 9.5h8"/></svg></button>
+          <button class="win-btn" id="win-max" type="button" aria-label="Ekranı kapla" title="Ekranı kapla" data-i18n-aria-label="win.maximize" data-i18n-title="win.maximize"><svg class="ic-max" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5h7v7h-7z"/></svg><svg class="ic-restore" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5h5v5M2.5 4.5h5v5h-5z"/></svg></button>
+          <button class="win-btn close" id="win-close" type="button" aria-label="Kapat" title="Kapat" data-i18n-aria-label="win.close" data-i18n-title="win.close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button>
         </div>
       </header>
 
       <div class="tabbar">
-        <div class="tabs" id="tabs" role="tablist" aria-label="Terminal sekmeleri"></div>
-        <button class="tab-new" id="tab-new" type="button" title="Yeni sekme (Ctrl+Shift+T)" aria-label="Yeni sekme">+</button>
-        <button class="tab-more" id="tab-shells" type="button" title="Kabuk seçerek yeni sekme" aria-label="Kabuk seçerek yeni sekme"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5L6 7.5l3-3"/></svg></button>
+        <div class="tabs" id="tabs" role="tablist" aria-label="Terminal sekmeleri" data-i18n-aria-label="tabs.aria"></div>
+        <button class="tab-new" id="tab-new" type="button" title="Yeni sekme (Ctrl+Shift+T)" aria-label="Yeni sekme" data-i18n-title="tab.new" data-i18n-aria-label="tab.new.aria">+</button>
+        <button class="tab-more" id="tab-shells" type="button" title="Kabuk seçerek yeni sekme" aria-label="Kabuk seçerek yeni sekme" data-i18n-title="tab.shells" data-i18n-aria-label="tab.shells"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5L6 7.5l3-3"/></svg></button>
         <span class="grow"></span>
-        <button class="tab-more" id="menu-btn" type="button" title="Ayarlar" aria-label="Ayarlar"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6h1M5.5 6h1M9 6h1"/></svg></button>
+        <button class="tab-more" id="menu-btn" type="button" title="Ayarlar" aria-label="Ayarlar" data-i18n-title="settings" data-i18n-aria-label="settings"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6h1M5.5 6h1M9 6h1"/></svg></button>
       </div>
 
       <main class="screen" id="screen">
@@ -62,11 +62,11 @@
 <dialog class="hud-dialog" id="dlg-confirm">
   <form method="dialog">
     <div class="dlg-body">
-      <h2 class="dlg-head" id="cfm-title">Onay</h2>
+      <h2 class="dlg-head" id="cfm-title" data-i18n="dlg.confirm">Onay</h2>
       <div class="dlg-content"><p id="cfm-text"></p></div>
       <div class="btns">
-        <button value="ok" class="danger" id="cfm-ok">Tamam</button>
-        <button value="cancel" class="primary">Vazgeç</button>
+        <button value="ok" class="danger" id="cfm-ok" data-i18n="dlg.ok">Tamam</button>
+        <button value="cancel" class="primary" data-i18n="dlg.cancel">Vazgeç</button>
       </div>
     </div>
   </form>
@@ -75,9 +75,9 @@
 <dialog class="hud-dialog wide" id="dlg-keys">
   <form method="dialog">
     <div class="dlg-body">
-      <h2 class="dlg-head">Klavye kısayolları</h2>
+      <h2 class="dlg-head" data-i18n="dlg.keys">Klavye kısayolları</h2>
       <div class="dlg-content"><div class="keys" id="keys-list"></div></div>
-      <div class="btns"><button value="ok" class="primary">Tamam</button></div>
+      <div class="btns"><button value="ok" class="primary" data-i18n="dlg.ok">Tamam</button></div>
     </div>
   </form>
 </dialog>
@@ -85,19 +85,20 @@
 <dialog class="hud-dialog" id="dlg-about">
   <form method="dialog">
     <div class="dlg-body">
-      <h2 class="dlg-head">NeuralTerm hakkında</h2>
+      <h2 class="dlg-head" data-i18n="dlg.about">NeuralTerm hakkında</h2>
       <div class="dlg-content">
         <p class="about-mark" aria-hidden="true">NT-5</p>
-        <p>Neural serisinin terminali. PowerShell, Komut İstemi ve diğer kabuklar Windows'un kendi sözde konsolunda (ConPTY) çalışır.</p>
-        <p class="hint">Sürüm 1.0 · Ekran çizimi: xterm.js</p>
+        <p data-i18n="about.text">Neural serisinin terminali. PowerShell, Komut İstemi ve diğer kabuklar Windows'un kendi sözde konsolunda (ConPTY) çalışır.</p>
+        <p class="hint" data-i18n="about.hint">Sürüm 1.0 · Ekran çizimi: xterm.js</p>
       </div>
-      <div class="btns"><button value="ok" class="primary">Tamam</button></div>
+      <div class="btns"><button value="ok" class="primary" data-i18n="dlg.ok">Tamam</button></div>
     </div>
   </form>
 </dialog>
 
 <script src="vendor/xterm.js"></script>
 <script src="vendor/addon-fit.js"></script>
+<script src="../shared/i18n.js"></script>
 <script src="links.js"></script>
 <script src="app.js"></script>
 </body>

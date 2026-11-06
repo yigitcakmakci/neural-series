@@ -16,29 +16,33 @@ namespace NeuralSetup
     // One Neural program: what it is called and how Windows should know it.
     class AppInfo
     {
-        public string Id, Code, Summary, Ico, ShortcutName, ShortcutDesc, Comments, DataDir;
+        public string Id, Code, Ico, DataDir;
         // The AppUserModelID each program sets for itself (app.setAppUserModelId); shortcuts must carry the same one,
         // or a pinned shortcut and the program's window show up as two taskbar buttons.
         public string Aumid;
         public bool WorkInHome;
-        public AppInfo(string id, string code, string summary, string ico, string shortcutName, string shortcutDesc, string comments, string dataDir, bool workInHome)
+        public AppInfo(string id, string code, string ico, string dataDir, bool workInHome)
         {
-            Id = id; Code = code; Summary = summary; Ico = ico; ShortcutName = shortcutName; ShortcutDesc = shortcutDesc;
-            Comments = comments; DataDir = dataDir; WorkInHome = workInHome;
+            Id = id; Code = code; Ico = ico; DataDir = dataDir; WorkInHome = workInHome;
             Aumid = id + "." + code.Replace("-", "");
         }
+        // What the wizard and Windows show for the program, in the setup's language (Strings.cs).
+        public string Summary { get { return L.Summary(Id); } }
+        public string ShortcutName { get { return L.ShortcutName(Id, L.Lang); } }
+        public string ShortcutDesc { get { return L.ShortcutDesc(Id); } }
+        public string Comments { get { return L.Comments(Id); } }
     }
 
     static class Apps
     {
         public static readonly AppInfo[] All = {
-            new AppInfo("NeuralCalc", "KX-9", "Hesap makinesi", "neuralcalc.ico", "NeuralCalc Hesap Makinesi", "NeuralCalc KX-9 cyberpunk hesap makinesi", "NeuralCalc KX-9 hesap makinesi", "NeuralCalc KX-9", false),
-            new AppInfo("NeuralPad", "NP-7", "Not defteri", "neuralpad.ico", "NeuralPad Not Defteri", "NeuralPad NP-7 cyberpunk not defteri", "NeuralPad NP-7 not defteri", "NeuralPad", false),
-            new AppInfo("NeuralNav", "NV-4", "Dosya gezgini", "neuralnav.ico", "NeuralNav Dosya Gezgini", "NeuralNav NV-4 cyberpunk dosya gezgini", "NeuralNav NV-4 dosya gezgini", "NeuralNav", false),
-            new AppInfo("NeuralTerm", "NT-5", "Terminal: PowerShell ve Komut İstemi", "neuralterm.ico", "NeuralTerm Terminal", "NeuralTerm NT-5 Neural serisi terminal", "NeuralTerm NT-5 terminal", "NeuralTerm", true),
-            new AppInfo("NeuralWeb", "NW-1", "Web tarayıcısı: kalkan ve şifre yöneticisiyle", "neuralweb.ico", "NeuralWeb", "NeuralWeb NW-1 Neural serisi web tarayıcısı", "NeuralWeb NW-1 web tarayıcısı", "NeuralWeb", false),
-            new AppInfo("NeuralView", "VW-3", "Resim görüntüleyici", "neuralview.ico", "NeuralView Resim Görüntüleyici", "NeuralView VW-3 cyberpunk resim görüntüleyici", "NeuralView VW-3 resim görüntüleyici", "NeuralView", false),
-            new AppInfo("NeuralDeck", "DK-0", "Başlatıcı ve komut paleti", "neuraldeck.ico", "NeuralDeck Komut Paleti", "NeuralDeck DK-0 cyberpunk başlatıcı ve komut paleti", "NeuralDeck DK-0 komut paleti", "NeuralDeck", false),
+            new AppInfo("NeuralCalc", "KX-9", "neuralcalc.ico", "NeuralCalc KX-9", false),
+            new AppInfo("NeuralPad", "NP-7", "neuralpad.ico", "NeuralPad", false),
+            new AppInfo("NeuralNav", "NV-4", "neuralnav.ico", "NeuralNav", false),
+            new AppInfo("NeuralTerm", "NT-5", "neuralterm.ico", "NeuralTerm", true),
+            new AppInfo("NeuralWeb", "NW-1", "neuralweb.ico", "NeuralWeb", false),
+            new AppInfo("NeuralView", "VW-3", "neuralview.ico", "NeuralView", false),
+            new AppInfo("NeuralDeck", "DK-0", "neuraldeck.ico", "NeuralDeck", false),
         };
         // The programs of the first release (1.0). An installation whose manifest has no "Bilinen" line was made by a
         // setup that knew only these, so any other program is new to it and is offered as checked when updating.
@@ -87,6 +91,8 @@ namespace NeuralSetup
         {
             get { return o.Test ? Path.Combine(o.Root, "_test", "AppData") : Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData); }
         }
+        // The series language, shared by every program (apps\shared\language.js reads and writes the same file).
+        public string LanguageFile { get { return Path.Combine(DataRoot, "NeuralSeries", "language.json"); } }
         string StartMenuDir
         {
             get { return o.Test ? Path.Combine(o.Root, "_test", "Baslat") : Environment.GetFolderPath(Environment.SpecialFolder.Programs); }
@@ -110,7 +116,7 @@ namespace NeuralSetup
         {
             Directory.CreateDirectory(o.Root);
             Directory.CreateDirectory(Path.Combine(o.Root, "Ortak"));
-            log("Kurulum klasörü: " + o.Root);
+            log(L.LogInstallFolder(o.Root));
             StopBackground();
 
             // Weights for the progress bar: the shared runtime, then each program (copy + stamp), then Windows.
@@ -118,43 +124,44 @@ namespace NeuralSetup
             double total = 30 + apps.Count * 14 + 6, done = 0;
             Func<double, double> at = w => done / total + w / total;
 
-            progress(0, "Ortak Electron dosyaları açılıyor");
-            log("Ortak Electron çalışma dosyaları → Ortak\\Electron");
+            progress(0, L.ProgressRuntime);
+            log(L.LogRuntime);
             DeleteDir(RuntimeDir);
-            payload.ExtractFolder("electron/", RuntimeDir, f => progress(at(f * 30), "Ortak Electron dosyaları açılıyor"));
+            payload.ExtractFolder("electron/", RuntimeDir, f => progress(at(f * 30), L.ProgressRuntime));
             done += 30;
 
             foreach (var a in apps)
             {
                 string dir = ProgramDir(a.Id);
-                progress(at(0), a.Id + " kuruluyor");
+                progress(at(0), L.ProgressInstalling(a.Id));
                 log(a.Id + " " + a.Code + " → " + dir);
                 DeleteDir(dir);
                 Directory.CreateDirectory(dir);
                 int linked = LinkTree(RuntimeDir, dir);
-                log("  ortak dosyalara " + linked + " sabit bağlantı");
-                payload.ExtractFile("base/electron.exe", ExePath(a.Id), f => progress(at(2 + f * 5), a.Id + " kuruluyor"));
+                log(L.LogLinks(linked));
+                payload.ExtractFile("base/electron.exe", ExePath(a.Id), f => progress(at(2 + f * 5), L.ProgressInstalling(a.Id)));
                 payload.ExtractFolder("apps/" + a.Id + "/", AppFiles(a.Id), null);
-                progress(at(8), a.Id + " simgesi basılıyor");
+                progress(at(8), L.ProgressStamping(a.Id));
                 ResEdit.SetIcon(ExePath(a.Id), IcoPath(a.Id));
                 ResEdit.SetVersion(ExePath(a.Id), a.Id, a.Comments, Version);
-                log("  " + a.Id + ".exe kendi simgesi ve adıyla hazır");
+                log(L.LogExeReady(a.Id));
                 done += 14;
             }
 
-            progress(at(0), "Windows'a tanıtılıyor");
+            progress(at(0), L.ProgressRegistering);
             payload.ExtractFolder("simgeler/", Path.Combine(o.Root, "Simgeler"), null);
             payload.CopyStub(UninstallerPath);
             Integrate();
             WriteDataShortcuts();
+            WriteLanguage();
             WriteReadme();
             WriteManifest();
             WriteUninstallEntry();
             Notify();
             if (o.NavWatch && o.NavDefault && o.Apps.Contains("NeuralNav") && !o.Test) StartWatcher();
             if ((o.DeckAutostart || deckWasRunning) && o.Apps.Contains("NeuralDeck") && !o.Test) StartDeck();
-            progress(1, "Kurulum tamamlandı");
-            log("Bitti.");
+            progress(1, L.ProgressInstalled);
+            log(L.LogDone);
         }
 
         // Every runtime file appears in each program folder as a hard link: one copy on disk, one place per program.
@@ -177,6 +184,7 @@ namespace NeuralSetup
         void Integrate()
         {
             var r = R;
+            Relabel(r);
             if (o.Apps.Contains("NeuralPad")) { if (o.PadOpenWith) RegisterPad(r); else UnregisterPad(r); }
             if (o.Apps.Contains("NeuralNav"))
             {
@@ -190,17 +198,49 @@ namespace NeuralSetup
             if (o.Apps.Contains("NeuralView")) { if (o.ViewOpenWith) RegisterView(r); else UnregisterView(r); }
             if (o.Apps.Contains("NeuralDeck")) { if (o.DeckAutostart) r.Set(RunKey, "NeuralDeck", Q(ExePath("NeuralDeck")) + " --arka-plan"); else UnsetDeckRun(r); }
             if (o.WindowsIcons) SetIcons(r); else UnsetIcons(r);
-            log(o.Test ? "  Windows kayıtları test anahtarına yazıldı" : "  Windows kayıtları güncellendi");
+            log(o.Test ? L.LogRegistryTest : L.LogRegistry);
 
             Directory.CreateDirectory(StartMenuDir);
-            foreach (var a in Apps.All.Where(x => o.Apps.Contains(x.Id)))
+            foreach (var a in Apps.All)
             {
+                bool chosen = o.Apps.Contains(a.Id);
+                if (!chosen && !File.Exists(ExePath(a.Id))) continue;
                 string lnk = Path.Combine(StartMenuDir, a.ShortcutName + ".lnk");
-                if (o.StartMenu) WriteShortcut(lnk, a);
-                else if (File.Exists(lnk) && Inside(ShellLink.Target(lnk))) File.Delete(lnk);
+                // The shortcut under the other language's name goes when the language changes; a program this run
+                // leaves alone keeps its shortcut, renamed.
+                bool renamed = false;
+                foreach (var id in L.Ids)
+                {
+                    string other = Path.Combine(StartMenuDir, L.ShortcutName(a.Id, id) + ".lnk");
+                    if (other.Equals(lnk, StringComparison.OrdinalIgnoreCase) || !File.Exists(other) || !Inside(TargetOf(other))) continue;
+                    File.Delete(other);
+                    renamed = true;
+                    log(L.LogShortcutDeleted(Path.GetFileName(other)));
+                }
+                if (chosen ? o.StartMenu : renamed) WriteShortcut(lnk, a);
+                else if (chosen && File.Exists(lnk) && Inside(TargetOf(lnk))) File.Delete(lnk);
             }
-            if (o.StartMenu) log("  Başlat menüsü kısayolları");
+            if (o.StartMenu) log(L.LogStartMenu);
             FixPins();
+        }
+        static string TargetOf(string lnk)
+        {
+            try { return ShellLink.Target(lnk); } catch { return null; }
+        }
+
+        // A program this run leaves alone keeps its files and its Windows options; only the texts Windows shows for
+        // it (context-menu verbs, Open with and Default apps descriptions) follow the language.
+        void Relabel(Reg r)
+        {
+            var now = new Options { Root = o.Root, Test = o.Test };
+            LoadExisting(now);
+            Func<string, bool> alone = app => !o.Apps.Contains(app) && File.Exists(ExePath(app));
+            if (alone("NeuralPad") && now.PadOpenWith) RegisterPad(r);
+            if (alone("NeuralNav") && now.NavMenu) RegisterNavMenu(r);
+            if (alone("NeuralNav") && now.NavDefault) SetNavDefault(r);
+            if (alone("NeuralTerm") && now.TermCommands) RegisterTerm(r);
+            if (alone("NeuralWeb") && now.WebRegister) RegisterWeb(r);
+            if (alone("NeuralView") && now.ViewOpenWith) RegisterView(r);
         }
 
         void WriteShortcut(string lnk, AppInfo a)
@@ -226,7 +266,7 @@ namespace NeuralSetup
                 if (!moved && !(string.Equals(target, ExePath(app), StringComparison.OrdinalIgnoreCase) && ShellLink.Aumid(lnk) != a.Aumid)) continue;
                 WriteShortcut(lnk, a);
                 Native.SHChangeNotify(0x00002000, 0x0005, lnk, null); // SHCNE_UPDATEITEM, SHCNF_PATHW
-                log("  görev çubuğu sabitlemesi güncellendi: " + Path.GetFileName(lnk));
+                log(L.LogPinUpdated(Path.GetFileName(lnk)));
             }
         }
 
@@ -239,12 +279,12 @@ namespace NeuralSetup
             r.Set(app + @"\shell\open\command", "", cmd);
             r.Set(app + @"\SupportedTypes", ".txt", "");
             string prog = @"Software\Classes\NeuralPad.txt";
-            r.Set(prog, "", "Metin Belgesi (NeuralPad)");
+            r.Set(prog, "", L.PadFileType);
             r.Set(prog + @"\DefaultIcon", "", ico);
             r.Set(prog + @"\shell\open\command", "", cmd);
             r.Set(prog + @"\Application", "ApplicationName", "NeuralPad");
             r.Set(prog + @"\Application", "ApplicationIcon", ico);
-            r.Set(prog + @"\Application", "ApplicationDescription", "NeuralPad NP-7 not defteri");
+            r.Set(prog + @"\Application", "ApplicationDescription", Apps.Get("NeuralPad").Comments);
             r.SetNone(@"Software\Classes\.txt\OpenWithProgids", "NeuralPad.txt");
         }
         void UnregisterPad(Reg r)
@@ -267,16 +307,16 @@ namespace NeuralSetup
             r.Set(app + @"\shell\open\command", "", cmd);
             foreach (var ext in ImageExts) r.Set(app + @"\SupportedTypes", ext, "");
             string prog = @"Software\Classes\NeuralView.Image";
-            r.Set(prog, "", "Resim (NeuralView)");
+            r.Set(prog, "", L.ViewFileType);
             r.Set(prog + @"\DefaultIcon", "", ico);
             r.Set(prog + @"\shell\open\command", "", cmd);
             r.Set(prog + @"\Application", "ApplicationName", "NeuralView");
             r.Set(prog + @"\Application", "ApplicationIcon", ico);
-            r.Set(prog + @"\Application", "ApplicationDescription", "NeuralView VW-3 resim görüntüleyici");
+            r.Set(prog + @"\Application", "ApplicationDescription", Apps.Get("NeuralView").Comments);
             r.Set(prog + @"\Application", "AppUserModelId", Apps.Get("NeuralView").Aumid);
             foreach (var ext in ImageExts) r.SetNone(@"Software\Classes\" + ext + @"\OpenWithProgids", "NeuralView.Image");
             r.Set(ViewCapabilities, "ApplicationName", "NeuralView");
-            r.Set(ViewCapabilities, "ApplicationDescription", "NeuralView VW-3 resim görüntüleyici");
+            r.Set(ViewCapabilities, "ApplicationDescription", Apps.Get("NeuralView").Comments);
             r.Set(ViewCapabilities, "ApplicationIcon", ico);
             foreach (var ext in ImageExts) r.Set(ViewCapabilities + @"\FileAssociations", ext, "NeuralView.Image");
             r.Set(@"Software\RegisteredApplications", "NeuralView", ViewCapabilities);
@@ -301,9 +341,9 @@ namespace NeuralSetup
         void RegisterNavMenu(Reg r)
         {
             string exe = ExePath("NeuralNav");
-            Verb(r, @"Software\Classes\Directory", "NeuralNav", "NeuralNav ile aç", exe, "\"%1\"");
+            Verb(r, @"Software\Classes\Directory", "NeuralNav", L.NavVerb, exe, "\"%1\"");
             // A drive's "C:\" must stay unquoted: a quote right after the backslash is read as a literal quote.
-            Verb(r, @"Software\Classes\Drive", "NeuralNav", "NeuralNav ile aç", exe, "%1");
+            Verb(r, @"Software\Classes\Drive", "NeuralNav", L.NavVerb, exe, "%1");
         }
         void UnregisterNavMenu(Reg r)
         {
@@ -318,7 +358,7 @@ namespace NeuralSetup
             r.Set(@"Software\Classes\Drive\shell", "", "NeuralNav");
             r.Set(@"Software\Classes\Drive\shell\open\command", "", Q(exe) + " %1");
             r.Set(@"Software\Classes\Folder\shell", "", "NeuralNav");
-            Verb(r, @"Software\Classes\Folder", "NeuralNav", "NeuralNav ile aç", exe, "\"%1\"");
+            Verb(r, @"Software\Classes\Folder", "NeuralNav", L.NavVerb, exe, "\"%1\"");
         }
         // Puts Windows Explorer back as the folder handler, touching only what NeuralNav set.
         void UnsetNavDefault(Reg r)
@@ -355,9 +395,9 @@ namespace NeuralSetup
                 r.Set(k, "", exe);
                 r.Set(k, "Path", dir);
             }
-            Verb(r, @"Software\Classes\Directory", "NeuralTerm", "NeuralTerm'de aç", exe, "\"%V\"");
-            Verb(r, @"Software\Classes\Directory\Background", "NeuralTerm", "NeuralTerm'de aç", exe, "\"%V\"");
-            Verb(r, @"Software\Classes\Drive", "NeuralTerm", "NeuralTerm'de aç", exe, "%V");
+            Verb(r, @"Software\Classes\Directory", "NeuralTerm", L.TermVerb, exe, "\"%V\"");
+            Verb(r, @"Software\Classes\Directory\Background", "NeuralTerm", L.TermVerb, exe, "\"%V\"");
+            Verb(r, @"Software\Classes\Drive", "NeuralTerm", L.TermVerb, exe, "%V");
         }
         void UnregisterTerm(Reg r)
         {
@@ -378,7 +418,7 @@ namespace NeuralSetup
             string client = @"Software\Clients\StartMenuInternet\NeuralWeb";
             r.Set(client, "", "NeuralWeb");
             r.Set(client + @"\Capabilities", "ApplicationName", "NeuralWeb");
-            r.Set(client + @"\Capabilities", "ApplicationDescription", "Neural serisi web tarayıcısı");
+            r.Set(client + @"\Capabilities", "ApplicationDescription", L.WebDescription);
             r.Set(client + @"\Capabilities", "ApplicationIcon", icon);
             foreach (var ext in new[] { ".htm", ".html", ".shtml", ".xht", ".xhtml" }) r.Set(client + @"\Capabilities\FileAssociations", ext, "NeuralWebHTML");
             foreach (var scheme in new[] { "http", "https" }) r.Set(client + @"\Capabilities\URLAssociations", scheme, "NeuralWebURL");
@@ -386,7 +426,7 @@ namespace NeuralSetup
             r.Set(client + @"\DefaultIcon", "", icon);
             r.Set(client + @"\shell\open\command", "", Q(exe));
             r.Set(@"Software\RegisteredApplications", "NeuralWeb", client + @"\Capabilities");
-            foreach (var pair in new[] { new[] { "NeuralWebHTML", "NeuralWeb HTML belgesi" }, new[] { "NeuralWebURL", "NeuralWeb bağlantısı" } })
+            foreach (var pair in new[] { new[] { "NeuralWebHTML", L.WebHtmlType }, new[] { "NeuralWebURL", L.WebUrlType } })
             {
                 string p = @"Software\Classes\" + pair[0];
                 r.Set(p, "", pair[1]);
@@ -452,34 +492,39 @@ namespace NeuralSetup
             {
                 string data = Path.Combine(DataRoot, a.DataDir);
                 Directory.CreateDirectory(data);
-                ShellLink.Create(Path.Combine(dir, a.DataDir + ".lnk"), data, "", data, null, a.Id + " ayarları ve verileri", null);
+                ShellLink.Create(Path.Combine(dir, a.DataDir + ".lnk"), data, "", data, null, L.DataShortcutDesc(a.Id), null);
             }
         }
 
         void WriteReadme()
         {
-            var sb = new StringBuilder();
-            sb.AppendLine("NEURAL SERİSİ");
-            sb.AppendLine("=============");
-            sb.AppendLine();
-            sb.AppendLine("Neural kurulum programı " + Version + " ile kuruldu (" + DateTime.Now.ToString("d MMMM yyyy", new System.Globalization.CultureInfo("tr-TR")) + ").");
-            sb.AppendLine();
-            sb.AppendLine("Her programın kendi klasörü var; çalışan program Program\\ içindedir.");
-            sb.AppendLine("Kaynak kodlarıyla çalışıyorsan onlar aynı klasördeki Kaynak\\ içinde durur.");
-            sb.AppendLine();
-            foreach (var a in Apps.All) sb.AppendLine(string.Format("  {0,-12} {1} {2}", a.Id + "\\", a.Code, a.Summary));
-            sb.AppendLine();
-            sb.AppendLine("  Ortak\\Electron   Bütün programların paylaştığı Electron çalışma dosyaları (sabit bağlantılar).");
-            sb.AppendLine("  Ortak\\NeuralKaldir.exe   Kaldırıcı (Windows Ayarlar > Uygulamalar listesinde de görünür).");
-            sb.AppendLine("  Simgeler\\        Windows simgeleri.");
-            sb.AppendLine("  Veriler\\         Programların ayar klasörlerine kısayollar.");
-            sb.AppendLine();
-            sb.AppendLine("Ayarlar ve kişisel veriler (yer imleri, geçmiş, şifreler, notlar) %APPDATA% altında durur;");
-            sb.AppendLine("programı güncellemek ya da yeniden kurmak onlara dokunmaz.");
-            sb.AppendLine();
-            sb.AppendLine("Program\\ klasörlerini taşıma ya da yeniden adlandırma: Windows'taki kayıtlar bu yolları kullanır.");
-            sb.AppendLine("Ayarları değiştirmek için Neural kurulum programını yeniden çalıştırman yeterli.");
-            File.WriteAllText(Path.Combine(o.Root, "BENİOKU.txt"), sb.ToString(), new UTF8Encoding(true));
+            var programs = new StringBuilder();
+            foreach (var a in Apps.All) programs.AppendLine(string.Format("  {0,-12} {1} {2}", a.Id + "\\", a.Code, a.Summary));
+            File.WriteAllText(Path.Combine(o.Root, "BENİOKU.txt"), L.Readme(Version, programs.ToString()), new UTF8Encoding(true));
+        }
+
+        // The language chosen in the wizard (or with /dil:) becomes the series language, as if picked in a program:
+        // { language, changedAt, by } through a temporary file and a rename, the way apps\shared\language.js writes it.
+        // A file that already says the same language is left as it is.
+        void WriteLanguage()
+        {
+            string file = LanguageFile;
+            log(L.LogLanguage);
+            if (L.FromFile(file) == L.Lang) return;
+            int pid = Process.GetCurrentProcess().Id;
+            string tmp = file + "." + pid + ".tmp";
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(file));
+                long ms = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
+                File.WriteAllText(tmp, "{\"language\":\"" + L.Lang + "\",\"changedAt\":" + ms + ",\"by\":\"NeuralSetup:" + pid + "\"}", new UTF8Encoding(false));
+                if (!Native.MoveFileEx(tmp, file, 0x1 | 0x8)) throw new IOException("MoveFileEx: " + Marshal.GetLastWin32Error()); // REPLACE_EXISTING, WRITE_THROUGH
+            }
+            catch (Exception ex)
+            {
+                try { File.Delete(tmp); } catch { }
+                log(L.LogLanguageFailed(ex.Message));
+            }
         }
 
         void WriteManifest()
@@ -499,6 +544,7 @@ namespace NeuralSetup
                 "NeuralDeckBaslangic=" + B(has("NeuralDeck") && now.DeckAutostart),
                 "WindowsSimgeleri=" + B(now.WindowsIcons),
                 "Bilinen=" + string.Join(",", Apps.All.Select(a => a.Id)),
+                "Dil=" + L.Lang, // the uninstaller speaks the language of the installation
             };
             File.WriteAllLines(ManifestPath, lines, new UTF8Encoding(false));
         }
@@ -509,7 +555,7 @@ namespace NeuralSetup
             var r = R;
             long kb = 0;
             try { kb = Directory.GetFiles(o.Root, "*.exe", SearchOption.AllDirectories).Where(f => f.IndexOf(@"\Program\", StringComparison.OrdinalIgnoreCase) > 0).Sum(f => new FileInfo(f).Length) / 1024 + 140 * 1024; } catch { }
-            r.Set(UninstallKey, "DisplayName", "Neural serisi");
+            r.Set(UninstallKey, "DisplayName", L.SeriesName);
             r.Set(UninstallKey, "DisplayVersion", Version);
             r.Set(UninstallKey, "Publisher", "Neural Systems");
             r.Set(UninstallKey, "InstallLocation", o.Root);
@@ -536,22 +582,21 @@ namespace NeuralSetup
         /* ------------------------------------------------------------ uninstall */
         public void Uninstall()
         {
-            log("Kaldırılıyor: " + o.Root);
+            log(L.LogUninstalling(o.Root));
             StopBackground();
-            progress(0.05, "Windows kayıtları geri alınıyor");
+            progress(0.05, L.ProgressUnregistering);
             var r = R;
             UnregisterPad(r); UnregisterNavMenu(r); UnsetNavDefault(r); UnregisterTerm(r); UnregisterWeb(r); UnregisterView(r); UnsetDeckRun(r); UnsetIcons(r);
-            log(o.NavDefault ? "  Windows kayıtları geri alındı; klasörleri yine Windows Gezgini açar" : "  Windows kayıtları geri alındı");
+            log(o.NavDefault ? L.LogUnregisteredNav : L.LogUnregistered);
 
-            progress(0.15, "Kısayollar siliniyor");
+            // Every shortcut that points into the installation, whatever its name (Turkish or English).
+            progress(0.15, L.ProgressShortcuts);
             foreach (var dir in new[] { StartMenuDir, PinnedDir })
             {
                 if (!Directory.Exists(dir)) continue;
                 foreach (var lnk in Directory.GetFiles(dir, "*.lnk"))
                 {
-                    string t = null;
-                    try { t = ShellLink.Target(lnk); } catch { }
-                    if (Inside(t)) { File.Delete(lnk); log("  kısayol silindi: " + Path.GetFileName(lnk)); }
+                    if (Inside(TargetOf(lnk))) { File.Delete(lnk); log(L.LogShortcutDeleted(Path.GetFileName(lnk))); }
                 }
             }
 
@@ -560,21 +605,21 @@ namespace NeuralSetup
             {
                 step++;
                 string appDir = Path.Combine(o.Root, a.Id);
-                progress(0.2 + 0.6 * step / Apps.All.Length, a.Id + " siliniyor");
-                if (Directory.Exists(ProgramDir(a.Id))) { DeleteDir(ProgramDir(a.Id)); log("  " + a.Id + "\\Program silindi"); }
+                progress(0.2 + 0.6 * step / Apps.All.Length, L.ProgressDeleting(a.Id));
+                if (Directory.Exists(ProgramDir(a.Id))) { DeleteDir(ProgramDir(a.Id)); log(L.LogProgramDeleted(a.Id)); }
                 RemoveIfEmpty(appDir);
                 if (o.RemoveData)
                 {
                     string data = Path.Combine(DataRoot, a.DataDir);
-                    if (Directory.Exists(data)) { DeleteDir(data); log("  " + a.Id + " verileri silindi"); }
+                    if (Directory.Exists(data)) { DeleteDir(data); log(L.LogDataDeleted(a.Id)); }
                 }
             }
             if (o.RemoveData)
             {
-                string series = Path.Combine(DataRoot, "NeuralSeries"); // the series theme, shared by the programs
-                if (Directory.Exists(series)) { DeleteDir(series); log("  ortak tema dosyası silindi"); }
+                string series = Path.Combine(DataRoot, "NeuralSeries"); // the series theme and language, shared by the programs
+                if (Directory.Exists(series)) { DeleteDir(series); log(L.LogSeriesDeleted); }
             }
-            progress(0.85, "Ortak dosyalar siliniyor");
+            progress(0.85, L.ProgressShared);
             DeleteDir(RuntimeDir);
             DeleteDir(Path.Combine(o.Root, "Simgeler"));
             DeleteDir(Path.Combine(o.Root, "Veriler"));
@@ -583,8 +628,8 @@ namespace NeuralSetup
             r.DeleteTree(UninstallKey);
             if (o.Test) Registry.CurrentUser.DeleteSubKeyTree(TestPrefix.TrimEnd('\\'), false);
             Notify();
-            progress(1, "Kaldırıldı");
-            log("Bitti.");
+            progress(1, L.ProgressUninstalled);
+            log(L.LogDone);
         }
 
         // The uninstaller is inside the installation; it is deleted a moment after it exits.
@@ -622,17 +667,17 @@ namespace NeuralSetup
             foreach (var p in RunningIn(o.Root).Where(IsBackground))
             {
                 bool deck = p.ProcessName.Equals("NeuralDeck", StringComparison.OrdinalIgnoreCase);
-                try { p.Kill(); p.WaitForExit(3000); stopped.Add(deck ? "NeuralDeck durduruldu" : "Gezgin izleyicisi durduruldu"); deckWasRunning |= deck; } catch { }
+                try { p.Kill(); p.WaitForExit(3000); stopped.Add(deck ? L.LogDeckStopped : L.LogWatcherStopped); deckWasRunning |= deck; } catch { }
             }
             foreach (var s in stopped) log("  " + s);
         }
         void StartDeck()
         {
-            try { Process.Start(new ProcessStartInfo(ExePath("NeuralDeck"), "--arka-plan") { UseShellExecute = false }); log("  NeuralDeck arka planda başlatıldı"); } catch { }
+            try { Process.Start(new ProcessStartInfo(ExePath("NeuralDeck"), "--arka-plan") { UseShellExecute = false }); log(L.LogDeckStarted); } catch { }
         }
         void StartWatcher()
         {
-            try { Process.Start(new ProcessStartInfo(WatchExe) { UseShellExecute = false }); log("  Gezgin izleyicisi başlatıldı"); } catch { }
+            try { Process.Start(new ProcessStartInfo(WatchExe) { UseShellExecute = false }); log(L.LogWatcherStarted); } catch { }
         }
 
         /* ------------------------------------------------------------ helpers */
@@ -832,7 +877,7 @@ namespace NeuralSetup
                 }
                 onBytes(n);
                 if (n != e.Length || (CrcField != null && (crc ^ 0xFFFFFFFFu) != (uint)CrcField.GetValue(e)))
-                    throw new InvalidDataException("Kurulum paketi bozuk: " + Norm(e.FullName) + ". Kurulum dosyasını yeniden indir.");
+                    throw new InvalidDataException(L.ErrPackageDamaged(Norm(e.FullName)));
             }
             File.SetLastWriteTime(dest, e.LastWriteTime.DateTime);
         }
@@ -894,6 +939,8 @@ namespace NeuralSetup
         public static extern void SHChangeNotify(int eventId, uint flags, IntPtr item1, IntPtr item2);
         [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
         public static extern void SHChangeNotify(int eventId, uint flags, string item1, string item2);
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern bool MoveFileEx(string from, string to, int flags);
     }
 
     // Shortcuts through the shell's own IShellLink, including the AppUserModelID that ties NeuralWeb's windows to it.
@@ -1026,7 +1073,7 @@ namespace NeuralSetup
         static void Del(IntPtr hu, IntPtr type, Res r)
         {
             IntPtr name = r.Str != null ? Marshal.StringToHGlobalUni(r.Str) : r.Id;
-            try { if (!UpdateResource(hu, type, name, r.Lang, null, 0)) throw new Exception("silme: " + Marshal.GetLastWin32Error()); }
+            try { if (!UpdateResource(hu, type, name, r.Lang, null, 0)) throw new Exception(L.ErrResDelete + Marshal.GetLastWin32Error()); }
             finally { if (r.Str != null) Marshal.FreeHGlobal(name); }
         }
         static void Commit(IntPtr hu, bool ok)
@@ -1056,11 +1103,11 @@ namespace NeuralSetup
                     int size = BitConverter.ToInt32(b, e + 8), off = BitConverter.ToInt32(b, e + 12);
                     byte[] img = new byte[size]; Array.Copy(b, off, img, 0, size);
                     ushort id = (ushort)(i + 1);
-                    if (!UpdateResource(hu, RT_ICON, (IntPtr)id, lang, img, (uint)img.Length)) throw new Exception("simge: " + Marshal.GetLastWin32Error());
+                    if (!UpdateResource(hu, RT_ICON, (IntPtr)id, lang, img, (uint)img.Length)) throw new Exception(L.ErrResIcon + Marshal.GetLastWin32Error());
                     gw.Write(b, e, 8); gw.Write(size); gw.Write(id);
                 }
                 byte[] g = grp.ToArray();
-                if (!UpdateResource(hu, RT_GROUP_ICON, (IntPtr)1, lang, g, (uint)g.Length)) throw new Exception("simge grubu: " + Marshal.GetLastWin32Error());
+                if (!UpdateResource(hu, RT_GROUP_ICON, (IntPtr)1, lang, g, (uint)g.Length)) throw new Exception(L.ErrResIconGroup + Marshal.GetLastWin32Error());
                 ok = true;
             }
             finally { Commit(hu, ok); }
@@ -1109,7 +1156,7 @@ namespace NeuralSetup
             try
             {
                 foreach (var r in old) Del(hu, RT_VERSION, r);
-                if (!UpdateResource(hu, RT_VERSION, (IntPtr)1, 1033, data, (uint)data.Length)) throw new Exception("sürüm: " + Marshal.GetLastWin32Error());
+                if (!UpdateResource(hu, RT_VERSION, (IntPtr)1, 1033, data, (uint)data.Length)) throw new Exception(L.ErrResVersion + Marshal.GetLastWin32Error());
                 ok = true;
             }
             finally { Commit(hu, ok); }

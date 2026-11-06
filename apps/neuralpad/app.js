@@ -9,10 +9,12 @@ const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&
 const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
 const readJSON = k => { try { return JSON.parse(localStorage.getItem(k)) || null; } catch { return null; } };
 const newUid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+// Interface texts in the series language (lang\*.json through language.js and i18n.js).
+const T = NeuralI18n.page(window);
 
 /* Desktop shell (Electron). Opened in a plain browser, the file operations stay disabled. */
 const NOOP = () => {};
-const NO_SHELL = { ok: false, error: 'Bu işlem yalnızca masaüstü uygulamasında çalışır.' };
+const NO_SHELL = { ok: false, error: T('toast.no-shell') };
 const np = window.np || {
   minimize: NOOP, toggleMaximize: NOOP, close: () => window.close(), closeAck: NOOP, confirmClose: () => window.close(),
   onCloseRequest: NOOP, onMaximized: NOOP, onOpenFiles: NOOP, resizeStart: NOOP, resizeEnd: NOOP,
@@ -59,12 +61,7 @@ const FONTS = [
   { name: 'Segoe UI', css: '"Segoe UI", system-ui, sans-serif' },
 ];
 const SIZES = [8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 24, 26, 28, 32, 36, 48, 72];
-const THEMES = [
-  { id: 'neon', name: 'Neon' },
-  { id: 'ice', name: 'Buz' },
-  { id: 'alarm', name: 'Alarm' },
-  { id: 'daylight', name: 'Gündüz' },
-];
+const THEMES = ['neon', 'ice', 'alarm', 'daylight'].map(id => ({ id, name: T('theme.' + id) }));
 const DEFAULTS = {
   wordWrap: true, statusBar: true, zoom: 100,
   fontFamily: 'Chakra Petch', fontStyle: 'normal', fontWeight: 500, fontSize: 17,
@@ -104,7 +101,7 @@ function applySettings() {
 let tabs = [];
 let active = null;
 
-const displayName = t => t.name || 'Başlıksız';
+const displayName = t => t.name || T('doc.untitled');
 const isDirty = t => t.ta.value !== t.savedText;
 const samePath = (a, b) => !!a && !!b && a.toLowerCase() === b.toLowerCase();
 const baseName = p => p.split(/[\\/]/).pop();
@@ -118,7 +115,7 @@ function createTab({ name = null, path = null, text = '', savedText = text, eol 
   ta.wrap = S.wordWrap ? 'soft' : 'off';
   ta.setAttribute('autocomplete', 'off');
   ta.setAttribute('autocapitalize', 'off');
-  ta.setAttribute('aria-label', 'Belge metni');
+  ta.setAttribute('aria-label', T('doc.text-aria'));
   ta.value = text;
   editorsEl.appendChild(ta);
   const tab = { uid: newUid(), name, path, savedText, eol, enc, ta };
@@ -173,8 +170,8 @@ function renderTabs() {
     b.setAttribute('role', 'tab');
     b.setAttribute('tabindex', t === active ? '0' : '-1');
     b.setAttribute('aria-selected', String(t === active));
-    b.title = t.path || (t.name ? displayName(t) : 'Başlıksız (kaydedilmedi)');
-    b.innerHTML = `<span class="tab-name">${esc(displayName(t))}</span><span class="tab-dot" aria-label="Kaydedilmemiş"></span><span class="tab-close" role="button" title="Sekmeyi kapat (Ctrl+W)" aria-label="Sekmeyi kapat">${CLOSE_ICON}</span>`;
+    b.title = t.path || (t.name ? displayName(t) : T('tab.untitled-tip'));
+    b.innerHTML = `<span class="tab-name">${esc(displayName(t))}</span><span class="tab-dot" aria-label="${esc(T('tab.unsaved'))}"></span><span class="tab-close" role="button" title="${esc(T('tab.close'))}" aria-label="${esc(T('tab.close.aria'))}">${CLOSE_ICON}</span>`;
     b.addEventListener('mousedown', e => { if (e.button === 1) e.preventDefault(); });
     b.addEventListener('click', e => {
       if (e.target.closest('.tab-close')) closeTab(t);
@@ -329,7 +326,7 @@ async function openPath(p) {
   const open = tabs.find(t => samePath(t.path, p));
   if (open) { activate(open); return; }
   const r = await np.readFile(p);
-  if (!r || !r.ok) { toast(`"${baseName(p)}" açılamadı: ${r?.error || 'bilinmeyen hata'}`); return; }
+  if (!r || !r.ok) { toast(T('toast.open-failed', { name: baseName(p), error: r?.error || T('err.unknown-short') })); return; }
   loadIntoTab(r.bytes, r.name, r.path);
   rememberDir(r.path);
 }
@@ -365,7 +362,7 @@ async function save(tab = active) {
 async function saveAs(tab = active) {
   if (!tab) return false;
   if (!IN_SHELL) { toast(NO_SHELL.error); return false; }
-  const name = tab.name || 'Başlıksız.txt';
+  const name = tab.name || T('doc.untitled') + '.txt';
   const suggested = tab.path || (S.lastDir ? S.lastDir + '\\' + name : name);
   const p = await np.saveDialog(suggested);
   if (!p) return false;
@@ -375,7 +372,7 @@ async function saveAs(tab = active) {
 async function writeTo(tab, p) {
   const text = tab.ta.value;
   const r = await np.writeFile(p, encodeText(text, tab.eol, tab.enc));
-  if (!r || !r.ok) { toast(`Kaydedilemedi: ${r?.error || 'bilinmeyen hata'}`); return false; }
+  if (!r || !r.ok) { toast(T('toast.save-failed', { error: r?.error || T('err.unknown-short') })); return false; }
   tab.path = p;
   tab.name = baseName(p);
   tab.savedText = text;
@@ -389,7 +386,7 @@ function afterSave(tab) {
   updateTitle();
   updateStatus();
   scheduleSession();
-  toast(`Kaydedildi: ${displayName(tab)}`);
+  toast(T('toast.saved', { name: displayName(tab) }));
 }
 
 async function saveAll() {
@@ -454,7 +451,7 @@ async function paste() {
     const text = await navigator.clipboard.readText();
     insertText(text.replace(/\r\n?/g, '\n'));
   } catch {
-    if (!document.execCommand('paste')) toast('Menüden yapıştırılamadı. Ctrl+V kullanın.');
+    if (!document.execCommand('paste')) toast(T('toast.paste-failed'));
   }
 }
 
@@ -471,10 +468,12 @@ function selectAll() {
   updateStatus();
 }
 
+// Short time and date in the interface language: "14:05 06.11.2026" (Turkish), "14:05 06/11/2026" (English).
 function timestamp() {
   const d = new Date();
-  const p = n => String(n).padStart(2, '0');
-  return `${p(d.getHours())}:${p(d.getMinutes())} ${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()}`;
+  const time = d.toLocaleTimeString(T.locale, { hour: '2-digit', minute: '2-digit' });
+  const date = d.toLocaleDateString(T.locale, { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return `${time} ${date}`;
 }
 
 function insertDate() {
@@ -482,10 +481,12 @@ function insertDate() {
 }
 
 /* ---------------- Find / Replace ---------------- */
-const foldTr = s => {
+// Case folding by the rules of the interface language (Turkish: I↔ı, İ↔i). Every position must stay where it is,
+// so a letter whose lower case is longer (İ outside Turkish: i + a combining dot) folds to a plain i instead.
+const foldCase = s => {
   if (S.matchCase) return s;
-  const low = s.toLocaleLowerCase('tr-TR');
-  return low.length === s.length ? low : s.toLowerCase();
+  const low = s.toLocaleLowerCase(T.locale);
+  return low.length === s.length ? low : s.replace(/\u0130/g, 'i').toLowerCase();
 };
 
 function setReplaceVisible(show) {
@@ -517,8 +518,8 @@ function closeFind() {
 function searchFrom(from, dir) {
   const q = fb.find.value;
   const ta = active.ta;
-  const hay = foldTr(ta.value);
-  const needle = foldTr(q);
+  const hay = foldCase(ta.value);
+  const needle = foldCase(q);
   let i;
   if (dir > 0) {
     i = hay.indexOf(needle, from);
@@ -542,7 +543,7 @@ function selectMatch(i, len) {
 
 function notFound(q) {
   fb.bar.classList.add('notfound');
-  toast(`"${q}" bulunamadı.`);
+  toast(T('find.not-found', { text: q }));
 }
 
 function findNext(dir = 1) {
@@ -572,7 +573,7 @@ function replaceOne() {
   if (!q) return;
   const ta = active.ta;
   const sel = ta.value.slice(ta.selectionStart, ta.selectionEnd);
-  if (sel.length === q.length && foldTr(sel) === foldTr(q)) {
+  if (sel.length === q.length && foldCase(sel) === foldCase(q)) {
     const back = document.activeElement;
     insertText(fb.rep.value);
     back?.focus();
@@ -586,8 +587,8 @@ function replaceAll() {
   if (!q) return;
   const ta = active.ta;
   const v = ta.value;
-  const hay = foldTr(v);
-  const needle = foldTr(q);
+  const hay = foldCase(v);
+  const needle = foldCase(q);
   const r = fb.rep.value;
   let out = '', last = 0, n = 0, i;
   while ((i = hay.indexOf(needle, last)) !== -1) {
@@ -606,7 +607,7 @@ function replaceAll() {
   ta.setSelectionRange(caret, caret);
   ta.scrollTop = top;
   back?.focus();
-  toast(`${n.toLocaleString('tr-TR')} yer değiştirildi.`);
+  toast(T('find.replaced', { n: n.toLocaleString(T.locale) }));
 }
 
 fb.find.addEventListener('input', findIncremental);
@@ -652,8 +653,8 @@ function renderBackdrop() {
   }
   const ta = active.ta;
   const v = ta.value;
-  const hay = foldTr(v);
-  const needle = foldTr(q);
+  const hay = foldCase(v);
+  const needle = foldCase(q);
   const ss = ta.selectionStart, se = ta.selectionEnd;
   let html = '', last = 0, n = 0, cur = -1, i;
   while ((i = hay.indexOf(needle, last)) !== -1 && n < 5000) {
@@ -665,7 +666,8 @@ function renderBackdrop() {
   }
   backdrop.innerHTML = html + esc(v.slice(last)) + '\n';
   syncBackdropScroll();
-  fb.count.textContent = n ? (cur >= 0 ? `${cur + 1} / ${n}${n >= 5000 ? '+' : ''}` : `${n}${n >= 5000 ? '+' : ''} sonuç`) : 'Sonuç yok';
+  const total = `${n}${n >= 5000 ? '+' : ''}`;
+  fb.count.textContent = n ? (cur >= 0 ? `${cur + 1} / ${total}` : T('find.count', { n: total })) : T('find.none');
 }
 
 function syncBackdropScroll() {
@@ -709,7 +711,7 @@ async function openGoto() {
   const input = $('#goto-line');
   input.max = total;
   input.value = lineOf(v, ta.selectionStart);
-  $('#goto-hint').textContent = `Bu belgede ${total.toLocaleString('tr-TR')} satır var.`;
+  $('#goto-hint').textContent = T('goto.hint', { n: total.toLocaleString(T.locale) });
   const p = ask(dlg);
   input.select();
   if ((await p) !== 'ok') { ta.focus(); return; }
@@ -816,10 +818,11 @@ function updateStatus() {
     const line = lineOf(v, caret);
     const col = caret - (v.lastIndexOf('\n', caret - 1) + 1) + 1;
     const sel = ta.selectionEnd - ta.selectionStart;
-    const fmt = n => n.toLocaleString('tr-TR');
-    $('#st-pos').textContent = `Sat ${fmt(line)}, Süt ${fmt(col)}`;
-    $('#st-chars').textContent = sel ? `${fmt(sel)} / ${fmt(v.length)} karakter` : `${fmt(v.length)} karakter`;
-    $('#st-zoom').textContent = `%${S.zoom}`;
+    // Numbers go in formatted ("1,234"); for the English plural only a plain 1 is singular, as it should be.
+    const fmt = n => n.toLocaleString(T.locale);
+    $('#st-pos').textContent = T('status.pos', { line: fmt(line), col: fmt(col) });
+    $('#st-chars').textContent = sel ? T('status.chars-sel', { sel: fmt(sel), n: fmt(v.length) }) : T('status.chars', { n: fmt(v.length) });
+    $('#st-zoom').textContent = T('status.zoom', { n: S.zoom });
     $('#st-eol').textContent = EOL_NAMES[active.eol] || active.eol;
     $('#st-enc').textContent = active.enc;
   });
@@ -839,7 +842,7 @@ function ask(dlg) {
 }
 
 async function confirmSave(tab) {
-  $('#confirm-text').textContent = `"${displayName(tab)}" belgesindeki değişiklikler kaydedilsin mi?`;
+  $('#confirm-text').textContent = T('confirm.text', { name: displayName(tab) });
   return ask($('#dlg-confirm'));
 }
 
@@ -848,28 +851,28 @@ function openAbout() {
 }
 
 const SHORTCUT_DOC = [
-  ['Yeni sekme', 'Ctrl+N'],
-  ['Yeni pencere', 'Ctrl+Shift+N'],
-  ['Aç', 'Ctrl+O'],
-  ['Kaydet', 'Ctrl+S'],
-  ['Farklı kaydet', 'Ctrl+Shift+S'],
-  ['Tümünü kaydet', 'Ctrl+Alt+S'],
-  ['Yazdır', 'Ctrl+P'],
-  ['Sekmeyi kapat', 'Ctrl+W'],
-  ['Pencereyi kapat', 'Ctrl+Shift+W / Alt+F4'],
-  ['Sonraki / önceki sekme', 'Ctrl+Tab / Ctrl+Shift+Tab'],
-  ['Geri al / Yinele', 'Ctrl+Z / Ctrl+Y'],
-  ['Kes / Kopyala / Yapıştır', 'Ctrl+X / Ctrl+C / Ctrl+V'],
-  ['Bul', 'Ctrl+F'],
-  ['Sonrakini / öncekini bul', 'F3 / Shift+F3'],
-  ['Değiştir', 'Ctrl+H'],
-  ['Tümünü değiştir (Değiştir kutusunda)', 'Ctrl+Alt+Enter'],
-  ['Git', 'Ctrl+G'],
-  ['Tümünü seç', 'Ctrl+A'],
-  ['Saat/Tarih', 'F5'],
-  ['Yakınlaştır / Uzaklaştır', 'Ctrl+Artı / Ctrl+Eksi / Ctrl+Tekerlek'],
-  ['Varsayılan yakınlaştırma', 'Ctrl+0'],
-  ['Menüye geç', 'F10 / Alt'],
+  [T('keys.new-tab'), 'Ctrl+N'],
+  [T('keys.new-window'), 'Ctrl+Shift+N'],
+  [T('keys.open'), 'Ctrl+O'],
+  [T('keys.save'), 'Ctrl+S'],
+  [T('keys.save-as'), 'Ctrl+Shift+S'],
+  [T('keys.save-all'), 'Ctrl+Alt+S'],
+  [T('keys.print'), 'Ctrl+P'],
+  [T('keys.close-tab'), 'Ctrl+W'],
+  [T('keys.close-window'), 'Ctrl+Shift+W / Alt+F4'],
+  [T('keys.cycle'), 'Ctrl+Tab / Ctrl+Shift+Tab'],
+  [T('keys.undo-redo'), 'Ctrl+Z / Ctrl+Y'],
+  [T('keys.clipboard'), 'Ctrl+X / Ctrl+C / Ctrl+V'],
+  [T('keys.find'), 'Ctrl+F'],
+  [T('keys.find-next-prev'), 'F3 / Shift+F3'],
+  [T('keys.replace'), 'Ctrl+H'],
+  [T('keys.replace-all'), 'Ctrl+Alt+Enter'],
+  [T('keys.goto'), 'Ctrl+G'],
+  [T('keys.select-all'), 'Ctrl+A'],
+  [T('keys.time-date'), 'F5'],
+  [T('keys.zoom'), `${T('keys.ctrl-plus')} / ${T('keys.ctrl-minus')} / ${T('keys.ctrl-wheel')}`],
+  [T('keys.zoom-reset'), 'Ctrl+0'],
+  [T('keys.menu'), 'F10 / Alt'],
 ];
 
 function openShortcuts() {
@@ -878,72 +881,75 @@ function openShortcuts() {
 }
 
 /* ---------------- Menus ---------------- */
+// The series language: a pick shows from the next start, so only the note changes now.
+const languages = NeuralI18n.languageChoices(window, note => toast(note, 6000));
 const MENUS = [
-  { label: 'Dosya', items: [
-    { label: 'Yeni sekme', key: 'Ctrl+N', run: newTab },
-    { label: 'Yeni pencere', key: 'Ctrl+Shift+N', run: newWindow },
-    { label: 'Aç...', key: 'Ctrl+O', run: openFile },
-    { label: 'Kaydet', key: 'Ctrl+S', run: () => save() },
-    { label: 'Farklı kaydet...', key: 'Ctrl+Shift+S', run: () => saveAs() },
-    { label: 'Tümünü kaydet', key: 'Ctrl+Alt+S', run: saveAll },
+  { label: T('menu.file'), items: [
+    { label: T('menu.new-tab'), key: 'Ctrl+N', run: newTab },
+    { label: T('menu.new-window'), key: 'Ctrl+Shift+N', run: newWindow },
+    { label: T('menu.open'), key: 'Ctrl+O', run: openFile },
+    { label: T('menu.save'), key: 'Ctrl+S', run: () => save() },
+    { label: T('menu.save-as'), key: 'Ctrl+Shift+S', run: () => saveAs() },
+    { label: T('menu.save-all'), key: 'Ctrl+Alt+S', run: saveAll },
     '-',
-    { label: 'Yazdır...', key: 'Ctrl+P', run: printDoc },
+    { label: T('menu.print'), key: 'Ctrl+P', run: printDoc },
     '-',
-    { label: 'Sekmeyi kapat', key: 'Ctrl+W', run: () => closeTab() },
-    { label: 'Pencereyi kapat', key: 'Ctrl+Shift+W', run: closeWindow },
-    { label: 'Çıkış', run: closeWindow },
+    { label: T('menu.close-tab'), key: 'Ctrl+W', run: () => closeTab() },
+    { label: T('menu.close-window'), key: 'Ctrl+Shift+W', run: closeWindow },
+    { label: T('menu.exit'), run: closeWindow },
   ] },
-  { label: 'Düzenle', items: [
-    { label: 'Geri al', key: 'Ctrl+Z', run: () => edit('undo') },
-    { label: 'Yinele', key: 'Ctrl+Y', run: () => edit('redo') },
+  { label: T('menu.edit'), items: [
+    { label: T('menu.undo'), key: 'Ctrl+Z', run: () => edit('undo') },
+    { label: T('menu.redo'), key: 'Ctrl+Y', run: () => edit('redo') },
     '-',
-    { label: 'Kes', key: 'Ctrl+X', run: () => edit('cut'), enabled: hasSelection },
-    { label: 'Kopyala', key: 'Ctrl+C', run: () => edit('copy'), enabled: hasSelection },
-    { label: 'Yapıştır', key: 'Ctrl+V', run: paste },
-    { label: 'Sil', key: 'Del', run: deleteSel },
+    { label: T('menu.cut'), key: 'Ctrl+X', run: () => edit('cut'), enabled: hasSelection },
+    { label: T('menu.copy'), key: 'Ctrl+C', run: () => edit('copy'), enabled: hasSelection },
+    { label: T('menu.paste'), key: 'Ctrl+V', run: paste },
+    { label: T('menu.delete'), key: 'Del', run: deleteSel },
     '-',
-    { label: 'Bul', key: 'Ctrl+F', run: () => openFind(false) },
-    { label: 'Sonrakini bul', key: 'F3', run: () => findNext(1) },
-    { label: 'Öncekini bul', key: 'Shift+F3', run: () => findNext(-1) },
-    { label: 'Değiştir', key: 'Ctrl+H', run: () => openFind(true) },
-    { label: 'Git', key: 'Ctrl+G', run: openGoto },
+    { label: T('menu.find'), key: 'Ctrl+F', run: () => openFind(false) },
+    { label: T('menu.find-next'), key: 'F3', run: () => findNext(1) },
+    { label: T('menu.find-prev'), key: 'Shift+F3', run: () => findNext(-1) },
+    { label: T('menu.replace'), key: 'Ctrl+H', run: () => openFind(true) },
+    { label: T('menu.goto'), key: 'Ctrl+G', run: openGoto },
     '-',
-    { label: 'Tümünü seç', key: 'Ctrl+A', run: selectAll },
-    { label: 'Saat/Tarih', key: 'F5', run: insertDate },
+    { label: T('menu.select-all'), key: 'Ctrl+A', run: selectAll },
+    { label: T('menu.time-date'), key: 'F5', run: insertDate },
   ] },
-  { label: 'Biçim', items: [
-    { label: 'Sözcük kaydırma', check: () => S.wordWrap, run: toggleWrap },
-    { label: 'Yazı tipi...', run: openFont },
+  { label: T('menu.format'), items: [
+    { label: T('menu.word-wrap'), check: () => S.wordWrap, run: toggleWrap },
+    { label: T('menu.font'), run: openFont },
   ] },
-  { label: 'Görünüm', items: [
-    { label: 'Yakınlaştır', sub: [
-      { label: 'Yakınlaştır', key: 'Ctrl+Artı', run: () => zoomBy(10) },
-      { label: 'Uzaklaştır', key: 'Ctrl+Eksi', run: () => zoomBy(-10) },
-      { label: 'Varsayılan yakınlaştırmaya geri yükle', key: 'Ctrl+0', run: () => setZoom(100) },
+  { label: T('menu.view'), items: [
+    { label: T('menu.zoom'), sub: [
+      { label: T('menu.zoom-in'), key: T('keys.ctrl-plus'), run: () => zoomBy(10) },
+      { label: T('menu.zoom-out'), key: T('keys.ctrl-minus'), run: () => zoomBy(-10) },
+      { label: T('menu.zoom-reset'), key: 'Ctrl+0', run: () => setZoom(100) },
     ] },
-    { label: 'Durum çubuğu', check: () => S.statusBar, run: toggleStatus },
+    { label: T('menu.status-bar'), check: () => S.statusBar, run: toggleStatus },
     '-',
-    { label: 'Tema', sub: [
+    { label: T('menu.theme'), sub: [
       ...THEMES.map(t => ({ label: t.name, radio: () => S.theme === t.id, run: () => setTheme(t.id) })),
       '-',
-      { label: 'Temayı seriyle eşitle', check: () => S.syncTheme, run: toggleThemeSync },
+      { label: T('menu.theme-sync'), check: () => S.syncTheme, run: toggleThemeSync },
     ] },
+    { label: T('lang.menu'), sub: languages().map(l => ({ label: l.label, radio: l.checked, run: l.pick })) },
   ] },
-  { label: 'Yardım', items: [
-    { label: 'Klavye kısayolları', run: openShortcuts },
-    { label: 'NeuralPad hakkında', run: openAbout },
+  { label: T('menu.help'), items: [
+    { label: T('menu.keys'), run: openShortcuts },
+    { label: T('menu.about'), run: openAbout },
   ] },
 ];
 
 const CONTEXT_ITEMS = [
-  { label: 'Geri al', key: 'Ctrl+Z', run: () => edit('undo') },
+  { label: T('menu.undo'), key: 'Ctrl+Z', run: () => edit('undo') },
   '-',
-  { label: 'Kes', key: 'Ctrl+X', run: () => edit('cut'), enabled: hasSelection },
-  { label: 'Kopyala', key: 'Ctrl+C', run: () => edit('copy'), enabled: hasSelection },
-  { label: 'Yapıştır', key: 'Ctrl+V', run: paste },
-  { label: 'Sil', key: 'Del', run: deleteSel, enabled: hasSelection },
+  { label: T('menu.cut'), key: 'Ctrl+X', run: () => edit('cut'), enabled: hasSelection },
+  { label: T('menu.copy'), key: 'Ctrl+C', run: () => edit('copy'), enabled: hasSelection },
+  { label: T('menu.paste'), key: 'Ctrl+V', run: paste },
+  { label: T('menu.delete'), key: 'Del', run: deleteSel, enabled: hasSelection },
   '-',
-  { label: 'Tümünü seç', key: 'Ctrl+A', run: selectAll },
+  { label: T('menu.select-all'), key: 'Ctrl+A', run: selectAll },
 ];
 
 let menuState = null; // { index, btn, stack: [popup, ...] }
@@ -1121,11 +1127,11 @@ function popupKey(e) {
     case 'Tab': handled(); closeMenus(true); break;
     default:
       if (e.key.length === 1 && !e.ctrlKey && !e.altKey) {
-        const ch = e.key.toLocaleLowerCase('tr-TR');
+        const ch = e.key.toLocaleLowerCase(T.locale);
         const start = cur + 1;
         for (let k = 0; k < items.length; k++) {
           const b = items[(start + k) % items.length];
-          if (b._item.label.toLocaleLowerCase('tr-TR').startsWith(ch)) { handled(); b.focus(); break; }
+          if (b._item.label.toLocaleLowerCase(T.locale).startsWith(ch)) { handled(); b.focus(); break; }
         }
       }
   }
@@ -1230,7 +1236,7 @@ $('#win-close').addEventListener('click', closeWindow);
 np.onMaximized(on => {
   root.classList.toggle('is-max', on);
   const b = $('#win-max');
-  const label = on ? 'Önceki boyuta dön' : 'Ekranı kapla';
+  const label = T(on ? 'win.restore' : 'win.maximize');
   b.setAttribute('aria-label', label);
   b.title = label;
 });
@@ -1325,7 +1331,7 @@ async function restoreSession() {
     t._restore = s;
     if (i === d.active) toActivate = t;
   }
-  if (missing.length) toast(`Bulunamadığı için açılmadı: ${missing.join(', ')}`);
+  if (missing.length) toast(T('toast.not-restored', { names: missing.join(', ') }));
   if (!tabs.length) return false;
   activate(toActivate || tabs[0]);
   return true;
@@ -1336,11 +1342,11 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) saveS
 
 /* ---------------- Toast ---------------- */
 let toastTimer = null;
-function toast(msg) {
+function toast(msg, ms = 2800) {
   toastEl.textContent = msg;
   toastEl.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2800);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), ms);
 }
 
 /* ---------------- Start ---------------- */

@@ -4,6 +4,34 @@ All notable changes to Neural Series are listed here. Versions follow [Semantic 
 Every major and minor release carries a codename from the map of Neo-Istanbul; patch releases keep the codename of
 their line.
 
+## 1.5.0 "Beyoglu" (2026-11-06)
+
+The series speaks English too. Every app, the setup and the uninstaller show their texts in Turkish or English, one
+language for the whole series. All seven apps are at 1.5.0. Run the new setup over an existing installation; options,
+settings and personal data are kept.
+
+### New
+
+- **One language for the series.** Pick *Türkçe* or *English* on the setup's first page, or later in any app under
+  *Dil · Language* (the theme menu; NeuralWeb: *Ayarlar → Görünüm*; NeuralDeck: its settings; NeuralCalc: a `TR | EN`
+  switch). The change shows the next time each app starts. Without a choice the apps follow Windows' display
+  language: Turkish on a Turkish Windows, English on any other. The choice is stored in
+  `%APPDATA%\NeuralSeries\language.json`.
+- **Everything is translated:** menus, dialogs, toasts, tooltips, status bars, the shortcut lists, NeuralWeb's own
+  pages, the calculator's errors, NeuralDeck's suggestions (its command words work in both languages, and
+  "not defteri" finds NeuralPad as well as "notepad"), default names such as *New folder* or *Untitled.txt*, and the
+  dates and numbers, which follow the interface language.
+- **Setup:** `/dil:tr` / `/dil:en` switch. Start menu names, context menu entries, file type and Default apps
+  descriptions, the uninstall entry and the setup log follow the setup's language; an update in another language
+  renames the shortcuts. The switches and the folder names stay Turkish.
+
+### Changed
+
+- The interface texts moved into `lang\tr.json` and `lang\en.json` in each app, with two shared modules,
+  `apps\shared\language.js` and `apps\shared\i18n.js`; the setup's texts into `installer\src\Strings.cs`. The
+  calculator engine reports error codes, which each app translates.
+- NeuralWeb asks Google for search suggestions in the interface language.
+
 ## 1.4.0 "Kadikoy" (2026-10-23)
 
 The apps hand off to each other: each piece of work goes to the Neural app made for it. All seven apps are at 1.4.0.

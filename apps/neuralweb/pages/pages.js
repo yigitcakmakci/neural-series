@@ -1,6 +1,17 @@
 "use strict";
 // Helpers shared by NeuralWeb's own pages. `neural` is the bridge the preload gives only to neural:// pages.
 const $ = (s, r = document) => r.querySelector(s);
+// Interface texts in the series language (lang\*.json through language.js and i18n.js; the preload hands them over).
+const T = NeuralI18n.page(window);
+// A text with {name} placeholders filled by nodes (a bold number, a button name): the pieces to append.
+function rich(text, parts) {
+  return String(text).split(/(\{\w+\})/).filter(Boolean).map((p) => {
+    const k = /^\{(\w+)\}$/.exec(p);
+    return k && parts[k[1]] ? parts[k[1]] : p;
+  });
+}
+// The two built-in bookmark folders are named in the interface language, whatever their stored title.
+const markTitle = (n) => (n.id === "bar" ? T("bm.bar") : n.id === "other" ? T("bm.other") : n.title);
 const ICON = {
   globe: "M8 2a6 6 0 1 1 0 12A6 6 0 0 1 8 2zM2 8h12M8 2c-2.2 2.4-2.2 9.6 0 12M8 2c2.2 2.4 2.2 9.6 0 12",
   folder: "M2 4h4.5l1.5 1.5H14V13H2z",
@@ -61,16 +72,16 @@ function size(n) {
   const u = ["B", "KB", "MB", "GB", "TB"];
   let i = 0;
   while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; }
-  return `${n.toLocaleString("tr-TR", { maximumFractionDigits: n < 10 && i ? 1 : 0 })} ${u[i]}`;
+  return `${n.toLocaleString(T.locale, { maximumFractionDigits: n < 10 && i ? 1 : 0 })} ${u[i]}`;
 }
-const fmtDay = new Intl.DateTimeFormat("tr-TR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-const fmtTime = new Intl.DateTimeFormat("tr-TR", { hour: "2-digit", minute: "2-digit" });
+const fmtDay = new Intl.DateTimeFormat(T.locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+const fmtTime = new Intl.DateTimeFormat(T.locale, { hour: "2-digit", minute: "2-digit" });
 function dayLabel(ms) {
   const d = new Date(ms);
   const start = new Date(); start.setHours(0, 0, 0, 0);
   const diff = Math.round((start - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 864e5);
-  if (diff === 0) return `Bugün · ${fmtDay.format(d)}`;
-  if (diff === 1) return `Dün · ${fmtDay.format(d)}`;
+  if (diff === 0) return T("hist.today", { date: fmtDay.format(d) });
+  if (diff === 1) return T("hist.yesterday", { date: fmtDay.format(d) });
   return fmtDay.format(d);
 }
 const timeLabel = (ms) => fmtTime.format(new Date(ms));
@@ -84,7 +95,7 @@ function toast(text) {
   toastTimer = setTimeout(() => t.classList.remove("show"), 2600);
 }
 // A yes/no question in a Neural dialog; resolves true for yes.
-function confirmBox(title, text, yes = "Sil") {
+function confirmBox(title, text, yes = T("dlg.delete")) {
   return new Promise((resolve) => {
     const d = el("dialog", "hud");
     const f = el("form");
@@ -95,7 +106,7 @@ function confirmBox(title, text, yes = "Sil") {
     const btns = el("div", "btns");
     const ok = el("button", "btn danger", yes);
     ok.value = "ok";
-    const no = el("button", "btn primary", "Vazgeç");
+    const no = el("button", "btn primary", T("dlg.cancel"));
     no.value = "cancel";
     btns.append(ok, no);
     body.append(el("h2", null, title), content, btns);

@@ -1,4 +1,5 @@
 "use strict";
+require("../../tools/lang-env")(); // the programs it starts speak Turkish, the language of its checks
 // The series theme across running programs: NeuralPad, NeuralTerm, NeuralView and NeuralWeb at once, NeuralNav
 // started later. Themes are picked through each program's own menu (NeuralWeb through the command its menu sends).
 // Throwaway profiles and a temp theme file (NEURAL_THEME_FILE): the real %APPDATA% is not touched.

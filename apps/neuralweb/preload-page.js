@@ -1,7 +1,7 @@
 "use strict";
 // Runs in every top-level page of the browsing sessions (tabs and popups), in an isolated world the page cannot reach.
-// NeuralWeb's own pages (neural://) get the `neural` bridge; web pages get nothing, but their login forms are
-// watched so passwords can be offered for saving and filled from the password manager.
+// NeuralWeb's own pages (neural://) get the `neural` bridge and their texts (`neuralLang`); web pages get nothing,
+// but their login forms are watched so passwords can be offered for saving and filled from the password manager.
 const { contextBridge, ipcRenderer } = require("electron");
 
 // Registered for every frame of the session; only top frames get the bridge and the login watcher.
@@ -12,6 +12,8 @@ if (window !== window.top) {
     call: (name, ...args) => ipcRenderer.invoke("page:call", String(name), ...args),
     on: (fn) => { ipcRenderer.on("page:event", (_e, payload) => fn(payload)); },
   });
+  // The interface language (language.js), asked for once before the page draws; never for a web site.
+  contextBridge.exposeInMainWorld("neuralLang", { ...ipcRenderer.sendSync("neural:lang"), set: (id) => ipcRenderer.invoke("neural:lang-set", String(id)) });
 } else if (location.protocol === "https:" || location.protocol === "http:") {
   watchLogins();
 }

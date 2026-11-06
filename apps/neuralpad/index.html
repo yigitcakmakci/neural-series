@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Başlıksız - NeuralPad</title>
+<title data-i18n="doc.title">Başlıksız - NeuralPad</title>
 <link rel="stylesheet" href="fonts/fonts.css">
 <link rel="stylesheet" href="fonts/editor-fonts.css">
 <link rel="stylesheet" href="styles.css">
@@ -17,20 +17,20 @@
       <!-- Top band: brand, menu, document name, window buttons (draggable) -->
       <header class="band">
         <div class="brand" aria-hidden="true"><span class="brand-model">NP-7</span><span class="brand-name">NEURALPAD</span></div>
-        <nav class="menubar" id="menubar" role="menubar" aria-label="Ana menü"></nav>
-        <div class="band-title" id="band-title">Başlıksız</div>
+        <nav class="menubar" id="menubar" role="menubar" aria-label="Ana menü" data-i18n-aria-label="menubar.aria"></nav>
+        <div class="band-title" id="band-title" data-i18n="doc.untitled">Başlıksız</div>
         <span class="hazard" aria-hidden="true"></span>
         <div class="win-btns">
-          <button class="win-btn" id="win-min" type="button" aria-label="Simge durumuna küçült" title="Küçült"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 9.5h8"/></svg></button>
-          <button class="win-btn" id="win-max" type="button" aria-label="Ekranı kapla" title="Ekranı kapla"><svg class="ic-max" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5h7v7h-7z"/></svg><svg class="ic-restore" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5h5v5M2.5 4.5h5v5h-5z"/></svg></button>
-          <button class="win-btn close" id="win-close" type="button" aria-label="Kapat" title="Kapat"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button>
+          <button class="win-btn" id="win-min" type="button" aria-label="Simge durumuna küçült" title="Küçült" data-i18n-aria-label="win.minimize.aria" data-i18n-title="win.minimize"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 9.5h8"/></svg></button>
+          <button class="win-btn" id="win-max" type="button" aria-label="Ekranı kapla" title="Ekranı kapla" data-i18n-aria-label="win.maximize" data-i18n-title="win.maximize"><svg class="ic-max" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5h7v7h-7z"/></svg><svg class="ic-restore" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5h5v5M2.5 4.5h5v5h-5z"/></svg></button>
+          <button class="win-btn close" id="win-close" type="button" aria-label="Kapat" title="Kapat" data-i18n-aria-label="win.close" data-i18n-title="win.close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button>
         </div>
       </header>
 
       <!-- Tabs -->
-      <div class="tabbar" id="tabbar" role="tablist" aria-label="Açık belgeler">
+      <div class="tabbar" id="tabbar" role="tablist" aria-label="Açık belgeler" data-i18n-aria-label="tabs.aria">
         <div class="tabs" id="tabs"></div>
-        <button class="tab-new" id="tab-new" type="button" title="Yeni sekme (Ctrl+N)" aria-label="Yeni sekme">+</button>
+        <button class="tab-new" id="tab-new" type="button" title="Yeni sekme (Ctrl+N)" aria-label="Yeni sekme" data-i18n-title="tab.new" data-i18n-aria-label="tab.new.aria">+</button>
       </div>
 
       <!-- Writing surface -->
@@ -41,34 +41,34 @@
         </div>
 
         <!-- Find / Replace panel -->
-        <section class="findbar" id="findbar" hidden aria-label="Bul ve değiştir">
+        <section class="findbar" id="findbar" hidden aria-label="Bul ve değiştir" data-i18n-aria-label="find.aria">
           <div class="find-row">
-            <button class="fb-btn fb-toggle" id="fb-toggle" type="button" title="Değiştir'i göster/gizle" aria-label="Değiştir'i göster/gizle" aria-expanded="false"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5L8 6l-3.5 3.5"/></svg></button>
-            <input id="fb-find" type="text" placeholder="Bul" spellcheck="false" aria-label="Aranacak metin">
+            <button class="fb-btn fb-toggle" id="fb-toggle" type="button" title="Değiştir'i göster/gizle" aria-label="Değiştir'i göster/gizle" aria-expanded="false" data-i18n-title="find.toggle" data-i18n-aria-label="find.toggle"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5L8 6l-3.5 3.5"/></svg></button>
+            <input id="fb-find" type="text" placeholder="Bul" spellcheck="false" aria-label="Aranacak metin" data-i18n-placeholder="find.placeholder" data-i18n-aria-label="find.text-aria">
             <span class="fb-count" id="fb-count"></span>
-            <button class="fb-btn" id="fb-prev" type="button" title="Öncekini bul (Shift+F3)" aria-label="Öncekini bul"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 7.5L6 4l3.5 3.5"/></svg></button>
-            <button class="fb-btn" id="fb-next" type="button" title="Sonrakini bul (F3)" aria-label="Sonrakini bul"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5"/></svg></button>
-            <button class="fb-btn" id="fb-opts" type="button" title="Arama seçenekleri" aria-label="Arama seçenekleri" aria-expanded="false"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 3.5h8M2 8.5h8"/><path d="M4 2v3M8 7v3"/></svg></button>
-            <button class="fb-btn" id="fb-close" type="button" title="Kapat (Esc)" aria-label="Kapat"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6"/></svg></button>
+            <button class="fb-btn" id="fb-prev" type="button" title="Öncekini bul (Shift+F3)" aria-label="Öncekini bul" data-i18n-title="find.prev" data-i18n-aria-label="find.prev.aria"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 7.5L6 4l3.5 3.5"/></svg></button>
+            <button class="fb-btn" id="fb-next" type="button" title="Sonrakini bul (F3)" aria-label="Sonrakini bul" data-i18n-title="find.next" data-i18n-aria-label="find.next.aria"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5"/></svg></button>
+            <button class="fb-btn" id="fb-opts" type="button" title="Arama seçenekleri" aria-label="Arama seçenekleri" aria-expanded="false" data-i18n-title="find.options" data-i18n-aria-label="find.options"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 3.5h8M2 8.5h8"/><path d="M4 2v3M8 7v3"/></svg></button>
+            <button class="fb-btn" id="fb-close" type="button" title="Kapat (Esc)" aria-label="Kapat" data-i18n-title="find.close" data-i18n-aria-label="win.close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6"/></svg></button>
           </div>
           <div class="find-row replace-row" id="fb-replace-row" hidden>
             <span class="fb-spacer"></span>
-            <input id="fb-replace" type="text" placeholder="Şununla değiştir" spellcheck="false" aria-label="Yeni metin">
-            <button class="fb-btn fb-wide" id="fb-rep" type="button">Değiştir</button>
-            <button class="fb-btn fb-wide" id="fb-repall" type="button">Tümünü değiştir</button>
+            <input id="fb-replace" type="text" placeholder="Şununla değiştir" spellcheck="false" aria-label="Yeni metin" data-i18n-placeholder="find.replace-placeholder" data-i18n-aria-label="find.replace-aria">
+            <button class="fb-btn fb-wide" id="fb-rep" type="button" data-i18n="find.replace">Değiştir</button>
+            <button class="fb-btn fb-wide" id="fb-repall" type="button" data-i18n="find.replace-all">Tümünü değiştir</button>
           </div>
           <div class="find-opts" id="fb-optsbox" hidden>
-            <label><input type="checkbox" id="fb-case"> Büyük/küçük harf eşleştir</label>
-            <label><input type="checkbox" id="fb-wrap" checked> Etrafında kaydır</label>
+            <label><input type="checkbox" id="fb-case"> <span data-i18n="find.match-case">Büyük/küçük harf eşleştir</span></label>
+            <label><input type="checkbox" id="fb-wrap" checked> <span data-i18n="find.wrap">Etrafında kaydır</span></label>
           </div>
         </section>
       </main>
 
       <!-- Status bar -->
       <footer class="statusbar" id="statusbar">
-        <span id="st-pos">Sat 1, Süt 1</span>
-        <span id="st-chars">0 karakter</span>
-        <span id="st-zoom">%100</span>
+        <span id="st-pos"></span>
+        <span id="st-chars"></span>
+        <span id="st-zoom"></span>
         <span id="st-eol">Windows (CRLF)</span>
         <span id="st-enc">UTF-8</span>
       </footer>
@@ -94,16 +94,16 @@
 <dialog class="hud-dialog" id="dlg-goto">
   <form method="dialog">
     <div class="dlg-body">
-      <h2 class="dlg-head">Satıra git</h2>
+      <h2 class="dlg-head" data-i18n="dlg.goto">Satıra git</h2>
       <div class="dlg-content">
-        <label class="field">Satır numarası
+        <label class="field"><span data-i18n="goto.label">Satır numarası</span>
           <input id="goto-line" type="number" min="1" required>
         </label>
         <p class="hint" id="goto-hint"></p>
       </div>
       <div class="btns">
-        <button value="ok" class="primary">Git</button>
-        <button value="cancel" formnovalidate>İptal</button>
+        <button value="ok" class="primary" data-i18n="goto.go">Git</button>
+        <button value="cancel" formnovalidate data-i18n="dlg.cancel">İptal</button>
       </div>
     </div>
   </form>
@@ -113,32 +113,32 @@
 <dialog class="hud-dialog wide" id="dlg-font">
   <form method="dialog">
     <div class="dlg-body">
-      <h2 class="dlg-head">Yazı tipi</h2>
+      <h2 class="dlg-head" data-i18n="dlg.font">Yazı tipi</h2>
       <div class="dlg-content">
         <div class="font-grid">
-          <label class="field">Yazı tipi
+          <label class="field"><span data-i18n="font.family">Yazı tipi</span>
             <select id="font-family" size="7"></select>
           </label>
-          <label class="field">Yazı tipi stili
+          <label class="field"><span data-i18n="font.style">Yazı tipi stili</span>
             <select id="font-style" size="7">
-              <option value="normal|500">Normal</option>
-              <option value="normal|700">Kalın</option>
-              <option value="italic|500">İtalik</option>
-              <option value="italic|700">Kalın İtalik</option>
+              <option value="normal|500" data-i18n="font.regular">Normal</option>
+              <option value="normal|700" data-i18n="font.bold">Kalın</option>
+              <option value="italic|500" data-i18n="font.italic">İtalik</option>
+              <option value="italic|700" data-i18n="font.bold-italic">Kalın İtalik</option>
             </select>
           </label>
-          <label class="field">Boyut
+          <label class="field"><span data-i18n="font.size">Boyut</span>
             <select id="font-size" size="7"></select>
           </label>
         </div>
         <fieldset class="preview">
-          <legend>Örnek</legend>
-          <div id="font-preview">AaBbÇçĞğİıÖöŞşÜü 0123</div>
+          <legend data-i18n="font.sample">Örnek</legend>
+          <div id="font-preview" data-i18n="font.sample-text">AaBbÇçĞğİıÖöŞşÜü 0123</div>
         </fieldset>
       </div>
       <div class="btns">
-        <button value="ok" class="primary">Tamam</button>
-        <button value="cancel">İptal</button>
+        <button value="ok" class="primary" data-i18n="dlg.ok">Tamam</button>
+        <button value="cancel" data-i18n="dlg.cancel">İptal</button>
       </div>
     </div>
   </form>
@@ -151,9 +151,9 @@
       <h2 class="dlg-head">NeuralPad</h2>
       <div class="dlg-content"><p id="confirm-text"></p></div>
       <div class="btns">
-        <button value="save" class="primary">Kaydet</button>
-        <button value="discard">Kaydetme</button>
-        <button value="cancel">İptal</button>
+        <button value="save" class="primary" data-i18n="confirm.save">Kaydet</button>
+        <button value="discard" data-i18n="confirm.discard">Kaydetme</button>
+        <button value="cancel" data-i18n="dlg.cancel">İptal</button>
       </div>
     </div>
   </form>
@@ -163,9 +163,9 @@
 <dialog class="hud-dialog wide" id="dlg-keys">
   <form method="dialog">
     <div class="dlg-body">
-      <h2 class="dlg-head">Klavye kısayolları</h2>
+      <h2 class="dlg-head" data-i18n="dlg.keys">Klavye kısayolları</h2>
       <div class="dlg-content"><div class="keys" id="keys-list"></div></div>
-      <div class="btns"><button value="ok" class="primary">Tamam</button></div>
+      <div class="btns"><button value="ok" class="primary" data-i18n="dlg.ok">Tamam</button></div>
     </div>
   </form>
 </dialog>
@@ -174,13 +174,13 @@
 <dialog class="hud-dialog" id="dlg-about">
   <form method="dialog">
     <div class="dlg-body">
-      <h2 class="dlg-head">NeuralPad hakkında</h2>
+      <h2 class="dlg-head" data-i18n="dlg.about">NeuralPad hakkında</h2>
       <div class="dlg-content">
         <p class="about-mark" aria-hidden="true">NP-7</p>
-        <p>Not Defteri'nin bütün işlevleri, Neo-İstanbul ağından. Taş Tablet'in mantığı üzerine kuruldu.</p>
-        <p class="hint">Sürüm 1.0 · Yazdıklarınız yalnızca bu bilgisayarda durur: kaydettiğiniz dosyalarda ve kapatınca saklanan oturumda.</p>
+        <p data-i18n="about.text">Not Defteri'nin bütün işlevleri, Neo-İstanbul ağından. Taş Tablet'in mantığı üzerine kuruldu.</p>
+        <p class="hint" data-i18n="about.hint">Sürüm 1.0 · Yazdıklarınız yalnızca bu bilgisayarda durur: kaydettiğiniz dosyalarda ve kapatınca saklanan oturumda.</p>
       </div>
-      <div class="btns"><button value="ok" class="primary">Tamam</button></div>
+      <div class="btns"><button value="ok" class="primary" data-i18n="dlg.ok">Tamam</button></div>
     </div>
   </form>
 </dialog>
@@ -188,6 +188,7 @@
 <!-- Print area -->
 <div id="print-area" aria-hidden="true"><div id="print-title"></div><pre id="print-text"></pre></div>
 
+<script src="../shared/i18n.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

@@ -1,4 +1,5 @@
 "use strict";
+require("../../tools/lang-env")(); // the programs it starts speak Turkish, the language of its checks
 // End-to-end test of NeuralWeb's shield (ad and tracker blocker) with the real filter lists plus a test list.
 // Usage: node test-shield.js [--installed]
 const fs = require("fs");

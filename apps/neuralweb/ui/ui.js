@@ -3,8 +3,10 @@
 // and reports where the page area is so the tab's view can be laid over it.
 const $ = (s) => document.querySelector(s);
 const root = document.documentElement;
+// Interface texts in the series language (lang\*.json through language.js and i18n.js).
+const T = NeuralI18n.page(window);
 const PRIV = new URLSearchParams(location.search).get("private") === "1";
-const THEMES = [["neon", "Neon"], ["ice", "Buz"], ["alarm", "Alarm"], ["daylight", "Gündüz"]];
+const THEMES = ["neon", "ice", "alarm", "daylight"].map((id) => [id, T("theme." + id)]);
 const ICON = {
   globe: "M8 2a6 6 0 1 1 0 12A6 6 0 0 1 8 2zM2 8h12M8 2c-2.2 2.4-2.2 9.6 0 12M8 2c2.2 2.4 2.2 9.6 0 12",
   folder: "M2 4h4.5l1.5 1.5H14V13H2z",
@@ -53,7 +55,7 @@ function prettyUrl(u) {
 
 if (PRIV) {
   root.classList.add("private");
-  $("#brand-name").textContent = "GİZLİ PENCERE";
+  $("#brand-name").textContent = T("brand.private");
   $("#st-private").hidden = false;
 }
 
@@ -135,7 +137,7 @@ function makeTab(id) {
   const close = el("button", "tab-close");
   close.type = "button";
   close.tabIndex = -1;
-  close.title = "Sekmeyi kapat (Ctrl+W)";
+  close.title = T("tab.close");
   close.append(icon(ICON.close));
   t.append(ic, title, audio, close);
   close.addEventListener("click", (e) => { e.stopPropagation(); nw.cmd("closeTab", id); });
@@ -202,7 +204,7 @@ function updateTab(node, t) {
       favicon(t.favicon));
   }
   audio.hidden = !(t.audible || t.muted);
-  audio.title = t.muted ? "Sekmenin sesini aç" : "Sekmenin sesini kapat";
+  audio.title = T(t.muted ? "tab.unmute" : "tab.mute");
   const ak = t.muted ? "muted" : "audio";
   if (audio.dataset.key !== ak) { audio.dataset.key = ak; audio.replaceChildren(icon(ICON[ak])); }
 }
@@ -229,18 +231,18 @@ $(".tabstrip").addEventListener("dblclick", (e) => { if (e.target === $("#tabs")
 function tabMenu(t, x, y) {
   const i = state.tabs.findIndex((s) => s.id === t.id);
   showMenu(null, [
-    { label: "Yeni sekme", key: "Ctrl+T", run: () => nw.cmd("newTab") },
+    { label: T("tab.new-tab"), key: "Ctrl+T", run: () => nw.cmd("newTab") },
     "-",
-    { label: "Yeniden yükle", key: "Ctrl+R", run: () => nw.cmd("reloadTab", t.id) },
-    { label: "Çoğalt", run: () => nw.cmd("duplicateTab", t.id) },
-    { label: t.pinned ? "Sabitlemeyi kaldır" : "Sabitle", run: () => nw.cmd("pinTab", t.id) },
-    { label: t.muted ? "Sekmenin sesini aç" : "Sekmenin sesini kapat", run: () => nw.cmd("muteTab", t.id) },
+    { label: T("nav.reload"), key: "Ctrl+R", run: () => nw.cmd("reloadTab", t.id) },
+    { label: T("tab.duplicate"), run: () => nw.cmd("duplicateTab", t.id) },
+    { label: T(t.pinned ? "tab.unpin" : "tab.pin"), run: () => nw.cmd("pinTab", t.id) },
+    { label: T(t.muted ? "tab.unmute" : "tab.mute"), run: () => nw.cmd("muteTab", t.id) },
     "-",
-    { label: "Kapat", key: "Ctrl+W", run: () => nw.cmd("closeTab", t.id) },
-    { label: "Diğer sekmeleri kapat", disabled: state.tabs.length < 2, run: () => nw.cmd("closeOthers", t.id) },
-    { label: "Sağdaki sekmeleri kapat", disabled: i === state.tabs.length - 1, run: () => nw.cmd("closeRight", t.id) },
+    { label: T("win.close"), key: "Ctrl+W", run: () => nw.cmd("closeTab", t.id) },
+    { label: T("tab.close-others"), disabled: state.tabs.length < 2, run: () => nw.cmd("closeOthers", t.id) },
+    { label: T("tab.close-right"), disabled: i === state.tabs.length - 1, run: () => nw.cmd("closeRight", t.id) },
     "-",
-    { label: "Kapatılan sekmeyi yeniden aç", key: "Ctrl+Shift+T", run: () => nw.cmd("reopenTab") },
+    { label: T("tab.reopen"), key: "Ctrl+Shift+T", run: () => nw.cmd("reopenTab") },
   ], { anchor: { x, y, width: 0, height: 0 }, at: "point" });
 }
 
@@ -260,7 +262,7 @@ toggler($("#btn-shield"), "shield", () => nw.cmd("shieldPopup"));
 toggler($("#sec-chip"), "siteinfo", () => nw.cmd("siteInfo"));
 toggler($("#zoom-chip"), "menu", () => {
   const t = activeTab();
-  showMenu($("#zoom-chip"), [{ type: "zoom", label: "Yakınlaştır", zoom: t ? t.zoom : 100 }, "-", { label: "Varsayılana sıfırla", key: "Ctrl+0", run: () => nw.cmd("zoomReset") }], { align: "right", width: 260 });
+  showMenu($("#zoom-chip"), [{ type: "zoom", label: T("zoom.label"), zoom: t ? t.zoom : 100 }, "-", { label: T("zoom.reset"), key: "Ctrl+0", run: () => nw.cmd("zoomReset") }], { align: "right", width: 260 });
 });
 $("#star").addEventListener("click", () => starFlow());
 
@@ -268,39 +270,39 @@ function appMenu() {
   const t = activeTab();
   const web = !!(t && /^https?:/i.test(t.url));
   return [
-    { label: "Yeni sekme", key: "Ctrl+T", run: () => nw.cmd("newTab") },
-    { label: "Yeni pencere", key: "Ctrl+N", run: () => nw.cmd("newWindow") },
-    { label: "Yeni gizli pencere", key: "Ctrl+Shift+N", run: () => nw.cmd("newPrivate") },
+    { label: T("tab.new-tab"), key: "Ctrl+T", run: () => nw.cmd("newTab") },
+    { label: T("menu.new-window"), key: "Ctrl+N", run: () => nw.cmd("newWindow") },
+    { label: T("menu.new-private"), key: "Ctrl+Shift+N", run: () => nw.cmd("newPrivate") },
     "-",
-    { label: "Geçmiş", key: "Ctrl+H", run: () => nw.cmd("history") },
-    { label: "İndirilenler", key: "Ctrl+J", run: () => nw.cmd("downloads") },
-    { label: "Şifreler", run: () => nw.cmd("passwords") },
-    { label: "Yer imleri", sub: [
-      { label: t && t.bookmarked ? "Yer imini düzenle…" : "Bu sekmeyi yer imlerine ekle…", key: "Ctrl+D", disabled: !t || !t.url, run: starFlow },
-      { label: "Yer imleri çubuğunu göster", key: "Ctrl+Shift+B", checked: !!state.showBar, run: () => nw.cmd("toggleBar") },
-      { label: "Yer imi yöneticisi", key: "Ctrl+Shift+O", run: () => nw.cmd("bookmarksManager") },
+    { label: T("page.history"), key: "Ctrl+H", run: () => nw.cmd("history") },
+    { label: T("page.downloads"), key: "Ctrl+J", run: () => nw.cmd("downloads") },
+    { label: T("page.passwords"), run: () => nw.cmd("passwords") },
+    { label: T("page.bookmarks"), sub: [
+      { label: T(t && t.bookmarked ? "menu.bm-edit" : "menu.bm-add"), key: "Ctrl+D", disabled: !t || !t.url, run: starFlow },
+      { label: T("menu.show-bar"), key: "Ctrl+Shift+B", checked: !!state.showBar, run: () => nw.cmd("toggleBar") },
+      { label: T("menu.bm-manager"), key: "Ctrl+Shift+O", run: () => nw.cmd("bookmarksManager") },
     ] },
     "-",
-    { type: "zoom", label: "Yakınlaştır", zoom: t ? t.zoom : 100 },
+    { type: "zoom", label: T("zoom.label"), zoom: t ? t.zoom : 100 },
     "-",
-    { label: "Yazdır…", key: "Ctrl+P", disabled: !t, run: () => nw.cmd("print") },
-    { label: "Sayfada bul…", key: "Ctrl+F", run: () => nw.cmd("find") },
-    { label: "Tema", sub: [
+    { label: T("menu.print"), key: "Ctrl+P", disabled: !t, run: () => nw.cmd("print") },
+    { label: T("menu.find"), key: "Ctrl+F", run: () => nw.cmd("find") },
+    { label: T("menu.theme"), sub: [
       ...THEMES.map(([id, name]) => ({ label: name, checked: state.theme === id, run: () => nw.cmd("theme", id) })),
       "-",
-      { label: "Temayı seriyle eşitle", checked: state.syncTheme !== false, run: () => nw.cmd("syncTheme") },
+      { label: T("menu.theme-sync"), checked: state.syncTheme !== false, run: () => nw.cmd("syncTheme") },
     ] },
-    { label: "Diğer araçlar", sub: [
-      { label: "Sayfa kaynağını görüntüle", key: "Ctrl+U", disabled: !web, run: () => nw.cmd("viewSource") },
-      { label: "Geliştirici araçları", key: "F12", run: () => nw.cmd("devtools") },
-      { label: "Tarama verilerini temizle…", key: "Ctrl+Shift+Del", run: () => nw.cmd("settings", "privacy") },
+    { label: T("menu.more-tools"), sub: [
+      { label: T("menu.view-source"), key: "Ctrl+U", disabled: !web, run: () => nw.cmd("viewSource") },
+      { label: T("menu.devtools"), key: "F12", run: () => nw.cmd("devtools") },
+      { label: T("menu.clear-data"), key: "Ctrl+Shift+Del", run: () => nw.cmd("settings", "privacy") },
     ] },
     "-",
-    { label: "Ayarlar", run: () => nw.cmd("settings") },
-    { label: "Edge'den aktar…", run: () => nw.cmd("settings", "import") },
-    { label: "NeuralWeb hakkında", run: () => nw.cmd("settings", "about") },
+    { label: T("page.settings"), run: () => nw.cmd("settings") },
+    { label: T("menu.import"), run: () => nw.cmd("settings", "import") },
+    { label: T("menu.about"), run: () => nw.cmd("settings", "about") },
     "-",
-    { label: "Çıkış", run: () => nw.cmd("quit") },
+    { label: T("menu.quit"), run: () => nw.cmd("quit") },
   ];
 }
 
@@ -364,14 +366,14 @@ omni.addEventListener("contextmenu", (e) => {
   e.preventDefault();
   const hasSel = omni.selectionStart !== omni.selectionEnd;
   showMenu(null, [
-    { label: "Geri al", key: "Ctrl+Z", run: () => nw.cmd("editUI", "undo") },
+    { label: T("edit.undo"), key: "Ctrl+Z", run: () => nw.cmd("editUI", "undo") },
     "-",
-    { label: "Kes", key: "Ctrl+X", disabled: !hasSel, run: () => nw.cmd("editUI", "cut") },
-    { label: "Kopyala", key: "Ctrl+C", disabled: !hasSel, run: () => nw.cmd("editUI", "copy") },
-    { label: "Yapıştır", key: "Ctrl+V", run: () => nw.cmd("editUI", "paste") },
-    { label: "Yapıştır ve git", run: () => { omniDirty = false; nw.cmd("pasteGo"); } },
+    { label: T("edit.cut"), key: "Ctrl+X", disabled: !hasSel, run: () => nw.cmd("editUI", "cut") },
+    { label: T("edit.copy"), key: "Ctrl+C", disabled: !hasSel, run: () => nw.cmd("editUI", "copy") },
+    { label: T("edit.paste"), key: "Ctrl+V", run: () => nw.cmd("editUI", "paste") },
+    { label: T("omni.paste-go"), run: () => { omniDirty = false; nw.cmd("pasteGo"); } },
     "-",
-    { label: "Tümünü seç", key: "Ctrl+A", run: () => nw.cmd("editUI", "selectAll") },
+    { label: T("edit.select-all"), key: "Ctrl+A", run: () => nw.cmd("editUI", "selectAll") },
   ], { anchor: { x: e.clientX, y: e.clientY, width: 0, height: 0 }, at: "point" });
 });
 nw.on("focus-omnibox", () => { omni.focus(); omni.select(); });
@@ -406,14 +408,14 @@ async function querySuggest() {
 }
 function inlineFor(text) {
   if (!sug.allowInline || /\s/.test(text)) return null;
-  const low = text.toLocaleLowerCase("tr-TR");
+  const low = text.toLocaleLowerCase(T.locale);
   for (const s of sug.local) {
     let host;
     try { host = new URL(s.url).host; } catch (e) { continue; }
     // No slash typed: complete to the site; otherwise to the whole address.
     const cands = text.includes("/") ? [bare(s.url), s.url.replace(/^https?:\/\//i, "")] : [host.replace(/^www\./i, ""), host];
     for (const c of cands) {
-      if (c.length > text.length && c.toLocaleLowerCase("tr-TR").startsWith(low)) {
+      if (c.length > text.length && c.toLocaleLowerCase(T.locale).startsWith(low)) {
         const url = text.includes("/") ? s.url : `${new URL(s.url).protocol}//${host}/`;
         return { url, text: text + c.slice(text.length), title: s.title };
       }
@@ -429,8 +431,8 @@ function buildSuggest(text) {
     omni.setSelectionRange(text.length, inline.text.length);
   }
   const first = inline ? { kind: "url", url: inline.url, main: inline.text, sub: inline.title || "" }
-    : isGoogleSearch(sug.resolved) ? { kind: "search", query: text, main: text, sub: "Google'da ara" }
-    : { kind: "url", url: sug.resolved, main: text, sub: "Adrese git" };
+    : isGoogleSearch(sug.resolved) ? { kind: "search", query: text, main: text, sub: T("omni.search-google") }
+    : { kind: "url", url: sug.resolved, main: text, sub: T("omni.go") };
   const items = [first];
   const seen = new Set([first.url]);
   for (const s of sug.local) {
@@ -438,10 +440,10 @@ function buildSuggest(text) {
     seen.add(s.url);
     items.push({ kind: s.type, url: s.url, main: s.title || bare(s.url), sub: prettyUrl(s.url) });
   }
-  const queries = new Set([text.trim().toLocaleLowerCase("tr-TR")]);
+  const queries = new Set([text.trim().toLocaleLowerCase(T.locale)]);
   for (const q of sug.remote) {
     if (items.length >= 9) break;
-    const k = q.toLocaleLowerCase("tr-TR");
+    const k = q.toLocaleLowerCase(T.locale);
     if (queries.has(k)) continue;
     queries.add(k);
     items.push({ kind: "search", query: q, main: q, sub: "" });
@@ -482,12 +484,12 @@ function findMark(url) {
   return hit;
 }
 function folderOptions(exclude) {
-  const out = [{ value: "bar", label: "Yer imleri çubuğu" }];
+  const out = [{ value: "bar", label: T("bm.bar") }];
   const go = (list, depth) => {
     for (const n of list) if (n.type === "folder" && n.id !== exclude) { out.push({ value: n.id, label: "· ".repeat(depth) + n.title }); go(n.children, depth + 1); }
   };
   go(marks.bar, 1);
-  out.push({ value: "other", label: "Diğer yer imleri" });
+  out.push({ value: "other", label: T("bm.other") });
   go(marks.other, 1);
   return out;
 }
@@ -506,12 +508,12 @@ async function starFlow() {
   openPopup({
     kind: "prompt", anchor: rectOf(star), align: "right", width: 340,
     data: {
-      title: created ? "Yer imi eklendi" : "Yer imini düzenle", icon: "star",
+      title: T(created ? "bm.added" : "bm.edit"), icon: "star",
       fields: [
-        { id: "title", label: "Ad", value: hit.node.title },
-        { id: "parent", label: "Klasör", type: "select", value: hit.parent, options: folderOptions() },
+        { id: "title", label: T("bm.name"), value: hit.node.title },
+        { id: "parent", label: T("bm.folder"), type: "select", value: hit.parent, options: folderOptions() },
       ],
-      buttons: [{ id: "remove", label: "Kaldır" }, { id: "done", label: "Bitti", primary: true }],
+      buttons: [{ id: "remove", label: T("dlg.remove") }, { id: "done", label: T("bm.done"), primary: true }],
     },
   }, star, async (v) => {
     if (!v) return;
@@ -529,40 +531,40 @@ function markDefs(list) {
   const defs = list.map((n) => n.type === "folder"
     ? { label: n.title, icon: "folder", sub: markDefs(n.children) }
     : { label: n.title || n.url, icon: n.favicon || "globe", run: () => openMark(n.url, "") });
-  if (!defs.length) defs.push({ label: "(boş)", disabled: true });
+  if (!defs.length) defs.push({ label: T("bm.empty"), disabled: true });
   const urls = list.filter((n) => n.type === "url").map((n) => n.url);
-  if (urls.length > 1) defs.push("-", { label: `Tümünü yeni sekmelerde aç (${urls.length})`, run: () => urls.forEach((u) => openMark(u, "tab")) });
+  if (urls.length > 1) defs.push("-", { label: T("bm.open-all-n", { n: urls.length }), run: () => urls.forEach((u) => openMark(u, "tab")) });
   return defs;
 }
 function editMark(n) {
-  const fields = [{ id: "title", label: "Ad", value: n.title }];
-  if (n.type === "url") fields.push({ id: "url", label: "Adres", value: n.url });
+  const fields = [{ id: "title", label: T("bm.name"), value: n.title }];
+  if (n.type === "url") fields.push({ id: "url", label: T("bm.address"), value: n.url });
   openPopup({
     kind: "prompt", anchor: rectOf($("#omnibox")), width: 380,
-    data: { title: n.type === "url" ? "Yer imini düzenle" : "Klasörü yeniden adlandır", icon: "star", fields, buttons: [{ id: "cancel", label: "Vazgeç" }, { id: "save", label: "Kaydet", primary: true }] },
+    data: { title: T(n.type === "url" ? "bm.edit" : "bm.rename-folder"), icon: "star", fields, buttons: [{ id: "cancel", label: T("dlg.cancel") }, { id: "save", label: T("dlg.save"), primary: true }] },
   }, null, (v) => {
     if (v && v.button === "save") nw.bookmark("update", n.id, { title: v.values.title, url: v.values.url });
   }, null);
 }
 function markMenu(b, n) {
-  const del = { label: "Sil", danger: true, run: () => nw.bookmark("remove", n.id) };
+  const del = { label: T("dlg.delete"), danger: true, run: () => nw.bookmark("remove", n.id) };
   showMenu(b, n.type === "url" ? [
-    { label: "Aç", run: () => openMark(n.url, "") },
-    { label: "Yeni sekmede aç", run: () => openMark(n.url, "tab") },
-    { label: "Yeni pencerede aç", run: () => openMark(n.url, "window") },
-    { label: "Gizli pencerede aç", run: () => openMark(n.url, "private") },
+    { label: T("dlg.open"), run: () => openMark(n.url, "") },
+    { label: T("bm.open-tab"), run: () => openMark(n.url, "tab") },
+    { label: T("bm.open-window"), run: () => openMark(n.url, "window") },
+    { label: T("bm.open-private"), run: () => openMark(n.url, "private") },
     "-",
-    { label: "Düzenle…", run: () => editMark(n) },
+    { label: T("bm.edit-menu"), run: () => editMark(n) },
     del,
     "-",
-    { label: "Yer imi yöneticisi", run: () => nw.cmd("bookmarksManager") },
+    { label: T("menu.bm-manager"), run: () => nw.cmd("bookmarksManager") },
   ] : [
-    { label: "Tümünü yeni sekmelerde aç", disabled: !urlsIn(n).length, run: () => urlsIn(n).forEach((u) => openMark(u, "tab")) },
+    { label: T("bm.open-all"), disabled: !urlsIn(n).length, run: () => urlsIn(n).forEach((u) => openMark(u, "tab")) },
     "-",
-    { label: "Yeniden adlandır…", run: () => editMark(n) },
+    { label: T("bm.rename"), run: () => editMark(n) },
     del,
     "-",
-    { label: "Yer imi yöneticisi", run: () => nw.cmd("bookmarksManager") },
+    { label: T("menu.bm-manager"), run: () => nw.cmd("bookmarksManager") },
   ]);
 }
 function markButton(n) {
@@ -583,7 +585,7 @@ function markButton(n) {
 function renderBar() {
   const box = $("#bm-items");
   box.replaceChildren(...marks.bar.map(markButton));
-  if (!marks.bar.length) box.append(el("span", "bm-empty", "Sayfaları ☆ ile (Ctrl+D) buraya ekle"));
+  if (!marks.bar.length) box.append(el("span", "bm-empty", T("bm.bar-empty")));
   $("#bm-other").hidden = !marks.other.length;
   fitBar();
 }
@@ -643,25 +645,26 @@ nw.on("find-result", ({ active, matches }) => {
 });
 
 /* ============================================================ error / crash panel */
+// Chromium's network error codes: the title and the explanation of the error panel, as text keys.
 const ERRORS = {
-  "-105": ["Bu siteye ulaşılamıyor", "Sitenin sunucu adresi bulunamadı. Adresi doğru yazdığından emin ol."],
-  "-137": ["Bu siteye ulaşılamıyor", "Sitenin sunucu adresi çözümlenemedi. Bağlantını ve DNS ayarlarını kontrol et."],
-  "-106": ["İnternet bağlantısı yok", "Ağ kablosunu, modemi ya da Wi-Fi bağlantını kontrol et."],
-  "-102": ["Bu siteye ulaşılamıyor", "Sunucu bağlantıyı reddetti."],
-  "-118": ["Bağlantı zaman aşımına uğradı", "Sunucu zamanında yanıt vermedi. Biraz sonra yeniden dene."],
-  "-7": ["Bağlantı zaman aşımına uğradı", "İstek zamanında tamamlanamadı."],
-  "-101": ["Bağlantı sıfırlandı", "Sunucuyla bağlantı yarıda kesildi."],
-  "-100": ["Bağlantı kapandı", "Sunucu bağlantıyı beklenmedik şekilde kapattı."],
-  "-109": ["Bu siteye ulaşılamıyor", "Sunucunun adresine ulaşılamıyor."],
-  "-21": ["Ağ değişti", "Bağlantın değişti. Sayfayı yeniden yükle."],
-  "-310": ["Bu sayfa çalışmıyor", "Site seni çok fazla kez yönlendirdi. Bu sitenin çerezlerini temizlemek işe yarayabilir."],
-  "-324": ["Bu sayfa çalışmıyor", "Sunucu hiç veri göndermedi."],
-  "-6": ["Dosya bulunamadı", "Dosya taşınmış, adı değişmiş ya da silinmiş olabilir."],
-  "-300": ["Geçersiz adres", "Bu adres açılamıyor."],
-  "-301": ["Bu adres açılamıyor", "NeuralWeb bu tür bağlantıları açmıyor."],
-  "-10": ["Erişim engellendi", "Bu sayfayı açma izni yok."],
-  "-20": ["Erişim engellendi", "Bu sayfa engellendi."],
-  "-312": ["Bu adres engellendi", "Bu bağlantı noktası (port) güvenlik nedeniyle tarayıcılarda kapalıdır."],
+  "-105": ["err.unreachable", "err.text.105"],
+  "-137": ["err.unreachable", "err.text.137"],
+  "-106": ["err.offline", "err.text.106"],
+  "-102": ["err.unreachable", "err.text.102"],
+  "-118": ["err.timeout", "err.text.118"],
+  "-7": ["err.timeout", "err.text.7"],
+  "-101": ["err.reset", "err.text.101"],
+  "-100": ["err.closed", "err.text.100"],
+  "-109": ["err.unreachable", "err.text.109"],
+  "-21": ["err.network-changed", "err.text.21"],
+  "-310": ["err.broken", "err.text.310"],
+  "-324": ["err.broken", "err.text.324"],
+  "-6": ["err.file", "err.text.6"],
+  "-300": ["err.invalid", "err.text.300"],
+  "-301": ["err.unsupported", "err.text.301"],
+  "-10": ["err.denied", "err.text.10"],
+  "-20": ["err.denied", "err.text.20"],
+  "-312": ["err.blocked-port", "err.text.312"],
 };
 let advOpen = false;
 function renderError(t) {
@@ -670,26 +673,27 @@ function renderError(t) {
   if (!show) { advOpen = false; return; }
   let code, title, text, url = "";
   if (t.crashed) {
-    code = "SEKME ÇÖKTÜ";
-    title = "Bu sekme çöktü";
-    text = "Sayfayı gösterirken bir sorun oluştu. Yeniden yüklemeyi dene.";
+    code = T("err.crash.code");
+    title = T("err.crash");
+    text = T("err.crash.text");
     url = t.url;
   } else {
     const e = t.error;
-    code = e.desc || `HATA ${e.code}`;
+    code = e.desc || T("err.code", { code: e.code });
     url = e.url;
-    if (e.cert) { title = "Bağlantın gizli değil"; text = "Saldırganlar bu siteden bilgilerini (şifreler, mesajlar, kart bilgileri) çalmaya çalışıyor olabilir. Sitenin güvenlik sertifikası doğrulanamadı."; }
-    else [title, text] = ERRORS[String(e.code)] || ["Bu sayfa açılamadı", "Sayfa yüklenirken bir hata oluştu."];
+    const [tk, xk] = e.cert ? ["err.cert", "err.cert.text"] : ERRORS[String(e.code)] || ["err.generic", "err.generic.text"];
+    title = T(tk);
+    text = T(xk);
   }
   $("#err-code").textContent = code;
   $("#err-title").textContent = title;
   $("#err-text").textContent = text;
   $("#err-url").textContent = prettyUrl(url);
-  $("#err-retry").textContent = t.crashed ? "Yeniden yükle" : t.error && t.error.cert ? "Güvenli yere dön" : "Yeniden dene";
+  $("#err-retry").textContent = T(t.crashed ? "nav.reload" : t.error && t.error.cert ? "err.back-to-safety" : "err.retry");
   const cert = !!(t.error && t.error.cert);
   $("#err-adv-btn").hidden = !cert;
   $("#err-adv").hidden = !(cert && advOpen);
-  $("#err-adv-text").textContent = `Bu sitenin kimliği doğrulanamadı (${t.error ? t.error.desc : ""}). Bu bir saldırı olabilir; yalnızca siteyi tanıyor ve güveniyorsan devam et.`;
+  $("#err-adv-text").textContent = T("err.cert.adv", { desc: t.error ? t.error.desc : "" });
 }
 $("#err-retry").addEventListener("click", () => {
   const t = activeTab();
@@ -707,7 +711,7 @@ nw.on("downloads", (d) => {
   b.querySelector(".ring circle").style.strokeDasharray = d.progress > 0 ? `${Math.round(d.progress * 100)} 100` : "";
   $("#dl-badge").hidden = d.active < 2;
   $("#dl-badge").textContent = d.active;
-  b.title = d.active ? `İndiriliyor: ${d.active} dosya (Ctrl+J)` : "İndirilenler (Ctrl+J)";
+  b.title = d.active ? T("dl.button.active", { n: d.active }) : T("dl.button");
 });
 
 /* ============================================================ state */
@@ -732,21 +736,21 @@ function render() {
   } else syncOmni(false);
   $("#btn-back").disabled = !(t && t.canBack);
   $("#btn-forward").disabled = !(t && t.canForward);
-  $("#btn-reload").title = t && t.loading ? "Durdur (Esc)" : "Yeniden yükle (F5)";
+  $("#btn-reload").title = T(t && t.loading ? "nav.stop.title" : "nav.reload.title");
   const sec = !t || !t.url ? "empty" : t.security;
   const chip = $("#sec-chip");
   chip.dataset.sec = sec;
-  $("#sec-label").textContent = sec === "insecure" ? "Güvenli değil" : sec === "internal" ? "NW" : "";
-  chip.title = { secure: "Bağlantı güvenli", insecure: "Bağlantı güvenli değil", internal: "NeuralWeb sayfası", file: "Yerel dosya", empty: "Google'da ara veya adres yaz", other: "Site bilgileri" }[sec] || "Site bilgileri";
+  $("#sec-label").textContent = sec === "insecure" ? T("sec.not-secure") : sec === "internal" ? "NW" : "";
+  chip.title = T({ secure: "sec.secure", insecure: "sec.insecure", internal: "sec.internal", file: "sec.file", empty: "omni.placeholder", other: "site.info" }[sec] || "site.info");
   const zoom = t ? t.zoom : 100;
   $("#zoom-chip").hidden = zoom === 100;
-  $("#zoom-chip").textContent = `%${zoom}`;
+  $("#zoom-chip").textContent = T("zoom.pct", { n: zoom });
   $("#st-zoom").hidden = zoom === 100;
-  $("#st-zoom").textContent = `YAKINLAŞTIRMA %${zoom}`;
-  $("#st-sec").textContent = { secure: "HTTPS", insecure: "HTTP", internal: "NW-1", file: "DOSYA", empty: "HAZIR", other: "—" }[sec] || "—";
+  $("#st-zoom").textContent = T("status.zoom", { n: zoom });
+  $("#st-sec").textContent = { secure: "HTTPS", insecure: "HTTP", internal: "NW-1", file: T("status.file"), empty: T("status.ready"), other: "—" }[sec] || "—";
   $("#star").disabled = !t || !t.url;
   $("#star").classList.toggle("on", !!(t && t.url && (t.bookmarked || findMark(t.url))));
-  $("#star").title = t && t.bookmarked ? "Yer imini düzenle (Ctrl+D)" : "Bu sekmeyi yer imlerine ekle (Ctrl+D)";
+  $("#star").title = T(t && t.bookmarked ? "star.edit" : "star.add");
   renderShield(t);
   setStatus();
   renderError(t);
@@ -761,17 +765,15 @@ function renderShield(t) {
   const badge = $("#shield-badge");
   badge.hidden = !(st === "on" && n > 0);
   badge.textContent = n > 99 ? "99+" : String(n);
-  b.title = st === "on" ? (n ? `Kalkan: bu sayfada ${n} reklam ve izleyici engellendi` : "Kalkan açık")
-    : st === "site" ? "Kalkan bu sitede kapalı"
-    : st === "off" ? "Kalkan kapalı"
-    : "Kalkan bu sayfada çalışmaz";
+  b.title = st === "on" ? (n ? T("shield.title.blocked", { n }) : T("shield.title.on"))
+    : T(st === "site" ? "shield.title.site" : st === "off" ? "shield.title.off" : "shield.title.na");
 }
 let hoverUrl = "";
 function setStatus() {
   const t = activeTab();
   const s = $("#st-status");
   root.classList.toggle("hovering", !!hoverUrl);
-  s.textContent = hoverUrl ? prettyUrl(hoverUrl) : t && t.loading ? `Yükleniyor: ${prettyUrl(t.url) || "…"}` : t && t.url ? prettyUrl(t.url) : "NEURALWEB NW-1 // HAZIR";
+  s.textContent = hoverUrl ? prettyUrl(hoverUrl) : t && t.loading ? T("status.loading", { url: prettyUrl(t.url) || "…" }) : t && t.url ? prettyUrl(t.url) : T("status.idle");
 }
 nw.on("state", (s) => { state = s; render(); });
 nw.on("hover", (url) => { hoverUrl = url || ""; setStatus(); });

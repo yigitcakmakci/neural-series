@@ -1,4 +1,5 @@
 "use strict";
+require("../../tools/lang-env")(); // the programs it starts speak Turkish, the language of its checks
 // Drives NeuralDeck through the Chrome DevTools protocol. Nothing is really started or copied: NEURALDECK_TEST_LAUNCH
 // records it in a file, and NEURAL_ROOT points at a folder of fake programs (NeuralView is left out on purpose).
 // Throwaway profiles, a temp series theme file and test shortcuts that nobody else uses.

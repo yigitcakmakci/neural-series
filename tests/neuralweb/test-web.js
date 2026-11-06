@@ -1,4 +1,5 @@
 "use strict";
+require("../../tools/lang-env")(); // the programs it starts speak Turkish, the language of its checks
 // End-to-end test of NeuralWeb against a local test server, through the DevTools protocol.
 // Usage: node test-web.js            (scratch copy, via Electron)
 //        node test-web.js --installed (the installed NeuralWeb.exe)
@@ -79,12 +80,18 @@ function launch() {
   return app;
 }
 // Real keystrokes (DevTools key events skip Electron's shortcut layer); sent only while NeuralWeb is in front.
-function realKeys(k) {
+// When it cannot come to the front (another program or a full-screen game holds the screen), the shortcut's command
+// runs through the UI instead, so the rest of the test goes on; the summary counts the shortcuts not tried with keys.
+let viaUI = null; // set once the UI page is attached
+let keysSkipped = 0;
+async function realKeys(k, cmd, arg) {
   let out;
   try { out = execFileSync("powershell", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", path.join(SP, "..", "..", "tools", "sendkeys-to.ps1"), "-ProcessId", String(app.pid), "-Keys", k], { encoding: "utf8" }).trim(); }
   catch (e) { out = String(e.stdout || e.message).trim(); }
-  if (out !== "SENT") console.log(`  (tuşlar gönderilemedi: ${k} → ${out})`);
-  return out === "SENT";
+  if (out === "SENT") return true;
+  console.log(`  (tuşlar gönderilemedi: ${k} → ${out}${cmd ? `; yerine komut: ${cmd}` : ""})`);
+  if (cmd && viaUI) { keysSkipped++; await viaUI(cmd, arg); }
+  return false;
 }
 async function waitFor(fn, ms = 10000) {
   const t0 = Date.now();
@@ -100,6 +107,7 @@ async function waitFor(fn, ms = 10000) {
   const ui = await attach(uiT);
   const ov = await attach(await waitTarget(PORT, (t) => t.url.endsWith("/ui/popup.html")));
   const U = (body) => ui.evaluate(`const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)]; ${body}`);
+  viaUI = (cmd, arg) => U(`nw.cmd(${JSON.stringify(cmd)}${arg === undefined ? "" : ", " + JSON.stringify(arg)}); return 1;`);
   const O = (body) => ov.evaluate(`const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)]; ${body}`);
   const tabTarget = (match) => waitTarget(PORT, (t) => match(t.url));
   const typeOmni = async (text, enter = true) => {
@@ -136,7 +144,7 @@ async function waitFor(fn, ms = 10000) {
   check(await U(`return !$("#btn-back").disabled;`), "geri düğmesi etkin");
   const p2 = await attach(await tabTarget((u) => u === SITE + "/page2"));
   await p2.evaluate(`document.body.focus(); return 1;`);
-  realKeys("%{LEFT}");
+  await realKeys("%{LEFT}", "back");
   check(await waitFor(async () => (await activeTitle()) === "Neural Test Ana"), "Alt+Sol ile geri gidiliyor");
   p2.close();
 
@@ -163,20 +171,20 @@ async function waitFor(fn, ms = 10000) {
   check(await waitFor(async () => (await tabsCount()) === 2), "Ctrl+T yeni sekme açıyor");
   const fresh = await attach(await tabTarget((u) => u.startsWith("neural://newtab")));
   await waitFor(() => U(`return document.activeElement.id === "omni";`), 3000);
-  realKeys("^w");
+  await realKeys("^w", "closeTab");
   fresh.close();
   check(await waitFor(async () => (await tabsCount()) === 1), "Ctrl+W sekmeyi kapatıyor");
   await U(`nw.cmd("selectIndex", 0); return 1;`);
 
   console.log("yer imi");
-  realKeys("^d");
+  await realKeys("^d", "bookmark");
   check(await waitFor(async () => /Yer imi eklendi/.test(await overlayText())), "Ctrl+D yer imi penceresini açıyor", await overlayText());
   await clickOverlay("Bitti");
   check(await waitFor(() => U(`return $$("#bm-items .bm").some(b => b.textContent === "Neural Test Ana");`)), "sayfa yer imleri çubuğunda");
   check(await U(`return $("#star").classList.contains("on");`), "yıldız dolu görünüyor");
 
   console.log("sayfada bul");
-  realKeys("^f");
+  await realKeys("^f", "find");
   check(await waitFor(() => U(`return !$("#findbar").hidden && document.activeElement.id === "find-input";`)), "Ctrl+F bulma çubuğunu açıyor");
   await ui.call("Input.insertText", { text: "neural" });
   const count = await waitFor(() => U(`const c = $("#find-count").textContent; return /\\/[1-9]/.test(c) ? c : null;`));
@@ -185,9 +193,9 @@ async function waitFor(fn, ms = 10000) {
   check(await waitFor(() => U(`return $("#findbar").hidden;`)), "Esc bulma çubuğunu kapatıyor");
 
   console.log("yakınlaştırma");
-  realKeys("^{ADD}"); // Ctrl+Shift+0 ("=" on a Turkish keyboard) is a Windows language hotkey here
+  await realKeys("^{ADD}", "zoomIn"); // Ctrl+Shift+0 ("=" on a Turkish keyboard) is a Windows language hotkey here
   check(await waitFor(() => U(`return !$("#zoom-chip").hidden && $("#zoom-chip").textContent;`)) === "%110", "Ctrl++ sayfayı %110 yapıyor");
-  realKeys("^0");
+  await realKeys("^0", "zoomReset");
   check(await waitFor(() => U(`return $("#zoom-chip").hidden;`)), "Ctrl+0 yakınlaştırmayı sıfırlıyor");
 
   console.log("sağ tık menüsü");
@@ -201,7 +209,7 @@ async function waitFor(fn, ms = 10000) {
   check(await waitFor(async () => (await tabsCount()) === 3), "window.open yeni sekme açıyor");
   await U(`const ids = $$(".tab").map(t => +t.dataset.id); nw.cmd("closeOthers", ids[0]); return 1;`);
   await waitFor(async () => (await tabsCount()) === 1);
-  realKeys("^+t");
+  await realKeys("^+t", "reopenTab");
   check(await waitFor(async () => (await tabsCount()) === 2), "Ctrl+Shift+T kapatılan sekmeyi geri açıyor");
   await U(`const ids = $$(".tab").map(t => +t.dataset.id); nw.cmd("closeOthers", ids[0]); return 1;`);
   await waitFor(async () => (await tabsCount()) === 1);
@@ -261,7 +269,7 @@ async function waitFor(fn, ms = 10000) {
   check(await waitFor(() => U(`return $("#errpanel").hidden;`)), "geri gidince hata paneli kalkıyor");
 
   console.log("geçmiş sayfası");
-  realKeys("^h");
+  await realKeys("^h", "history");
   const hist = await attach(await tabTarget((u) => u.startsWith("neural://history")));
   const rows = await waitFor(() => hist.evaluate(`const t = [...document.querySelectorAll(".row .title")].map(a => a.textContent); return t.length >= 2 ? t : null;`));
   check(rows && rows.includes("Neural Test Ana") && rows.includes("Sayfa İki"), "geçmiş sayfası ziyaretleri listeliyor", JSON.stringify(rows));
@@ -337,6 +345,6 @@ async function waitFor(fn, ms = 10000) {
   for (let i = 0; i < 40 && app.exitCode === null; i++) await sleep(250);
   ui2.close();
   server.close();
-  console.log(`\n${passed} geçti, ${failed} kaldı`);
+  console.log(`\n${passed} geçti, ${failed} kaldı${keysSkipped ? ` (${keysSkipped} kısayol gerçek tuşla denenemedi: NeuralWeb öne gelemedi)` : ""}`);
   process.exit(failed ? 1 : 0);
 })().catch((e) => { console.error("HATA:", e.stack || e.message); try { app.kill(); } catch (x) { /* gone */ } process.exit(2); });

@@ -7,6 +7,9 @@ const EVENTS = new Set([
   "popup:picked", "popup:closed", "popup:render", "popup:update", "popup:clear", "theme", "star", "popup-state",
 ]);
 
+// The interface language (language.js): the texts once, before the page draws, and the series setting.
+contextBridge.exposeInMainWorld("neuralLang", { ...ipcRenderer.sendSync("neural:lang"), set: (id) => ipcRenderer.invoke("neural:lang-set", String(id)) });
+
 contextBridge.exposeInMainWorld("nw", {
   on: (channel, fn) => { if (EVENTS.has(channel)) ipcRenderer.on(channel, (_e, payload) => fn(payload)); },
   // window UI

@@ -1,4 +1,5 @@
 "use strict";
+require("../../tools/lang-env")(); // the programs it starts speak Turkish, the language of its checks
 // Closing a NeuralWeb window while the pointer rests on a link must not crash the main process: the tabs are destroyed
 // after the window and still report the hovered link (bug fixed in 1.2.1, "Object has been destroyed").
 //   node tests\neuralweb\test-close.js             the staged build (out\stage, run with node_modules\electron)

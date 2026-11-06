@@ -162,6 +162,19 @@ Copy-Fonts "$deck\fonts" @('fonts.css')
 foreach ($a in 'NeuralPad', 'NeuralNav', 'NeuralTerm', 'NeuralWeb', 'NeuralView', 'NeuralDeck') { Copy-Item "$apps\shared\theme-sync.js" "$stage\apps\$a\theme-sync.js" }
 # The hand-off module (which series program opens a file, a folder or an address), next to the programs that hand off
 foreach ($a in 'NeuralNav', 'NeuralTerm', 'NeuralWeb') { Copy-Item "$apps\shared\handoff.js" "$stage\apps\$a\handoff.js" }
+# The interface language: each program's lang\ folder, the language module next to its main.js and the text helper
+# next to its pages (NeuralWeb's neural:// pages are served from pages\, so they get their own copy)
+foreach ($a in 'NeuralCalc', 'NeuralPad', 'NeuralNav', 'NeuralTerm', 'NeuralWeb', 'NeuralView', 'NeuralDeck') {
+  Copy-Item "$apps\$($a.ToLower())\lang" "$stage\apps\$a\lang" -Recurse
+  foreach ($f in 'language.js', 'i18n.js') { Copy-Item "$apps\shared\$f" "$stage\apps\$a\$f" }
+}
+Copy-Item "$apps\shared\i18n.js" "$web\pages\i18n.js"
+# From source the pages load ../shared/...; installed, the shared files lie next to the program (one folder up from ui\)
+Get-ChildItem "$stage\apps" -Recurse -Filter *.html | Where-Object { $_.FullName -notmatch '\\node_modules\\' } | ForEach-Object {
+  $html = [IO.File]::ReadAllText($_.FullName, [Text.Encoding]::UTF8)
+  $fixed = [regex]::Replace($html, '(src|href)="((?:\.\./)*)\.\./shared/', '$1="$2')
+  if ($fixed -ne $html) { [IO.File]::WriteAllText($_.FullName, $fixed, (New-Object Text.UTF8Encoding($false))) }
+}
 
 # Windows icon set (optional in the setup: This PC, Recycle Bin, Network, user folder)
 Copy-Files (Join-Path $root 'assets\windows-icons') "$stage\simgeler" (Get-ChildItem (Join-Path $root 'assets\windows-icons') -Filter *.ico | ForEach-Object Name)
@@ -183,7 +196,7 @@ namespace NeuralSetup { static class BuildInfo { public const string Version = "
 $stub = "$obj\setup.exe"
 Invoke-Csc @('/target:winexe', '/platform:x64', '/codepage:65001', "/win32manifest:$src\app.manifest", "/win32icon:$src\setup.ico", "/out:$stub",
   "/r:$fw\System.Windows.Forms.dll", "/r:$fw\System.Drawing.dll", "/r:$fw\System.IO.Compression.dll", "/r:$fw\System.IO.Compression.FileSystem.dll",
-  "$src\Program.cs", "$src\Engine.cs", "$src\Controls.cs", "$src\Wizard.cs", "$obj\BuildInfo.cs")
+  "$src\Program.cs", "$src\Engine.cs", "$src\Controls.cs", "$src\Wizard.cs", "$src\Strings.cs", "$obj\BuildInfo.cs")
 
 $zip = "$obj\payload.zip"
 [IO.Compression.ZipFile]::CreateFromDirectory($stage, $zip, [IO.Compression.CompressionLevel]::Optimal, $false)

@@ -2,7 +2,7 @@
 <html lang="tr" class="theme-neon">
 <head>
 <meta charset="utf-8">
-<title>Yer imleri</title>
+<title data-i18n="page.bookmarks">Yer imleri</title>
 <link rel="stylesheet" href="fonts/fonts.css">
 <link rel="stylesheet" href="theme.css">
 <link rel="stylesheet" href="pages.css">
@@ -35,15 +35,15 @@
 <body>
 <div class="bg" aria-hidden="true"><div class="beam"></div></div>
 <header class="top">
-  <span class="mark">NW-1</span><h1>Yer imleri</h1>
-  <nav><a href="neural://history/">Geçmiş</a><a href="neural://bookmarks/" aria-current="page">Yer imleri</a><a href="neural://passwords/">Şifreler</a><a href="neural://downloads/">İndirilenler</a><a href="neural://settings/">Ayarlar</a></nav>
+  <span class="mark">NW-1</span><h1 data-i18n="page.bookmarks">Yer imleri</h1>
+  <nav><a href="neural://history/" data-i18n="page.history">Geçmiş</a><a href="neural://bookmarks/" aria-current="page" data-i18n="page.bookmarks">Yer imleri</a><a href="neural://passwords/" data-i18n="page.passwords">Şifreler</a><a href="neural://downloads/" data-i18n="page.downloads">İndirilenler</a><a href="neural://settings/" data-i18n="page.settings">Ayarlar</a></nav>
 </header>
 <div class="rule"></div>
 <main class="wrap">
   <div class="bar">
-    <label class="field"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M7 3a4 4 0 1 1 0 8a4 4 0 0 1 0-8zM10 10l3.5 3.5"/></svg><input id="q" type="search" placeholder="Yer imlerinde ara" autocomplete="off" spellcheck="false" aria-label="Yer imlerinde ara"></label>
-    <button class="btn" id="add-mark" type="button">+ Yer imi</button>
-    <button class="btn" id="add-folder" type="button">+ Klasör</button>
+    <label class="field"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M7 3a4 4 0 1 1 0 8a4 4 0 0 1 0-8zM10 10l3.5 3.5"/></svg><input id="q" type="search" placeholder="Yer imlerinde ara" autocomplete="off" spellcheck="false" aria-label="Yer imlerinde ara" data-i18n-placeholder="bm.search" data-i18n-aria-label="bm.search"></label>
+    <button class="btn" id="add-mark" type="button" data-i18n="bm.add-mark">+ Yer imi</button>
+    <button class="btn" id="add-folder" type="button" data-i18n="bm.add-folder">+ Klasör</button>
   </div>
   <div class="split">
     <aside class="tree panel"><div class="panel-in" id="tree"></div></aside>
@@ -57,16 +57,17 @@
 <dialog class="hud" id="dlg">
   <form method="dialog">
     <div class="body">
-      <h2 id="dlg-title">Yer imini düzenle</h2>
+      <h2 id="dlg-title" data-i18n="bm.edit">Yer imini düzenle</h2>
       <div class="content">
-        <label><span class="label">Ad</span><input id="f-title" type="text" autocomplete="off" required></label>
-        <label id="f-url-wrap"><span class="label">Adres</span><input id="f-url" type="text" autocomplete="off" spellcheck="false"></label>
-        <label><span class="label">Klasör</span><select id="f-parent"></select></label>
+        <label><span class="label" data-i18n="bm.name">Ad</span><input id="f-title" type="text" autocomplete="off" required></label>
+        <label id="f-url-wrap"><span class="label" data-i18n="bm.address">Adres</span><input id="f-url" type="text" autocomplete="off" spellcheck="false"></label>
+        <label><span class="label" data-i18n="bm.folder">Klasör</span><select id="f-parent"></select></label>
       </div>
-      <div class="btns"><button class="btn" value="cancel" formnovalidate>Vazgeç</button><button class="btn primary" value="ok">Kaydet</button></div>
+      <div class="btns"><button class="btn" value="cancel" formnovalidate data-i18n="dlg.cancel">Vazgeç</button><button class="btn primary" value="ok" data-i18n="dlg.save">Kaydet</button></div>
     </div>
   </form>
 </dialog>
+<script src="i18n.js"></script>
 <script src="pages.js"></script>
 <script src="bookmarks.js"></script>
 </body>

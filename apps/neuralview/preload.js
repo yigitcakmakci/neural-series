@@ -1,6 +1,9 @@
 "use strict";
 const { contextBridge, ipcRenderer, webUtils } = require("electron");
 
+// The interface language (language.js): the texts once, before the page draws, and the series setting.
+contextBridge.exposeInMainWorld("neuralLang", { ...ipcRenderer.sendSync("neural:lang"), set: (id) => ipcRenderer.invoke("neural:lang-set", String(id)) });
+
 contextBridge.exposeInMainWorld("vw", {
   // window
   minimize: () => ipcRenderer.send("vw:minimize"),

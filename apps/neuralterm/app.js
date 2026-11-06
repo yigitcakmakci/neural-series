@@ -9,12 +9,14 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 const readJSON = k => { try { return JSON.parse(localStorage.getItem(k)) || null; } catch { return null; } };
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 const nt = window.nt;
+// Interface texts in the series language (lang\*.json through language.js and i18n.js).
+const T = NeuralI18n.page(window);
 const root = document.documentElement;
 const el = { tabs: $('#tabs'), terms: $('#terms'), title: $('#band-title'), popups: $('#popups'), toast: $('#toast'), shell: $('#st-shell'), size: $('#st-size'), font: $('#st-font') };
 
 /* ---------------- Settings ---------------- */
 const SETTINGS_KEY = 'neuralterm.settings';
-const THEMES = [{ id: 'neon', name: 'Neon' }, { id: 'ice', name: 'Buz' }, { id: 'alarm', name: 'Alarm' }, { id: 'daylight', name: 'Gündüz' }];
+const THEMES = ['neon', 'ice', 'alarm', 'daylight'].map(id => ({ id, name: T('theme.' + id) }));
 const S = Object.assign({ theme: 'neon', syncTheme: true, fontSize: 15, shell: 'powershell' }, readJSON(SETTINGS_KEY));
 const saveSettings = () => { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(S)); } catch { /* storage unavailable */ } };
 
@@ -129,7 +131,7 @@ function cycle(dir) {
 }
 
 const tabLabel = t => {
-  if (t.title && !/\\(cmd|powershell|pwsh|bash|wsl)\.exe$/i.test(t.title)) return t.title.replace(/^Yönetici: /, '');
+  if (t.title && !/\\(cmd|powershell|pwsh|bash|wsl)\.exe$/i.test(t.title)) return t.title.replace(/^(Yönetici|Administrator): /, '');
   return shellName(t.shellId);
 };
 function renderTabs() {
@@ -140,7 +142,7 @@ function renderTabs() {
     b.setAttribute('role', 'tab');
     b.setAttribute('aria-selected', String(t === active));
     b.title = `${shellName(t.shellId)}${t.cwd ? ' · ' + t.cwd : ''}`;
-    b.innerHTML = `<span class="tab-mark">&gt;_</span><span class="tab-name">${esc(tabLabel(t))}</span><span class="tab-close" role="button" title="Sekmeyi kapat (Ctrl+Shift+W)" aria-label="Sekmeyi kapat"><svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6"/></svg></span>`;
+    b.innerHTML = `<span class="tab-mark">&gt;_</span><span class="tab-name">${esc(tabLabel(t))}</span><span class="tab-close" role="button" title="${esc(T('tab.close'))}" aria-label="${esc(T('tab.close.aria'))}"><svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6"/></svg></span>`;
     b.addEventListener('mousedown', e => { if (e.button === 1) e.preventDefault(); });
     b.addEventListener('click', e => { if (e.target.closest('.tab-close')) closeTab(t); else activate(t); });
     b.addEventListener('auxclick', e => { if (e.button === 1) closeTab(t); });
@@ -154,7 +156,7 @@ function renderTitle() {
 }
 function renderStatus() {
   if (!active) return;
-  el.shell.textContent = shellName(active.shellId) + (active.dead ? ' · sonlandı' : '');
+  el.shell.textContent = shellName(active.shellId) + (active.dead ? T('status.ended') : '');
   el.size.textContent = `${active.term.cols}×${active.term.rows}`;
   el.font.textContent = `${S.fontSize} pt`;
 }
@@ -170,7 +172,7 @@ nt.onExit(({ id, code, error }) => {
   if (code === 0 && !error) { closeTab(t); return; }
   t.dead = true;
   const why = error ? ` · ${error}` : '';
-  t.term.write(`\r\n\x1b[90m[İşlem ${code} koduyla sonlandı${why}] Enter: yeniden başlat · Ctrl+Shift+W: sekmeyi kapat\x1b[0m\r\n`);
+  t.term.write(`\r\n\x1b[90m${T('exit.note', { code, why })}\x1b[0m\r\n`);
   renderTabs();
   if (t === active) renderStatus();
 });
@@ -236,9 +238,9 @@ async function openLink(l) {
   if (err) toast(err);
 }
 function showTip(l, e) {
-  const where = l.kind === 'url' ? (info.handoff?.web ? "NeuralWeb'de aç" : 'tarayıcıda aç')
-    : !info.handoff?.nav ? "Windows Gezgini'nde göster" : l.isDir ? "NeuralNav'da aç" : "NeuralNav'da göster";
-  tip.textContent = `Ctrl+tıkla: ${where}`;
+  const where = l.kind === 'url' ? T(info.handoff?.web ? 'link.web' : 'link.browser')
+    : T(!info.handoff?.nav ? 'link.explorer' : l.isDir ? 'link.nav-open' : 'link.nav-show');
+  tip.textContent = T('link.tip', { where });
   tip.style.left = Math.min(e.clientX + 14, innerWidth - 260) + 'px';
   tip.style.top = Math.min(e.clientY + 18, innerHeight - 40) + 'px';
   tip.classList.add('show');
@@ -247,18 +249,18 @@ function hideTip() { tip.classList.remove('show'); }
 
 /* ---------------- Clipboard and keys ---------------- */
 let toastTimer = 0;
-function toast(msg) {
+function toast(msg, ms = 2400) {
   el.toast.textContent = msg;
   el.toast.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.toast.classList.remove('show'), 2400);
+  toastTimer = setTimeout(() => el.toast.classList.remove('show'), ms);
 }
 function copySelection(tab) {
   const text = tab.term.getSelection();
   if (!text) return false;
   nt.clipWrite(text);
   tab.term.clearSelection();
-  toast('Kopyalandı.');
+  toast(T('toast.copied'));
   return true;
 }
 async function paste(tab) {
@@ -316,6 +318,8 @@ document.addEventListener('wheel', e => {
 }, { passive: false });
 
 /* ---------------- Menus ---------------- */
+// The series language: a pick shows from the next start, so only the note changes now.
+const languages = NeuralI18n.languageChoices(window, note => toast(note, 6000));
 let menu = null;
 function openMenu(items, btn) {
   closeMenu();
@@ -371,19 +375,20 @@ const shellItems = (run, radio) => info.shells.map((s, i) => ({ label: s.name, k
 $('#tab-new').addEventListener('click', () => newTab());
 $('#tab-shells').addEventListener('click', e => openMenu(shellItems(id => newTab(id, active?.cwd)), e.currentTarget));
 $('#menu-btn').addEventListener('click', e => openMenu([
-  { label: 'Yeni pencere', key: 'Ctrl+Shift+N', run: () => nt.newWindow() },
+  { label: T('menu.new-window'), key: 'Ctrl+Shift+N', run: () => nt.newWindow() },
   '-',
-  { label: 'Varsayılan kabuk', sub: shellItems(id => { S.shell = id; saveSettings(); toast(`Yeni sekmeler ${shellName(id)} ile açılacak.`); }, id => S.shell === id) },
-  { label: 'Tema', sub: [
-    ...THEMES.map(t => ({ label: t.name, radio: () => S.theme === t.id, run: () => setTheme(t.id) })),
+  { label: T('menu.default-shell'), sub: shellItems(id => { S.shell = id; saveSettings(); toast(T('toast.default-shell', { shell: shellName(id) })); }, id => S.shell === id) },
+  { label: T('menu.theme'), sub: [
+    ...THEMES.map(th => ({ label: th.name, radio: () => S.theme === th.id, run: () => setTheme(th.id) })),
     '-',
-    { label: 'Temayı seriyle eşitle', check: () => S.syncTheme, run: toggleThemeSync },
+    { label: T('menu.theme-sync'), check: () => S.syncTheme, run: toggleThemeSync },
   ] },
-  { label: 'Yazıyı büyüt', key: 'Ctrl+=', run: () => setFont(S.fontSize + 1) },
-  { label: 'Yazıyı küçült', key: 'Ctrl+-', run: () => setFont(S.fontSize - 1) },
+  { label: T('lang.menu'), sub: languages().map(l => ({ label: l.label, radio: l.checked, run: l.pick })) },
+  { label: T('menu.font-up'), key: 'Ctrl+=', run: () => setFont(S.fontSize + 1) },
+  { label: T('menu.font-down'), key: 'Ctrl+-', run: () => setFont(S.fontSize - 1) },
   '-',
-  { label: 'Klavye kısayolları', run: openShortcuts },
-  { label: 'NeuralTerm hakkında', run: () => ask($('#dlg-about')) },
+  { label: T('menu.keys'), run: openShortcuts },
+  { label: T('menu.about'), run: () => ask($('#dlg-about')) },
 ], e.currentTarget));
 
 /* ---------------- Dialogs ---------------- */
@@ -396,11 +401,11 @@ function ask(dlg) {
   });
 }
 const SHORTCUTS = [
-  ['Yeni sekme (varsayılan kabuk)', 'Ctrl+Shift+T'], ['Belirli kabukla yeni sekme', 'Ctrl+Shift+1…5'], ['Sekmeyi kapat', 'Ctrl+Shift+W'],
-  ['Sonraki / önceki sekme', 'Ctrl+Tab / Ctrl+Shift+Tab'], ['Yeni pencere', 'Ctrl+Shift+N'],
-  ['Kopyala', 'Ctrl+C (seçim varken) / Ctrl+Shift+C'], ['Yapıştır', 'Ctrl+V / Ctrl+Shift+V'], ['Sağ tık', 'Seçim varsa kopyalar, yoksa yapıştırır'],
-  ['Yazı boyutu', 'Ctrl+= / Ctrl+- / Ctrl+0 / Ctrl+Tekerlek'], ['Çalışan komutu durdur', 'Ctrl+C (seçim yokken)'],
-  ['Yolu NeuralNav\'da, adresi NeuralWeb\'de aç', 'Ctrl+tıklama'],
+  [T('keys.new-tab'), 'Ctrl+Shift+T'], [T('keys.new-tab-shell'), 'Ctrl+Shift+1…5'], [T('keys.close-tab'), 'Ctrl+Shift+W'],
+  [T('keys.cycle'), 'Ctrl+Tab / Ctrl+Shift+Tab'], [T('keys.new-window'), 'Ctrl+Shift+N'],
+  [T('keys.copy'), T('keys.copy.k')], [T('keys.paste'), 'Ctrl+V / Ctrl+Shift+V'], [T('keys.right-click'), T('keys.right-click.k')],
+  [T('keys.font'), T('keys.font.k')], [T('keys.stop'), T('keys.stop.k')],
+  [T('keys.link'), T('keys.link.k')],
 ];
 function openShortcuts() {
   $('#keys-list').innerHTML = SHORTCUTS.map(([a, k]) => `<span>${esc(a)}</span><span class="kk">${esc(k)}</span>`).join('');
@@ -425,9 +430,9 @@ for (const h of document.querySelectorAll('.rz')) {
   });
 }
 nt.onCloseRequest(async count => {
-  $('#cfm-title').textContent = 'Tüm sekmeler kapansın mı?';
-  $('#cfm-text').textContent = `${count} sekme açık. Pencere kapanırsa içlerinde çalışan her şey sonlanır.`;
-  $('#cfm-ok').textContent = 'Hepsini kapat';
+  $('#cfm-title').textContent = T('close.title');
+  $('#cfm-text').textContent = T('close.text', { n: count });
+  $('#cfm-ok').textContent = T('close.ok');
   if ((await ask($('#dlg-confirm'))) === 'ok') nt.confirmClose();
 });
 new ResizeObserver(() => { if (active) active.fit.fit(); }).observe(el.terms);

@@ -79,7 +79,7 @@ namespace NeuralSetup
         public string[] Steps = new string[0];
         public int Step;
         public string Status = "";
-        public string BandTitle = "NEURAL KURULUM";
+        public string BandTitle = L.BandSetup;
         public event Action CloseRequested;
         readonly Timer timer;
         readonly int band, side, foot;
@@ -92,14 +92,14 @@ namespace NeuralSetup
             DoubleBuffered = true;
             ClientSize = new Size(T.P(width), T.P(height));
             Font = T.Body(9.5f);
-            Text = "Neural Kurulum";
+            Text = L.WindowDefault;
             KeyPreview = true;
             band = T.P(46); side = sidebar ? T.P(220) : 0; foot = T.P(64);
 
             Screen = new ScreenPanel { Location = new Point(side + T.P(2), band + T.P(2)), Size = new Size(ClientSize.Width - side - T.P(4), ClientSize.Height - band - foot - T.P(2)) };
             Controls.Add(Screen);
-            Back = new NButton { Text = "‹  Geri", Size = new Size(T.P(112), T.P(36)) };
-            Next = new NButton { Text = "İleri  ›", Primary = true, Size = new Size(T.P(150), T.P(36)) };
+            Back = new NButton { Text = L.Back, Size = new Size(T.P(112), T.P(36)) };
+            Next = new NButton { Text = L.Next, Primary = true, Size = new Size(T.P(150), T.P(36)) };
             Next.Location = new Point(ClientSize.Width - T.P(30) - Next.Width, ClientSize.Height - foot + (foot - Next.Height) / 2 - T.P(2));
             Back.Location = new Point(Next.Left - T.P(10) - Back.Width, Next.Top);
             Controls.Add(Back); Controls.Add(Next);
@@ -179,12 +179,12 @@ namespace NeuralSetup
                     if (on) using (var b = new SolidBrush(T.Yellow)) g.FillPolygon(b, T.CutTopRight(row, T.P(9)));
                     Color fg = on ? T.Dark : past ? T.Cyan : T.Dim;
                     T.Text(g, (i + 1).ToString("00"), T.Mono(9f), new Rectangle(row.Left + T.P(10), row.Top, T.P(26), row.Height), fg, TextFormatFlags.VerticalCenter);
-                    T.Text(g, Steps[i].ToUpper(new System.Globalization.CultureInfo("tr-TR")), T.Display(8.5f), new Rectangle(row.Left + T.P(38), row.Top, row.Width - T.P(40), row.Height), on ? T.Dark : past ? T.Ink : T.Dim, TextFormatFlags.VerticalCenter);
+                    T.Text(g, Steps[i].ToUpper(L.Culture), T.Display(8.5f), new Rectangle(row.Left + T.P(38), row.Top, row.Width - T.P(40), row.Height), on ? T.Dark : past ? T.Ink : T.Dim, TextFormatFlags.VerticalCenter);
                     if (past) T.Text(g, "✓", T.BodyBold(9f), new Rectangle(row.Right - T.P(22), row.Top, T.P(18), row.Height), T.Cyan, TextFormatFlags.VerticalCenter);
                     y += T.P(40);
                 }
-                T.Text(g, "Yalnızca senin Windows hesabına kurulur; yönetici izni gerekmez.", T.Body(8f), new Rectangle(T.P(18), inner.Bottom - T.P(78), side - T.P(40), T.P(40)), T.Dim, TextFormatFlags.WordBreak);
-                T.Text(g, "SÜRÜM " + Engine.Version, T.Mono(8f), new Rectangle(T.P(18), inner.Bottom - T.P(34), side - T.P(40), T.P(16)), T.Dim, TextFormatFlags.Left);
+                T.Text(g, L.SideNote, T.Body(8f), new Rectangle(T.P(18), inner.Bottom - T.P(78), side - T.P(40), T.P(40)), T.Dim, TextFormatFlags.WordBreak);
+                T.Text(g, L.SideVersion + Engine.Version, T.Mono(8f), new Rectangle(T.P(18), inner.Bottom - T.P(34), side - T.P(40), T.P(16)), T.Dim, TextFormatFlags.Left);
             }
 
             // footer: status text left of the buttons
@@ -417,7 +417,7 @@ namespace NeuralSetup
         {
             SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
             Box = new TextBox { BorderStyle = BorderStyle.None, BackColor = T.Panel2, ForeColor = T.Ink, Font = T.Mono(10f) };
-            Browse = new NButton { Text = "Değiştir…" };
+            Browse = new NButton { Text = L.Change };
             Controls.Add(Box); Controls.Add(Browse);
         }
         protected override void OnLayout(LayoutEventArgs e)

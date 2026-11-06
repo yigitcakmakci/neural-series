@@ -211,7 +211,8 @@ body {
 .seg { padding: 4px; gap: 2px; }
 .seg span { padding: 3px 6px; }
 .seg[data-v="DEG"] span[data-v="DEG"],
-.seg[data-v="RAD"] span[data-v="RAD"] { background: var(--cyan); color: var(--on-yellow); }
+.seg[data-v="RAD"] span[data-v="RAD"],
+.seg span.is-on { background: var(--cyan); color: var(--on-yellow); }
 
 /* ---------- keys ---------- */
 .keys { display: grid; gap: 8px; margin: 0 14px; }
@@ -371,23 +372,23 @@ html.is-shell .win-btns { display: flex; -webkit-app-region: no-drag; app-region
 
 <main class="app" lang="tr">
   <div class="device-wrap" id="deviceWrap">
-    <section class="device" id="device" aria-label="KX-9 hesap makinesi">
+    <section class="device" id="device" aria-label="KX-9 hesap makinesi" data-i18n-aria-label="device">
       <div class="device-inner">
         <header class="dev-head">
           <div class="dev-brand"><span class="dev-model">KX-9</span><span class="dev-name">NEURALCALC</span></div>
           <span class="hazard" aria-hidden="true"></span>
           <div class="dev-status"><span class="led" aria-hidden="true"></span><span id="clock">00:00:00</span></div>
           <div class="win-btns">
-            <button class="win-btn" id="winMin" type="button" aria-label="Simge durumuna küçült" title="Küçült"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 9.5h8"/></svg></button>
-            <button class="win-btn close" id="winClose" type="button" aria-label="Kapat" title="Kapat"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button>
+            <button class="win-btn" id="winMin" type="button" aria-label="Simge durumuna küçült" title="Küçült" data-i18n-aria-label="win.minimize.aria" data-i18n-title="win.minimize"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 9.5h8"/></svg></button>
+            <button class="win-btn close" id="winClose" type="button" aria-label="Kapat" title="Kapat" data-i18n-aria-label="win.close" data-i18n-title="win.close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button>
           </div>
         </header>
 
         <div class="screen" id="screen">
           <div class="screen-top">
             <span class="chip is-on" id="chipAngle">DEG</span>
-            <span class="chip" id="chipMem" title="Bellekteki değer">M</span>
-            <span class="screen-tag">ÇIKTI // KANAL 01</span>
+            <span class="chip" id="chipMem" title="Bellekteki değer" data-i18n-title="chip.mem">M</span>
+            <span class="screen-tag" data-i18n="screen.tag">ÇIKTI // KANAL 01</span>
           </div>
           <div class="expr-line" id="exprLine" aria-live="polite"></div>
           <div class="main-line is-idle" id="mainLine" aria-live="polite">0</div>
@@ -396,63 +397,64 @@ html.is-shell .win-btns { display: flex; -webkit-app-region: no-drag; app-region
         </div>
 
         <div class="toggles">
-          <button class="toggle" id="sciBtn" type="button" aria-pressed="true">BİLİMSEL</button>
+          <button class="toggle" id="sciBtn" type="button" aria-pressed="true" data-i18n="toggle.sci">BİLİMSEL</button>
           <button class="toggle seg" id="angleBtn" type="button" data-v="DEG"><span data-v="DEG">DEG</span><span data-v="RAD">RAD</span></button>
-          <button class="toggle" id="soundBtn" type="button" aria-pressed="false">SES <span class="val">KAPALI</span></button>
+          <button class="toggle" id="soundBtn" type="button" aria-pressed="false"><span data-i18n="toggle.sound">SES</span> <span class="val" data-i18n="sound.off">KAPALI</span></button>
+          <button class="toggle seg" id="langBtn" type="button" hidden></button>
         </div>
 
-        <div class="keys keys-sci" id="sciKeys" role="group" aria-label="Bilimsel fonksiyonlar">
+        <div class="keys keys-sci" id="sciKeys" role="group" aria-label="Bilimsel fonksiyonlar" data-i18n-aria-label="keys.sci">
           <button class="key fn" type="button" data-k="fn:sin(">sin</button>
           <button class="key fn" type="button" data-k="fn:cos(">cos</button>
           <button class="key fn" type="button" data-k="fn:tan(">tan</button>
-          <button class="key fn" type="button" data-k="fn:log(" aria-label="10 tabanında logaritma">log</button>
-          <button class="key fn" type="button" data-k="fn:ln(" aria-label="Doğal logaritma">ln</button>
-          <button class="key fn" type="button" data-k="(" aria-label="Parantez aç">(</button>
-          <button class="key fn" type="button" data-k=")" aria-label="Parantez kapat">)</button>
-          <button class="key fn" type="button" data-k="sq" aria-label="Kare al"><span>x<sup>2</sup></span></button>
-          <button class="key fn" type="button" data-k="op:^" aria-label="Üs al"><span>x<sup>y</sup></span></button>
-          <button class="key fn" type="button" data-k="fn:√(" aria-label="Karekök">√</button>
-          <button class="key fn" type="button" data-k="const:π" aria-label="Pi">π</button>
-          <button class="key fn" type="button" data-k="const:e" aria-label="Euler sayısı">e</button>
-          <button class="key fn" type="button" data-k="!" aria-label="Faktöriyel">n!</button>
-          <button class="key fn" type="button" data-k="inv" aria-label="Çarpmaya göre tersi">1/x</button>
-          <button class="key fn" type="button" data-k="ans" aria-label="Son sonuç">ANS</button>
+          <button class="key fn" type="button" data-k="fn:log(" aria-label="10 tabanında logaritma" data-i18n-aria-label="key.log">log</button>
+          <button class="key fn" type="button" data-k="fn:ln(" aria-label="Doğal logaritma" data-i18n-aria-label="key.ln">ln</button>
+          <button class="key fn" type="button" data-k="(" aria-label="Parantez aç" data-i18n-aria-label="key.open">(</button>
+          <button class="key fn" type="button" data-k=")" aria-label="Parantez kapat" data-i18n-aria-label="key.close">)</button>
+          <button class="key fn" type="button" data-k="sq" aria-label="Kare al" data-i18n-aria-label="key.square"><span>x<sup>2</sup></span></button>
+          <button class="key fn" type="button" data-k="op:^" aria-label="Üs al" data-i18n-aria-label="key.power"><span>x<sup>y</sup></span></button>
+          <button class="key fn" type="button" data-k="fn:√(" aria-label="Karekök" data-i18n-aria-label="key.root">√</button>
+          <button class="key fn" type="button" data-k="const:π" aria-label="Pi" data-i18n-aria-label="key.pi">π</button>
+          <button class="key fn" type="button" data-k="const:e" aria-label="Euler sayısı" data-i18n-aria-label="key.e">e</button>
+          <button class="key fn" type="button" data-k="!" aria-label="Faktöriyel" data-i18n-aria-label="key.fact">n!</button>
+          <button class="key fn" type="button" data-k="inv" aria-label="Çarpmaya göre tersi" data-i18n-aria-label="key.inv">1/x</button>
+          <button class="key fn" type="button" data-k="ans" aria-label="Son sonuç" data-i18n-aria-label="key.ans">ANS</button>
         </div>
 
-        <div class="keys keys-mem" role="group" aria-label="Bellek">
-          <button class="key mem" type="button" data-k="mc" aria-label="Belleği sil">MC</button>
-          <button class="key mem" type="button" data-k="mr" aria-label="Bellekten çağır">MR</button>
-          <button class="key mem" type="button" data-k="m+" aria-label="Belleğe ekle">M+</button>
-          <button class="key mem" type="button" data-k="m-" aria-label="Bellekten çıkar">M−</button>
+        <div class="keys keys-mem" role="group" aria-label="Bellek" data-i18n-aria-label="keys.mem">
+          <button class="key mem" type="button" data-k="mc" aria-label="Belleği sil" data-i18n-aria-label="key.mc">MC</button>
+          <button class="key mem" type="button" data-k="mr" aria-label="Bellekten çağır" data-i18n-aria-label="key.mr">MR</button>
+          <button class="key mem" type="button" data-k="m+" aria-label="Belleğe ekle" data-i18n-aria-label="key.mplus">M+</button>
+          <button class="key mem" type="button" data-k="m-" aria-label="Bellekten çıkar" data-i18n-aria-label="key.mminus">M−</button>
         </div>
 
-        <div class="keys keys-std" role="group" aria-label="Tuş takımı">
-          <button class="key danger" type="button" data-k="clear" aria-label="Tümünü temizle">AC</button>
-          <button class="key util" type="button" data-k="back" aria-label="Son karakteri sil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="miter" aria-hidden="true"><path d="M8 5h13v14H8l-6-7z"/><path d="M11.5 9.5l5 5M16.5 9.5l-5 5"/></svg></button>
-          <button class="key util" type="button" data-k="%" aria-label="Yüzde">%</button>
-          <button class="key op" type="button" data-k="op:÷" aria-label="Böl">÷</button>
+        <div class="keys keys-std" role="group" aria-label="Tuş takımı" data-i18n-aria-label="keys.std">
+          <button class="key danger" type="button" data-k="clear" aria-label="Tümünü temizle" data-i18n-aria-label="key.clear">AC</button>
+          <button class="key util" type="button" data-k="back" aria-label="Son karakteri sil" data-i18n-aria-label="key.back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="miter" aria-hidden="true"><path d="M8 5h13v14H8l-6-7z"/><path d="M11.5 9.5l5 5M16.5 9.5l-5 5"/></svg></button>
+          <button class="key util" type="button" data-k="%" aria-label="Yüzde" data-i18n-aria-label="key.percent">%</button>
+          <button class="key op" type="button" data-k="op:÷" aria-label="Böl" data-i18n-aria-label="key.div">÷</button>
           <button class="key" type="button" data-k="7">7</button>
           <button class="key" type="button" data-k="8">8</button>
           <button class="key" type="button" data-k="9">9</button>
-          <button class="key op" type="button" data-k="op:×" aria-label="Çarp">×</button>
+          <button class="key op" type="button" data-k="op:×" aria-label="Çarp" data-i18n-aria-label="key.mul">×</button>
           <button class="key" type="button" data-k="4">4</button>
           <button class="key" type="button" data-k="5">5</button>
           <button class="key" type="button" data-k="6">6</button>
-          <button class="key op" type="button" data-k="op:−" aria-label="Çıkar">−</button>
+          <button class="key op" type="button" data-k="op:−" aria-label="Çıkar" data-i18n-aria-label="key.sub">−</button>
           <button class="key" type="button" data-k="1">1</button>
           <button class="key" type="button" data-k="2">2</button>
           <button class="key" type="button" data-k="3">3</button>
-          <button class="key op" type="button" data-k="op:+" aria-label="Topla">+</button>
-          <button class="key util" type="button" data-k="neg" aria-label="İşaret değiştir">±</button>
+          <button class="key op" type="button" data-k="op:+" aria-label="Topla" data-i18n-aria-label="key.add">+</button>
+          <button class="key util" type="button" data-k="neg" aria-label="İşaret değiştir" data-i18n-aria-label="key.neg">±</button>
           <button class="key" type="button" data-k="0">0</button>
-          <button class="key" type="button" data-k="." aria-label="Ondalık nokta">.</button>
-          <button class="key eq" type="button" data-k="=" aria-label="Hesapla">=</button>
+          <button class="key" type="button" data-k="." aria-label="Ondalık nokta" data-i18n-aria-label="key.point">.</button>
+          <button class="key eq" type="button" data-k="=" aria-label="Hesapla" data-i18n-aria-label="key.eq">=</button>
         </div>
 
         <footer class="dev-foot">
           <span>SN 77-0921-KDK</span>
           <span class="barcode" aria-hidden="true"></span>
-          <span id="latency">SÜRE — ms</span>
+          <span id="latency" data-i18n="time.none">SÜRE — ms</span>
         </footer>
       </div>
     </section>
@@ -460,6 +462,7 @@ html.is-shell .win-btns { display: flex; -webkit-app-region: no-drag; app-region
 </main>
 
 <script src="../shared/calc-engine.js"></script>
+<script src="../shared/i18n.js"></script>
 <script>
 (() => {
   "use strict";
@@ -470,6 +473,29 @@ html.is-shell .win-btns { display: flex; -webkit-app-region: no-drag; app-region
 
   /* ---------- engine (apps\shared\calc-engine.js, shared with NeuralDeck) ---------- */
   const { CalcError, ERR, evaluate, fmt } = window.NeuralCalcEngine;
+
+  /* ---------- texts ---------- */
+  // In the desktop shell the texts come in the series language (lang*.json through the preload). Opened in a plain
+  // browser there are none: the HTML keeps its own Turkish and the texts this script writes are these (as in tr.json).
+  const TR = {
+    "err.syntax": "SÖZDİZİMİ HATASI",
+    "err.div0": "SIFIRA BÖLME",
+    "err.complex": "KARMAŞIK SONUÇ",
+    "err.domain": "TANIM DIŞI DEĞER",
+    "err.undef": "TANIMSIZ",
+    "err.fact": "n! YALNIZ DOĞAL SAYIDA",
+    "err.overflow": "TAŞMA",
+    "err.hint": "{msg} · ⌫ ile düzelt · AC ile sıfırla",
+    "time.none": "SÜRE — ms",
+    "time.fast": "SÜRE <0.1 ms",
+    "time.ms": "SÜRE {ms} ms",
+    "angle.deg": "Açı birimi: derece. Değiştirmek için bas",
+    "angle.rad": "Açı birimi: radyan. Değiştirmek için bas",
+    "sound.on": "AÇIK",
+    "sound.off": "KAPALI",
+  };
+  const T = window.neuralLang ? NeuralI18n.page(window) : NeuralI18n.create({ lang: "tr", dict: TR });
+  document.querySelector(".app").lang = T.lang;
 
   /* ---------- tokens ---------- */
   // Tokens are display strings; "~" is a unary minus so it can be told apart from subtraction.
@@ -756,7 +782,7 @@ html.is-shell .win-btns { display: flex; -webkit-app-region: no-drag; app-region
       : "";
 
     let len;
-    if (err) { mainEl.textContent = "ERR " + ERR[err][0]; len = 8; }
+    if (err) { mainEl.textContent = "ERR " + ERR[err].hex; len = 8; }
     else if (state.justEvaluated) { const s = fmt(state.ans); mainEl.textContent = s; len = s.length; }
     else if (!t.length) { mainEl.textContent = "0"; len = 1; }
     else len = paintTokens(t);
@@ -764,7 +790,7 @@ html.is-shell .win-btns { display: flex; -webkit-app-region: no-drag; app-region
     mainEl.scrollLeft = mainEl.scrollWidth;
 
     let preview = "";
-    if (err) preview = ERR[err][1] + " · ⌫ ile düzelt · AC ile sıfırla";
+    if (err) preview = T("err.hint", { msg: T(ERR[err].key) });
     else if (!state.justEvaluated && t.length) {
       try {
         const s = fmt(evaluate(source(t), ctx()));
@@ -776,18 +802,18 @@ html.is-shell .win-btns { display: flex; -webkit-app-region: no-drag; app-region
     chipAngle.textContent = state.angle;
     chipMem.classList.toggle("is-on", state.memory !== 0);
     chipMem.textContent = state.memory !== 0 ? "M " + fmt(state.memory) : "M";
-    latencyEl.textContent = state.lastMs === null ? "SÜRE — ms"
-      : state.lastMs < 0.1 ? "SÜRE <0.1 ms"
-      : "SÜRE " + state.lastMs.toFixed(2) + " ms";
+    latencyEl.textContent = state.lastMs === null ? T("time.none")
+      : state.lastMs < 0.1 ? T("time.fast")
+      : T("time.ms", { ms: state.lastMs.toFixed(2) });
   }
 
   function syncToggles() {
     sciBtn.setAttribute("aria-pressed", String(state.sci));
     sciKeys.hidden = !state.sci;
     angleBtn.dataset.v = state.angle;
-    angleBtn.setAttribute("aria-label", "Açı birimi: " + (state.angle === "DEG" ? "derece" : "radyan") + ". Değiştirmek için bas");
+    angleBtn.setAttribute("aria-label", T(state.angle === "DEG" ? "angle.deg" : "angle.rad"));
     soundBtn.setAttribute("aria-pressed", String(state.sound));
-    soundBtn.querySelector(".val").textContent = state.sound ? "AÇIK" : "KAPALI";
+    soundBtn.querySelector(".val").textContent = T(state.sound ? "sound.on" : "sound.off");
   }
 
   /* ---------- sound ---------- */
@@ -878,6 +904,31 @@ html.is-shell .win-btns { display: flex; -webkit-app-region: no-drag; app-region
     syncToggles();
     sfx("eq");
   });
+
+  // The series language (only in the desktop shell): a pick shows from the next start of each program, so for now
+  // the readout's bottom line shows the note.
+  const languages = NeuralI18n.languageChoices(window, (note) => { previewEl.textContent = note; });
+  const langBtn = $("langBtn");
+  function syncLanguage() {
+    const list = languages();
+    langBtn.hidden = list.length < 2;
+    const chosen = list.find((l) => l.checked()) || list[0];
+    langBtn.replaceChildren(...list.map((l) => make("span", l === chosen ? "is-on" : "", l.id.toUpperCase())));
+    if (chosen) {
+      langBtn.title = T("lang.menu");
+      langBtn.setAttribute("aria-label", T("lang.menu") + ": " + chosen.label);
+    }
+  }
+  langBtn.addEventListener("click", async () => {
+    const list = languages();
+    const i = list.findIndex((l) => l.checked());
+    const next = list[(i + 1) % list.length];
+    if (!next) return;
+    await next.pick();
+    syncLanguage();
+    sfx("key");
+  });
+  syncLanguage();
 
   const pad = (n) => String(n).padStart(2, "0");
   function timeNow() {

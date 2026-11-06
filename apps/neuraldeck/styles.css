@@ -131,5 +131,8 @@ kbd { display: inline-block; min-width: 18px; padding: 0 4px; margin-right: 3px;
   font: .74rem/1 var(--font-mono);
 }
 .toast { margin-left: auto; color: var(--accent-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* the language buttons of the settings view */
+.set-langs { display: flex; gap: 6px; }
+.set-langs .btn[aria-pressed="true"] { color: var(--on-accent); background: var(--accent); box-shadow: none; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }

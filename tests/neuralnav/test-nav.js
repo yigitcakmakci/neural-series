@@ -1,4 +1,5 @@
 "use strict";
+require("../../tools/lang-env")(); // the programs it starts speak Turkish, the language of its checks
 // Drives the installed NeuralNav through the Chrome DevTools protocol on a throwaway folder.
 const fs = require("fs");
 const path = require("path");

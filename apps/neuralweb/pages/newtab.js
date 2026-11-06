@@ -1,5 +1,5 @@
 "use strict";
-const fmtDate = new Intl.DateTimeFormat("tr-TR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+const fmtDate = new Intl.DateTimeFormat(T.locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 function tick() {
   const now = new Date();
   $("#clock").textContent = fmtTime.format(now);
@@ -19,7 +19,7 @@ async function tiles() {
   const sites = await neural.call("topSites");
   box.replaceChildren();
   if (!sites.length) {
-    box.append(el("div", "tiles-empty", "En sık girdiğin siteler burada görünecek."));
+    box.append(el("div", "tiles-empty", T("ntp.tiles.empty")));
     return;
   }
   for (const s of sites) {
@@ -28,7 +28,7 @@ async function tiles() {
     a.title = `${s.title}\n${s.host}`;
     const ic = el("span", "ic");
     if (s.favicon) ic.append(favicon(s.favicon));
-    else ic.append(el("span", "letter", (s.host.replace(/^www\./, "")[0] || "?").toLocaleUpperCase("tr-TR")));
+    else ic.append(el("span", "letter", (s.host.replace(/^www\./, "")[0] || "?").toLocaleUpperCase(T.locale)));
     a.append(ic, el("span", "t", s.title || s.host), el("span", "h", s.host.replace(/^www\./, "")));
     box.append(a);
   }
@@ -44,9 +44,9 @@ async function shieldLine() {
   const sh = await neural.call("shieldInfo");
   const line = $("#shield-line");
   line.hidden = !sh.enabled;
-  line.replaceChildren("KALKAN // ");
-  if (sh.today) line.append("BUGÜN ", el("b", null, sh.today.toLocaleString("tr-TR")), " REKLAM VE İZLEYİCİ ENGELLENDİ");
-  else line.append(el("b", null, "AKTİF"));
+  line.replaceChildren(`${T("ntp.shield")} // `);
+  if (sh.today) line.append(...rich(T("ntp.shield.today", { n: sh.today }), { num: el("b", null, sh.today.toLocaleString(T.locale)) }));
+  else line.append(el("b", null, T("ntp.shield.active")));
 }
 tiles();
 importBanner();

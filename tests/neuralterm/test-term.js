@@ -1,4 +1,5 @@
 "use strict";
+require("../../tools/lang-env")(); // the programs it starts speak Turkish, the language of its checks
 // Drives the installed NeuralTerm through the Chrome DevTools protocol.
 const fs = require("fs");
 const path = require("path");
@@ -170,6 +171,15 @@ async function connect() {
   await sleep(700);
   check(logged().length === 3, "nothing else was opened", JSON.stringify(logged()));
   execFileSync("powershell", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", SNAP, "-ProcessName", "NeuralTerm", "-Out", path.join(OUT, "term-links.png")], { stdio: "pipe" });
+
+  console.log("series language");
+  const pickFrom = (label) => `qa('.popup .mi').find(b => b.textContent.includes(${JSON.stringify(label)}))`;
+  r = await run(`q('#menu-btn').click(); await wait(() => q('.popup')); ${pickFrom("Dil · Language")}.click(); await wait(() => ${pickFrom("English")}); const was = ${pickFrom("Türkçe")}.textContent; ${pickFrom("English")}.click(); const note = await wait(() => q('#toast.show')?.textContent); return { was, note, lang: document.documentElement.lang, title: q('#tab-new').title };`);
+  check(/●/.test(r.was || ""), "the language menu marks Türkçe", JSON.stringify(r));
+  check(/English/.test(r.note || "") && /next time/.test(r.note || ""), "picking English explains it shows from the next start", r.note);
+  check(r.lang === "tr" && r.title === "Yeni sekme (Ctrl+Shift+T)", "this window keeps speaking Turkish until it starts again", JSON.stringify(r));
+  const written = JSON.parse(fs.readFileSync(process.env.NEURAL_LANG_FILE, "utf8"));
+  check(written.language === "en" && /^NeuralTerm:\d+$/.test(written.by), "the series language file now says English", JSON.stringify(written));
 
   console.log("close");
   await run(`window.nt.confirmClose(); return true;`).catch(() => {});

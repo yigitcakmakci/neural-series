@@ -9,24 +9,34 @@ const ATTR_HIDDEN = 0x2;
 const ATTR_SYSTEM = 0x4;
 const ATTR_REPARSE = 0x400;
 
-/* ---------- errors ---------- */
-function describe(err) {
-  switch (err && err.code) {
-    case "ENOENT": return "Öğe bulunamadı.";
-    case "EACCES":
-    case "EPERM": return "Erişim izni yok.";
-    case "EBUSY": return "Öğe başka bir program tarafından kullanılıyor.";
-    case "ENOTEMPTY": return "Klasör boş değil.";
-    case "EEXIST": return "Aynı adlı bir öğe zaten var.";
-    case "ENOSPC": return "Diskte yer kalmadı.";
-    case "EXDEV": return "Sürücüler arasında taşınamadı.";
-    case "ENAMETOOLONG": return "Yol çok uzun.";
-    case "ENOTDIR": return "Bu bir klasör değil.";
-    default: return (err && err.message) || "Bilinmeyen hata.";
+/* ---------- texts ---------- */
+// The messages below go to the page. main.js hands over the program's texts (useTexts, language.js); on its own, as
+// in the unit tests, this module speaks Turkish from lang\tr.json.
+let texts = null;
+function useTexts(t) { texts = t; }
+function getTexts() {
+  if (!texts) {
+    const i18n = require(fs.existsSync(path.join(__dirname, "i18n.js")) ? "./i18n" : "../shared/i18n");
+    let dict = {};
+    try { dict = JSON.parse(fs.readFileSync(path.join(__dirname, "lang", "tr.json"), "utf8")); } catch (e) { /* the keys show instead */ }
+    texts = i18n.create({ lang: "tr", dict });
   }
+  return texts;
+}
+const T = (key, vars) => getTexts()(key, vars);
+
+/* ---------- errors ---------- */
+const ERRORS = {
+  ENOENT: "err.not-found", EACCES: "err.access", EPERM: "err.access", EBUSY: "err.busy", ENOTEMPTY: "err.not-empty",
+  EEXIST: "err.exists", ENOSPC: "err.no-space", EXDEV: "err.cross-drive", ENAMETOOLONG: "err.path-too-long", ENOTDIR: "err.not-folder",
+};
+function describe(err) {
+  const key = ERRORS[err && err.code];
+  if (key) return T(key);
+  return (err && err.message) || T("err.unknown");
 }
 const fail = (code, message) => Object.assign(new Error(message), { code });
-const abortError = () => Object.assign(new Error("İptal edildi."), { name: "AbortError" });
+const abortError = () => Object.assign(new Error(T("err.cancelled")), { name: "AbortError" });
 const check = (signal) => { if (signal && signal.aborted) throw abortError(); };
 
 /* ---------- paths and names ---------- */
@@ -45,15 +55,15 @@ function splitName(name, isDir) {
 
 const RESERVED = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\..*)?$/i;
 function invalidName(name) {
-  if (!name || !name.trim()) return "Ad boş olamaz.";
-  if (/[\\/:*?"<>|\x00-\x1f]/.test(name)) return 'Ad şu karakterleri içeremez: \\ / : * ? " < > |';
-  if (/[. ]$/.test(name)) return "Ad nokta ya da boşlukla bitemez.";
-  if (RESERVED.test(name)) return "Bu ad Windows tarafından ayrılmış.";
-  if (name.length > 255) return "Ad çok uzun.";
+  if (!name || !name.trim()) return T("name.empty");
+  if (/[\\/:*?"<>|\x00-\x1f]/.test(name)) return T("name.bad-chars");
+  if (/[. ]$/.test(name)) return T("name.bad-end");
+  if (RESERVED.test(name)) return T("name.reserved");
+  if (name.length > 255) return T("name.too-long");
   return "";
 }
 
-// "Yeni klasör" (New folder), "Yeni klasör (2)", ...
+// "New folder", "New folder (2)", ... (the page gives the first name, in the interface language)
 async function uniqueName(dir, name, isDir) {
   if (!(await lstatOrNull(path.join(dir, name)))) return name;
   const [base, ext] = splitName(name, isDir);
@@ -62,13 +72,14 @@ async function uniqueName(dir, name, isDir) {
     if (!(await lstatOrNull(path.join(dir, candidate)))) return candidate;
   }
 }
-// Explorer's copy names on Turkish Windows: "file - Kopya.txt", "file - Kopya (2).txt"
+// Explorer's copy names in the interface language: "file - Kopya.txt", "file - Kopya (2).txt" / "file - Copy.txt"
 async function uniqueCopyName(dir, name, isDir) {
   const [base, ext] = splitName(name, isDir);
-  const first = `${base} - Kopya${ext}`;
+  const copy = T("name.copy");
+  const first = `${base} - ${copy}${ext}`;
   if (!(await lstatOrNull(path.join(dir, first)))) return first;
   for (let n = 2; ; n++) {
-    const candidate = `${base} - Kopya (${n})${ext}`;
+    const candidate = `${base} - ${copy} (${n})${ext}`;
     if (!(await lstatOrNull(path.join(dir, candidate)))) return candidate;
   }
 }
@@ -196,7 +207,7 @@ async function measure(p, acc, signal) {
 async function transfer({ op, sources, destDir, ask, progress, signal }) {
   destDir = path.resolve(destDir);
   const dst = await lstatOrNull(destDir);
-  if (!dst || !dst.isDirectory()) throw fail("ENOTDIR", "Hedef bir klasör değil.");
+  if (!dst || !dst.isDirectory()) throw fail("ENOTDIR", T("err.dest-not-folder"));
 
   const result = { op, done: [], pairs: [], skipped: 0, errors: [] };
   const remembered = { file: null, dir: null };
@@ -213,10 +224,10 @@ async function transfer({ op, sources, destDir, ask, progress, signal }) {
   for (const raw of sources) {
     const src = path.resolve(raw);
     const st = await lstatOrNull(src);
-    if (!st) { result.errors.push({ path: src, message: "Öğe bulunamadı." }); continue; }
+    if (!st) { result.errors.push({ path: src, message: T("err.not-found") }); continue; }
     const isDir = st.isDirectory() && !st.isSymbolicLink();
     if (isDir && isInside(destDir, src) && !samePath(path.dirname(src), destDir)) {
-      result.errors.push({ path: src, message: "Hedef klasör, kaynak klasörün içinde." });
+      result.errors.push({ path: src, message: T("err.dest-inside-source") });
       continue;
     }
     if (op === "move" && samePath(path.dirname(src), destDir)) { result.skipped += 1; continue; }
@@ -252,7 +263,7 @@ async function transfer({ op, sources, destDir, ask, progress, signal }) {
     if (existing) {
       const existingIsDir = existing.isDirectory() && !existing.isSymbolicLink();
       if (existingIsDir !== isDir) {
-        result.errors.push({ path: src, message: `Hedefte aynı adlı bir ${existingIsDir ? "klasör" : "dosya"} var.` });
+        result.errors.push({ path: src, message: T(existingIsDir ? "err.dest-has-folder" : "err.dest-has-file") });
         return null;
       }
       const action = await decide(src, dest, isDir, existing);
@@ -313,13 +324,15 @@ async function transfer({ op, sources, destDir, ask, progress, signal }) {
 }
 
 /* ---------- search and folder size ---------- */
+// Case folds as the interface language does (Turkish I/ı, İ/i in Turkish).
 function makeMatcher(query) {
-  const q = query.trim().toLocaleLowerCase("tr-TR");
+  const lang = getTexts().lang || "tr";
+  const q = query.trim().toLocaleLowerCase(lang);
   if (/[*?]/.test(q)) {
     const re = new RegExp("^" + q.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*").replace(/\?/g, ".") + "$", "i");
-    return (name) => re.test(name.toLocaleLowerCase("tr-TR"));
+    return (name) => re.test(name.toLocaleLowerCase(lang));
   }
-  return (name) => name.toLocaleLowerCase("tr-TR").includes(q);
+  return (name) => name.toLocaleLowerCase(lang).includes(q);
 }
 
 // Breadth-first, so nearer matches come first. Results arrive in batches through onBatch.
@@ -383,5 +396,5 @@ async function folderSize(p, { signal, onProgress } = {}) {
 module.exports = {
   ATTR_HIDDEN, ATTR_SYSTEM, ATTR_REPARSE,
   Helper, listDir, listNode, transfer, search, folderSize,
-  uniqueName, uniqueCopyName, invalidName, describe, samePath, sameRoot, isInside, lstatOrNull,
+  uniqueName, uniqueCopyName, invalidName, describe, samePath, sameRoot, isInside, lstatOrNull, useTexts,
 };

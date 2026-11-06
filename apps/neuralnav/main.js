@@ -10,8 +10,11 @@ const ops = require("./ops");
 // Shared with the series: next to main.js when installed, in apps\shared when run from source.
 const shared = (name) => require(fs.existsSync(path.join(__dirname, `${name}.js`)) ? `./${name}` : `../shared/${name}`);
 const themeSync = shared("theme-sync");
+const language = shared("language");
+let L = null; // the interface language, read once the app is ready (lang\*.json)
+const T = (key, vars) => (L ? L.t(key, vars) : key);
 // The other programs of the series: pictures open in NeuralView, notes in NeuralPad, folders in NeuralTerm on request.
-const handoff = shared("handoff").create({ self: "NeuralNav", shell });
+const handoff = shared("handoff").create({ self: "NeuralNav", shell, t: T });
 
 app.setAppUserModelId("NeuralNav.NV4");
 
@@ -245,7 +248,7 @@ ipcMain.handle("nv:list", async (_e, dir) => {
     let d = path.resolve(String(dir));
     if (/^[a-z]:$/i.test(d)) d += "\\";
     const st = await fsp.stat(d);
-    if (!st.isDirectory()) return { ok: false, error: "Bu bir klasör değil." };
+    if (!st.isDirectory()) return { ok: false, error: T("err.not-folder") };
     return { ok: true, dir: d, entries: await ops.listDir(helper, d) };
   } catch (err) {
     return { ok: false, error: ops.describe(err) };
@@ -366,7 +369,7 @@ ipcMain.handle("nv:rename", async (_e, p, newName) => {
   const src = String(p);
   const dest = path.join(path.dirname(src), newName);
   if (dest === src) return { ok: true, path: src };
-  if (!ops.samePath(dest, src) && (await ops.lstatOrNull(dest))) return { ok: false, error: "Bu konumda aynı adlı bir öğe zaten var." };
+  if (!ops.samePath(dest, src) && (await ops.lstatOrNull(dest))) return { ok: false, error: T("err.name-taken") };
   try {
     await fsp.rename(src, dest);
     return { ok: true, path: dest };
@@ -561,6 +564,9 @@ if (!app.requestSingleInstanceLock()) {
   app.on("window-all-closed", () => { helper.stop(); app.quit(); });
   app.whenReady().then(() => {
     Menu.setApplicationMenu(null);
+    L = language.load({ appDir: __dirname, name: "NeuralNav", systemLanguages: app.getPreferredSystemLanguages() });
+    L.wire(ipcMain);
+    ops.useTexts(L.t); // copy, move and delete errors, name checks and search case folding in the same language
     const paths = pathsFromArgs(process.argv, process.cwd());
     if (!paths.length && forwardedVirtual) { app.quit(); return; }
     themeSync.wire({ ipcMain, BrowserWindow, prefix: "nv", name: "NeuralNav" });

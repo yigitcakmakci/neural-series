@@ -6,9 +6,14 @@
 //   /hedef:<folder>  /sessiz (silent)  /gunluk:<log file>  /veriler (also delete settings and personal data)
 //   /uygulamalar:NeuralCalc,NeuralWeb  /secenekler:baslat,pad,navmenu,navvarsayilan,izleyici,nt,web,view,deck,simge
 //   /onizle:programlar|windows|kurulum|tamam|hata   (with /test: open the wizard on that page)
+//   /onizle:siliniyor|kaldirildi                    (with /kaldir /test: the uninstaller's pages)
+//   /dil:tr|en                         the language of the setup, written as the series language when installing;
+//                                      without it: the series language file, else Windows' display language
+//                                      (the uninstaller: the language of the installation, from kurulum.ini)
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -64,10 +69,11 @@ namespace NeuralSetup
                 o.WebRegister = on.Contains("web"); o.WindowsIcons = on.Contains("simge"); o.ViewOpenWith = on.Contains("view"); o.DeckAutostart = on.Contains("deck");
             }
             o.RemoveData = arg("veriler") != null;
+            L.Lang = ChooseLanguage(arg("dil"), o, uninstall);
 
             if (uninstall && !existing && arg("sessiz") == null)
             {
-                MessageBox.Show(payload == null ? "Kurulum paketi bulunamadı ve " + o.Root + " içinde Neural kurulumu yok." : "Kaldırılacak bir Neural kurulumu bulunamadı.", "Neural", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(payload == null ? L.MsgNoPackage(o.Root) : L.MsgNothingToUninstall, "Neural", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return 1;
             }
 
@@ -80,6 +86,18 @@ namespace NeuralSetup
             return 0;
         }
 
+        // The language of the setup: /dil:, else the series language file (in test mode the one under the test data
+        // folder), else Windows' display language. The installation's own language (kurulum.ini) comes first for the
+        // uninstaller, so it speaks the language the shortcuts and menus were made in, and last for the setup.
+        static string ChooseLanguage(string switchValue, Options o, bool uninstall)
+        {
+            string chosen = L.Normalize(switchValue);
+            if (chosen != null) return chosen;
+            string installed = L.FromManifest(Path.Combine(o.Root, "Ortak", "kurulum.ini"));
+            string series = L.FromFile(new Engine(o, null, null).LanguageFile);
+            return (uninstall ? installed ?? series : series ?? installed) ?? L.FromCulture(CultureInfo.CurrentUICulture);
+        }
+
         // No window: for tests and scripted installs. Exit code 0 on success.
         static int Silent(Options o, Payload payload, bool uninstall, string logFile)
         {
@@ -89,12 +107,12 @@ namespace NeuralSetup
             try
             {
                 var running = Engine.RunningIn(o.Root).Where(p => !Engine.IsBackground(p)).ToList();
-                if (running.Count > 0) throw new Exception("Açık programlar: " + string.Join(", ", running.Select(p => p.ProcessName).Distinct()));
+                if (running.Count > 0) throw new Exception(L.ErrOpenApps(string.Join(", ", running.Select(p => p.ProcessName).Distinct())));
                 var engine = new Engine(o, null, log);
                 if (uninstall) { engine.Uninstall(); engine.ScheduleSelfDelete(); }
                 else engine.Install(payload);
             }
-            catch (Exception ex) { log("HATA: " + ex); code = 2; }
+            catch (Exception ex) { log(L.LogError + ex); code = 2; }
             if (logFile != null) File.WriteAllLines(logFile, lines);
             return code;
         }

@@ -1,4 +1,5 @@
 "use strict";
+require("../../tools/lang-env")(); // the programs it starts speak Turkish, the language of its checks
 // Drives NeuralView through the Chrome DevTools protocol on a copy of the test images, with a throwaway profile.
 // Deleting, copying and opening NeuralNav go to test files (NEURALVIEW_TEST_*), never to the real Recycle Bin,
 // clipboard or programs.

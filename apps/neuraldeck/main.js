@@ -9,8 +9,12 @@ const fs = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
 const commands = require("./commands");
-// The series theme: next to main.js when installed, in apps\shared when run from source.
-const { ThemeSync } = require(fs.existsSync(path.join(__dirname, "theme-sync.js")) ? "./theme-sync" : "../shared/theme-sync");
+// Shared with the series (theme, interface language): next to main.js when installed, in apps\shared from source.
+const shared = (name) => require(fs.existsSync(path.join(__dirname, `${name}.js`)) ? `./${name}` : `../shared/${name}`);
+const { ThemeSync } = shared("theme-sync");
+const language = shared("language");
+let L = null; // the interface language, read once app is ready (lang\*.json)
+const T = (key, vars) => (L ? L.t(key, vars) : key);
 
 app.setAppUserModelId("NeuralDeck.DK0");
 // Tests: a throwaway profile, a file that records what would be started or copied, and a folder of fake programs.
@@ -132,26 +136,26 @@ function setShortcut(accel, save) {
     if (save) { settings.shortcut = accel; writeJSON("settings.json", settings); }
   } else {
     const okOld = accel !== old && register(old);
-    shortcut = { accel: okOld ? old : accel, ok: okOld, error: `${accel} kaydedilemedi: başka bir program bu kısayolu kullanıyor olabilir.` };
+    shortcut = { accel: okOld ? old : accel, ok: okOld, error: T("err.shortcut-taken", { accel }) };
   }
   updateTray();
   return shortcut;
 }
 function updateTray() {
   if (!tray) return;
-  tray.setToolTip(shortcut.ok ? `NeuralDeck DK-0 · ${shortcut.accel}` : "NeuralDeck DK-0 · kısayol kaydedilemedi");
+  tray.setToolTip(shortcut.ok ? `NeuralDeck DK-0 · ${shortcut.accel}` : T("tray.no-shortcut"));
   tray.setContextMenu(Menu.buildFromTemplate([
-    { label: shortcut.ok ? `Paneli aç (${shortcut.accel})` : "Paneli aç", click: showPanel },
-    { label: "Ayarlar…", click: () => { showPanel(); send("deck:open-settings"); } },
+    { label: shortcut.ok ? T("tray.open-key", { accel: shortcut.accel }) : T("tray.open"), click: showPanel },
+    { label: T("tray.settings"), click: () => { showPanel(); send("deck:open-settings"); } },
     { type: "separator" },
-    { label: "Çıkış", click: () => { app.quitting = true; app.quit(); } },
+    { label: T("tray.quit"), click: () => { app.quitting = true; app.quit(); } },
   ]));
 }
 
 /* ---------- running a suggestion ---------- */
 function launch(action) {
   const s = commands.toSpawn(action, exeOf);
-  if (!s || !fs.existsSync(s.exe)) return { ok: false, error: "Bu program kurulu değil." };
+  if (!s || !fs.existsSync(s.exe)) return { ok: false, error: T("err.not-installed") };
   if (TEST_LAUNCH) {
     fs.appendFileSync(TEST_LAUNCH, JSON.stringify({ exe: s.exe, args: s.args }) + "\n");
   } else {
@@ -175,11 +179,11 @@ function execute(item) {
       if (TEST_LAUNCH) fs.appendFileSync(TEST_LAUNCH, JSON.stringify({ copy: a.text }) + "\n");
       else clipboard.writeText(a.text);
       if (Number.isFinite(a.value)) ans = a.value;
-      return { ok: true, hide: true, toast: `${a.text} panoya kopyalandı` };
+      return { ok: true, hide: true, toast: T("toast.copied", { text: a.text }) };
     case "theme":
       themeSync.write(a.theme);
       send("deck:theme", a.theme);
-      return { ok: true, hide: false, toast: "Serinin teması değişti" };
+      return { ok: true, hide: false, toast: T("toast.theme") };
     case "settings": return { ok: true, view: "settings" };
     case "complete": return { ok: true, complete: item.complete };
     default: return { ok: false };
@@ -218,7 +222,7 @@ ipcMain.handle("deck:set-shortcut", (e, accel) => {
   capturing = false;
   if (!validAccel(accel)) {
     setShortcut(settings.shortcut, false);
-    return { ...shortcut, error: "Bu tuş birleşimi kullanılamaz: Ctrl, Alt, Shift ya da Win ile birlikte bir tuş seç." };
+    return { ...shortcut, error: T("err.shortcut-invalid") };
   }
   return setShortcut(accel, true);
 });
@@ -232,6 +236,9 @@ if (!app.requestSingleInstanceLock()) {
   app.on("will-quit", () => { globalShortcut.unregisterAll(); themeSync.stop(); });
   app.whenReady().then(() => {
     Menu.setApplicationMenu(null);
+    L = language.load({ appDir: __dirname, name: "NeuralDeck", systemLanguages: app.getPreferredSystemLanguages() });
+    L.wire(ipcMain);
+    commands.setTexts(L.t);
     themeSync.start();
     createPanel();
     tray = new Tray(path.join(__dirname, "neuraldeck.ico"));
@@ -240,7 +247,7 @@ if (!app.requestSingleInstanceLock()) {
     win.webContents.once("did-finish-load", () => {
       if (!BACKGROUND) showPanel();
       else if (!shortcut.ok) {
-        tray.displayBalloon({ iconType: "warning", title: "NeuralDeck", content: `${shortcut.accel} kısayolu kaydedilemedi. Tepsideki NeuralDeck simgesinden Ayarlar'ı açıp başka bir kısayol seç.` });
+        tray.displayBalloon({ iconType: "warning", title: "NeuralDeck", content: T("tray.balloon", { accel: shortcut.accel }) });
       }
     });
   });

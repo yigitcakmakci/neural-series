@@ -1,4 +1,5 @@
 "use strict";
+require("../../tools/lang-env")(); // the programs it starts speak Turkish, the language of its checks
 // Links and server redirects must reach their destination (the tab must not just reload the current page).
 // Usage: node test-redirect.js [--installed]
 const fs = require("fs");

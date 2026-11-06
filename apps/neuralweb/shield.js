@@ -18,9 +18,11 @@ const today = () => new Date().toISOString().slice(0, 10);
 
 class Shield {
   // store: NeuralWeb's Store (settings live in store.s.shield); tabOf(webContents) → { w, t } or null;
-  // onBlocked(found) after each blocked request of a tab; onChange() when settings or lists change.
-  constructor({ store, dir, tabOf, onBlocked, onChange }) {
+  // onBlocked(found) after each blocked request of a tab; onChange() when settings or lists change;
+  // t: the program's texts (language.js), for the error kept in the settings.
+  constructor({ store, dir, tabOf, onBlocked, onChange, t = (key) => key }) {
     this.store = store;
+    this.t = t;
     this.file = path.join(dir, "shield-engine.bin");
     this.tabOf = tabOf;
     this.onBlocked = onBlocked;
@@ -130,7 +132,7 @@ class Shield {
         const engine = await ElectronBlocker.fromLists(fetchList, [...adsAndTrackingLists, ...extra], CONFIG);
         const f = engine.getFilters();
         const rules = f.networkFilters.length + f.cosmeticFilters.length;
-        if (rules < MIN_RULES) throw new Error(`liste eksik indi (${rules} kural)`);
+        if (rules < MIN_RULES) throw new Error(this.t("shield.err.short", { n: rules }));
         const tmp = this.file + ".tmp";
         await fs.promises.writeFile(tmp, engine.serialize());
         await fs.promises.rename(tmp, this.file);

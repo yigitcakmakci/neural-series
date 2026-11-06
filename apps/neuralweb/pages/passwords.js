@@ -18,16 +18,16 @@ function render(icons) {
   shown.clear();
   const list = $("#list");
   list.replaceChildren();
-  const q = query.toLocaleLowerCase("tr-TR");
-  const items = data.logins.filter((l) => !q || l.origin.toLocaleLowerCase("tr-TR").includes(q) || l.username.toLocaleLowerCase("tr-TR").includes(q));
-  if (!items.length) list.append(el("div", "empty", q ? "Eşleşen şifre yok." : "Henüz kayıtlı şifre yok. Bir sitede oturum açınca NeuralWeb kaydetmeyi önerir; Edge'deki şifrelerini de aktarabilirsin."));
+  const q = query.toLocaleLowerCase(T.locale);
+  const items = data.logins.filter((l) => !q || l.origin.toLocaleLowerCase(T.locale).includes(q) || l.username.toLocaleLowerCase(T.locale).includes(q));
+  if (!items.length) list.append(el("div", "empty", T(q ? "pw.no-match" : "pw.empty")));
   for (const l of items) list.append(row(l, icons[hostOf(l.origin)]));
   const never = $("#never");
   never.replaceChildren();
-  if (!data.never.length) never.append(el("div", "empty", "Liste boş. Kaydetme sorusunda “Bu sitede asla” dediğin siteler burada görünür."));
+  if (!data.never.length) never.append(el("div", "empty", T("pw.never.empty")));
   for (const origin of data.never) {
     const r = el("div", "never");
-    const b = el("button", "btn", "Kaldır");
+    const b = el("button", "btn", T("dlg.remove"));
     b.type = "button";
     b.addEventListener("click", () => neural.call("pwNeverRemove", origin));
     r.append(el("span", null, origin.replace(/^https:\/\//, "")), b);
@@ -40,28 +40,29 @@ function row(l, fav) {
   site.href = l.origin;
   site.title = l.origin;
   const pass = el("span", "pass", "••••••••••");
-  const hide = () => { clearTimeout(shown.get(l.id)); shown.delete(l.id); pass.textContent = "••••••••••"; pass.classList.remove("shown"); eye.title = "Şifreyi göster"; };
-  const eye = iconButton(EYE, "Şifreyi göster", async () => {
+  const hide = () => { clearTimeout(shown.get(l.id)); shown.delete(l.id); pass.textContent = "••••••••••"; pass.classList.remove("shown"); eye.title = T("pw.reveal"); };
+  const eye = iconButton(EYE, T("pw.reveal"), async () => {
     if (shown.has(l.id)) return hide();
     const p = await neural.call("pwReveal", l.id);
-    if (p == null) { toast("Kimlik doğrulanmadı; şifre gösterilmedi."); return; }
+    if (p == null) { toast(T("pw.not-verified.show")); return; }
     pass.textContent = p;
     pass.classList.add("shown");
-    eye.title = "Şifreyi gizle";
+    eye.title = T("pw.conceal");
     shown.set(l.id, setTimeout(hide, 30e3)); // shown for at most half a minute
   });
-  const copy = iconButton(COPY, "Şifreyi kopyala", async () => {
-    toast((await neural.call("pwCopy", l.id)) ? "Şifre kopyalandı; 45 saniye sonra panodan silinecek." : "Kimlik doğrulanmadı; şifre kopyalanmadı.");
+  const copy = iconButton(COPY, T("pw.copy"), async () => {
+    toast(T((await neural.call("pwCopy", l.id)) ? "pw.copied" : "pw.not-verified.copy"));
   });
-  const edit = iconButton(ICON.edit, "Düzenle", () => editLogin(l));
-  const del = iconButton(ICON.x, "Sil", async () => {
-    if (!(await confirmBox("Şifreyi sil", `${l.origin.replace(/^https:\/\//, "")} için ${l.username || "kullanıcı adı olmayan"} hesabının şifresi silinecek.`))) return;
+  const edit = iconButton(ICON.edit, T("dlg.edit"), () => editLogin(l));
+  const del = iconButton(ICON.x, T("dlg.delete"), async () => {
+    const site = l.origin.replace(/^https:\/\//, "");
+    if (!(await confirmBox(T("pw.delete"), l.username ? T("pw.delete.text", { site, user: l.username }) : T("pw.delete.text-nouser", { site })))) return;
     await neural.call("pwRemove", l.id);
-    toast("Şifre silindi.");
+    toast(T("pw.deleted"));
   }, "x");
   const acts = el("span", "acts");
   acts.append(eye, copy, edit, del);
-  r.append(favicon(fav), site, el("span", "user", l.username || "(kullanıcı adı yok)"), pass, acts);
+  r.append(favicon(fav), site, el("span", "user", l.username || T("pw.no-username")), pass, acts);
   return r;
 }
 
@@ -75,7 +76,7 @@ function dialogFor({ title, login }) {
   $("#f-pass").value = "";
   $("#f-pass").type = "password";
   $("#f-pass").required = !login;
-  $("#f-pass-label").textContent = login ? "Yeni şifre (boş bırakırsan değişmez)" : "Şifre";
+  $("#f-pass-label").textContent = T(login ? "pw.new-pass.keep" : "pw.password");
   d.returnValue = "";
   d.showModal();
   (login ? $("#f-user") : $("#f-site")).focus();
@@ -84,18 +85,18 @@ function dialogFor({ title, login }) {
 $("#f-eye").addEventListener("click", () => {
   const p = $("#f-pass");
   p.type = p.type === "password" ? "text" : "password";
-  $("#f-eye").textContent = p.type === "password" ? "Göster" : "Gizle";
+  $("#f-eye").textContent = T(p.type === "password" ? "pw.show" : "pw.hide");
 });
 async function editLogin(l) {
-  const v = await dialogFor({ title: "Şifreyi düzenle", login: l });
+  const v = await dialogFor({ title: T("pw.edit"), login: l });
   if (!v) return;
   await neural.call("pwUpdate", l.id, { username: v.username, password: v.password || undefined });
-  toast("Kaydedildi.");
+  toast(T("pw.saved"));
 }
 $("#add").addEventListener("click", async () => {
-  const v = await dialogFor({ title: "Şifre ekle", login: null });
+  const v = await dialogFor({ title: T("pw.add"), login: null });
   if (!v) return;
-  toast((await neural.call("pwAdd", { url: v.site, username: v.username, password: v.password })) ? "Şifre eklendi." : "Site adresi anlaşılamadı.");
+  toast(T((await neural.call("pwAdd", { url: v.site, username: v.username, password: v.password })) ? "pw.added" : "pw.bad-site"));
 });
 $("#offer").addEventListener("change", (e) => neural.call("setSetting", "passwordsOffer", e.target.checked));
 
@@ -108,14 +109,14 @@ $("#csv").addEventListener("click", async () => {
   const inner = el("div", "csv");
   if (r.error) inner.append(el("p", "warn", r.error));
   else {
-    inner.append(el("p", null, `${r.file}: ${r.added} şifre eklendi${r.same ? `, ${r.same} zaten vardı` : ""}${r.kept ? `, ${r.kept} hesapta NeuralWeb'deki şifre korundu` : ""}${r.skipped ? `, ${r.skipped} satır atlandı` : ""}.`));
-    inner.append(el("p", "warn", "Bu CSV dosyasında şifrelerin açık metin olarak duruyor. İçe aktardıktan sonra dosyayı sil ve Geri Dönüşüm Kutusu'nu boşalt."));
+    inner.append(el("p", null, `${T("pw.csv.added", { file: r.file, n: r.added })}${r.same ? T("pw.csv.same", { n: r.same }) : ""}${r.kept ? T("pw.csv.kept", { n: r.kept }) : ""}${r.skipped ? T("pw.csv.skipped", { n: r.skipped }) : ""}.`));
+    inner.append(el("p", "warn", T("pw.csv.warn")));
     const btns = el("div", "row-btns");
-    const trash = el("button", "btn danger", "Dosyayı Geri Dönüşüm Kutusu'na taşı");
+    const trash = el("button", "btn danger", T("pw.csv.trash"));
     trash.type = "button";
     trash.addEventListener("click", async () => {
-      if (await neural.call("pwTrashCsv")) { trash.disabled = true; toast("Dosya Geri Dönüşüm Kutusu'na taşındı; oradan da silmeyi unutma."); }
-      else toast("Dosya taşınamadı.");
+      if (await neural.call("pwTrashCsv")) { trash.disabled = true; toast(T("pw.csv.trashed")); }
+      else toast(T("pw.csv.trash-failed"));
     });
     btns.append(trash);
     inner.append(btns);

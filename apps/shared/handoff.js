@@ -19,8 +19,10 @@ function programFor(file) {
 }
 const isDir = (p) => { try { return fs.statSync(p).isDirectory(); } catch (e) { return false; } };
 
-// self: the program making the hand-off (written to the test log); shell: Electron's shell module.
-function create({ self, shell, execPath = process.execPath, env = process.env }) {
+// self: the program making the hand-off (written to the test log); shell: Electron's shell module;
+// t: the program's texts (language.js), for the one message this module gives.
+function create({ self, shell, execPath = process.execPath, env = process.env, t = null }) {
+  const text = (key, tr) => (t ? t(key) : tr);
   // <root>\<Name>\Program\<Name>.exe: NEURAL_ROOT alone when given, else next to this program, else %USERPROFILE%\Neural.
   function exe(name) {
     const at = (r) => path.join(r, name, "Program", `${name}.exe`);
@@ -81,7 +83,7 @@ function create({ self, shell, execPath = process.execPath, env = process.env })
   }
   async function openUrl(url) {
     const s = String(url);
-    if (!/^https?:\/\/[^/\s]/i.test(s)) return "Yalnızca http ve https adresleri açılır.";
+    if (!/^https?:\/\/[^/\s]/i.test(s)) return text("handoff.only-http", "Yalnızca http ve https adresleri açılır.");
     if (start("NeuralWeb", [s])) return "";
     return windows("url", s);
   }

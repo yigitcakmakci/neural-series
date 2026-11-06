@@ -28,7 +28,7 @@ function renderTree() {
     const b = el("button", "node" + (n.id === current && !query ? " on" : ""));
     b.type = "button";
     b.style.paddingLeft = `${10 + depth * 14}px`;
-    b.append(icon(ICON.folder), el("span", null, n.title));
+    b.append(icon(ICON.folder), el("span", null, markTitle(n)));
     b.addEventListener("click", () => { current = n.id; query = ""; $("#q").value = ""; render(); });
     box.append(b);
     for (const c of n.children) if (c.type === "folder") go(c, depth + 1);
@@ -42,19 +42,19 @@ function renderList() {
   list.replaceChildren();
   let items;
   if (query) {
-    const q = query.toLocaleLowerCase("tr-TR");
+    const q = query.toLocaleLowerCase(T.locale);
     items = [];
-    walk((n) => { if (n.type === "url" && ((n.title || "").toLocaleLowerCase("tr-TR").includes(q) || n.url.toLocaleLowerCase("tr-TR").includes(q))) items.push(n); });
-    $("#crumb").textContent = `“${query}” için ${items.length} sonuç`;
+    walk((n) => { if (n.type === "url" && ((n.title || "").toLocaleLowerCase(T.locale).includes(q) || n.url.toLocaleLowerCase(T.locale).includes(q))) items.push(n); });
+    $("#crumb").textContent = T("bm.results", { query, n: items.length });
   } else {
     const hit = find(current);
     items = hit.node.children;
     const crumb = $("#crumb");
     crumb.replaceChildren();
-    for (const t of hit.trail) crumb.append(`${t.title} / `);
-    crumb.append(el("b", null, hit.node.title));
+    for (const t of hit.trail) crumb.append(`${markTitle(t)} / `);
+    crumb.append(el("b", null, markTitle(hit.node)));
   }
-  if (!items.length) list.append(el("div", "empty", query ? "Eşleşen yer imi yok." : "Bu klasör boş."));
+  if (!items.length) list.append(el("div", "empty", T(query ? "bm.no-match" : "bm.folder-empty")));
   items.forEach((n, i) => list.append(row(n, i, items.length)));
 }
 
@@ -69,20 +69,20 @@ function row(n, i, count) {
     r.append(favicon(favs[hostOf(n.url)]), main);
   } else {
     title.addEventListener("click", () => { current = n.id; render(); });
-    main.append(title, el("span", "host", `${n.children.length} öğe`));
+    main.append(title, el("span", "host", T("bm.items", { n: n.children.length })));
     r.append(icon(ICON.folder, "folder-ic"), main);
   }
   const acts = el("span", "acts");
   if (!query) {
     const hit = find(n.id);
-    if (i > 0) acts.append(iconButton(ICON.up, "Yukarı taşı", () => move(n.id, hit.parent.id, i - 1)));
-    if (i < count - 1) acts.append(iconButton(ICON.down, "Aşağı taşı", () => move(n.id, hit.parent.id, i + 1)));
+    if (i > 0) acts.append(iconButton(ICON.up, T("bm.move-up"), () => move(n.id, hit.parent.id, i - 1)));
+    if (i < count - 1) acts.append(iconButton(ICON.down, T("bm.move-down"), () => move(n.id, hit.parent.id, i + 1)));
   }
-  acts.append(iconButton(ICON.edit, "Düzenle", () => edit(n)));
-  acts.append(iconButton(ICON.x, "Sil", async () => {
-    if (n.type === "folder" && n.children.length && !(await confirmBox("Klasörü sil", `“${n.title}” ve içindeki ${n.children.length} öğe silinecek.`))) return;
+  acts.append(iconButton(ICON.edit, T("dlg.edit"), () => edit(n)));
+  acts.append(iconButton(ICON.x, T("dlg.delete"), async () => {
+    if (n.type === "folder" && n.children.length && !(await confirmBox(T("bm.delete-folder"), T("bm.delete-folder.text", { title: n.title, n: n.children.length })))) return;
     await neural.call("removeBookmark", n.id);
-    toast(`“${n.title || n.url}” silindi.`);
+    toast(T("bm.deleted", { title: n.title || n.url }));
   }, "x"));
   r.append(acts);
   return r;
@@ -93,7 +93,7 @@ function folderOptions(select, exclude, value) {
   select.replaceChildren();
   const go = (n, depth) => {
     if (n.id === exclude) return;
-    const o = el("option", null, `${"  ".repeat(depth)}${n.title}`);
+    const o = el("option", null, `${"  ".repeat(depth)}${markTitle(n)}`);
     o.value = n.id;
     select.append(o);
     for (const c of n.children) if (c.type === "folder") go(c, depth + 1);
@@ -118,21 +118,21 @@ function dialogFor({ title, node, type }) {
   return new Promise((resolve) => d.addEventListener("close", () => resolve(d.returnValue === "ok" ? { title: $("#f-title").value.trim(), url: $("#f-url").value.trim(), parent: $("#f-parent").value, from: parent } : null), { once: true }));
 }
 async function edit(n) {
-  const v = await dialogFor({ title: n.type === "url" ? "Yer imini düzenle" : "Klasörü düzenle", node: n, type: n.type });
+  const v = await dialogFor({ title: T(n.type === "url" ? "bm.edit" : "bm.edit-folder"), node: n, type: n.type });
   if (!v) return;
   await neural.call("updateBookmark", n.id, { title: v.title, url: n.type === "url" ? v.url : undefined });
   if (v.parent !== v.from) await neural.call("moveBookmark", n.id, v.parent, -1);
 }
 $("#add-mark").addEventListener("click", async () => {
-  const v = await dialogFor({ title: "Yeni yer imi", node: null, type: "url" });
+  const v = await dialogFor({ title: T("bm.new"), node: null, type: "url" });
   if (!v || !v.url) return;
   const url = /^[a-z][a-z0-9+.-]*:/i.test(v.url) ? v.url : `https://${v.url}`;
   await neural.call("addBookmark", { parentId: v.parent, title: v.title || url, url });
 });
 $("#add-folder").addEventListener("click", async () => {
-  const v = await dialogFor({ title: "Yeni klasör", node: null, type: "folder" });
+  const v = await dialogFor({ title: T("bm.new-folder"), node: null, type: "folder" });
   if (!v) return;
-  const f = await neural.call("addBookmark", { parentId: v.parent, title: v.title || "Yeni klasör", type: "folder" });
+  const f = await neural.call("addBookmark", { parentId: v.parent, title: v.title || T("bm.new-folder"), type: "folder" });
   if (f) current = f.id;
 });
 let qTimer = 0;

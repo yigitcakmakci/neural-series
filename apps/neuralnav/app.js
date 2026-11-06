@@ -12,7 +12,10 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 
 const svg = id => `<svg aria-hidden="true"><use href="#${id}"/></svg>`;
 
 const nv = window.nv;
+// Outside the desktop app there is no preload, so no language either: the page's own Turkish, as in index.html.
 if (!nv) { document.body.textContent = 'NeuralNav yalnızca masaüstü uygulaması olarak çalışır.'; return; }
+// Interface texts in the series language (lang\*.json through language.js and i18n.js).
+const T = NeuralI18n.page(window);
 
 const root = document.documentElement;
 const IS_EXTRA = new URLSearchParams(location.search).has('yeni');
@@ -26,12 +29,7 @@ const el = {
 
 /* ---------------- Settings ---------------- */
 const SETTINGS_KEY = 'neuralnav.settings';
-const THEMES = [
-  { id: 'neon', name: 'Neon' },
-  { id: 'ice', name: 'Buz' },
-  { id: 'alarm', name: 'Alarm' },
-  { id: 'daylight', name: 'Gündüz' },
-];
+const THEMES = ['neon', 'ice', 'alarm', 'daylight'].map(id => ({ id, name: T('theme.' + id) }));
 const DEFAULTS = { view: 'details', sortKey: 'name', sortDir: 1, showHidden: false, showExt: true, preview: false, theme: 'neon', syncTheme: true, pins: [] };
 const S = Object.assign({}, DEFAULTS, readJSON(SETTINGS_KEY));
 if (!THEMES.some(t => t.id === S.theme)) S.theme = DEFAULTS.theme;
@@ -50,49 +48,59 @@ nv.onThemeSyncState(on => { S.syncTheme = !!on; saveSettings(); });
 function toggleThemeSync() { S.syncTheme = !S.syncTheme; saveSettings(); nv.themeSync(S.syncTheme, S.theme); }
 
 /* ---------------- Formatting and file types ---------------- */
-const collator = new Intl.Collator('tr', { numeric: true, sensitivity: 'base' });
-const dtf = new Intl.DateTimeFormat('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+// Names sort and dates show as the interface language does (Turkish I/ı order in Turkish).
+const collator = new Intl.Collator(T.lang, { numeric: true, sensitivity: 'base' });
+const dtf = new Intl.DateTimeFormat(T.locale, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 const fmtDate = ms => ms ? dtf.format(new Date(ms)) : '';
-const fmtN = n => n.toLocaleString('tr-TR');
+const fmtN = n => n.toLocaleString(T.locale);
+const lowerName = s => s.toLocaleLowerCase(T.lang);
 function fmtSize(n) {
-  if (n < 1024) return `${fmtN(n)} bayt`;
+  if (n < 1024) return T('size.bytes', { n: fmtN(n) });
   const units = ['KB', 'MB', 'GB', 'TB'];
   let v = n / 1024, i = 0;
   while (v >= 1024 && i < units.length - 1) { v /= 1024; i++; }
-  return `${v.toLocaleString('tr-TR', { maximumFractionDigits: v < 10 ? 1 : 0 })} ${units[i]}`;
+  return `${v.toLocaleString(T.locale, { maximumFractionDigits: v < 10 ? 1 : 0 })} ${units[i]}`;
 }
 
+// extension: [text key, category, name filled into the text]. 'type.image' with 'PNG' is "PNG Resmi" / "PNG Image".
 const TYPES = {
-  txt: ['Metin Belgesi', 'text'], md: ['Markdown Belgesi', 'text'], log: ['Günlük Dosyası', 'text'], rtf: ['Zengin Metin Belgesi', 'text'],
-  ini: ['Yapılandırma Ayarları', 'code'], cfg: ['Yapılandırma Dosyası', 'code'], conf: ['Yapılandırma Dosyası', 'code'], reg: ['Kayıt Girdileri', 'code'],
-  pdf: ['PDF Belgesi', 'pdf'], doc: ['Word Belgesi', 'doc'], docx: ['Word Belgesi', 'doc'], odt: ['OpenDocument Metni', 'doc'],
-  xls: ['Excel Çalışma Sayfası', 'sheet'], xlsx: ['Excel Çalışma Sayfası', 'sheet'], csv: ['CSV Dosyası', 'sheet'], ods: ['OpenDocument Tablosu', 'sheet'],
-  ppt: ['PowerPoint Sunusu', 'slide'], pptx: ['PowerPoint Sunusu', 'slide'], odp: ['OpenDocument Sunusu', 'slide'],
-  jpg: ['JPEG Resmi', 'image'], jpeg: ['JPEG Resmi', 'image'], png: ['PNG Resmi', 'image'], gif: ['GIF Resmi', 'image'], webp: ['WebP Resmi', 'image'],
-  bmp: ['Bit Eşlem Resmi', 'image'], svg: ['SVG Resmi', 'image'], ico: ['Simge', 'image'], tif: ['TIFF Resmi', 'image'], tiff: ['TIFF Resmi', 'image'],
-  heic: ['HEIC Resmi', 'image'], avif: ['AVIF Resmi', 'image'], psd: ['Photoshop Belgesi', 'image'],
-  mp3: ['MP3 Ses Dosyası', 'audio'], wav: ['WAV Ses Dosyası', 'audio'], flac: ['FLAC Ses Dosyası', 'audio'], m4a: ['M4A Ses Dosyası', 'audio'],
-  aac: ['AAC Ses Dosyası', 'audio'], ogg: ['OGG Ses Dosyası', 'audio'], wma: ['WMA Ses Dosyası', 'audio'], opus: ['Opus Ses Dosyası', 'audio'],
-  mp4: ['MP4 Video', 'video'], mkv: ['MKV Video', 'video'], avi: ['AVI Video', 'video'], mov: ['QuickTime Video', 'video'],
-  webm: ['WebM Video', 'video'], wmv: ['WMV Video', 'video'], m4v: ['M4V Video', 'video'],
-  zip: ['ZIP Arşivi', 'archive'], rar: ['RAR Arşivi', 'archive'], '7z': ['7-Zip Arşivi', 'archive'], tar: ['TAR Arşivi', 'archive'],
-  gz: ['GZip Arşivi', 'archive'], iso: ['Disk Görüntüsü', 'archive'],
-  exe: ['Uygulama', 'app'], msi: ['Windows Installer Paketi', 'app'], lnk: ['Kısayol', 'app'], url: ['İnternet Kısayolu', 'app'],
-  bat: ['Toplu İş Dosyası', 'code'], cmd: ['Komut Dosyası', 'code'], ps1: ['PowerShell Betiği', 'code'], dll: ['Uygulama Uzantısı', 'app'],
-  sys: ['Sistem Dosyası', 'file'], js: ['JavaScript Dosyası', 'code'], mjs: ['JavaScript Dosyası', 'code'], ts: ['TypeScript Dosyası', 'code'],
-  jsx: ['JSX Dosyası', 'code'], tsx: ['TSX Dosyası', 'code'], json: ['JSON Dosyası', 'code'], html: ['HTML Belgesi', 'code'], htm: ['HTML Belgesi', 'code'],
-  css: ['CSS Dosyası', 'code'], scss: ['SCSS Dosyası', 'code'], xml: ['XML Belgesi', 'code'], yml: ['YAML Dosyası', 'code'], yaml: ['YAML Dosyası', 'code'],
-  py: ['Python Dosyası', 'code'], java: ['Java Dosyası', 'code'], c: ['C Kaynak Dosyası', 'code'], cpp: ['C++ Kaynak Dosyası', 'code'],
-  h: ['C Başlık Dosyası', 'code'], cs: ['C# Kaynak Dosyası', 'code'], go: ['Go Dosyası', 'code'], rs: ['Rust Dosyası', 'code'],
-  php: ['PHP Dosyası', 'code'], sh: ['Kabuk Betiği', 'code'], sql: ['SQL Dosyası', 'code'], toml: ['TOML Dosyası', 'code'],
-  ttf: ['TrueType Yazı Tipi', 'file'], otf: ['OpenType Yazı Tipi', 'file'], woff2: ['Web Yazı Tipi', 'file'],
+  txt: ['type.text', 'text'], md: ['type.doc', 'text', 'Markdown'], log: ['type.log', 'text'], rtf: ['type.rtf', 'text'],
+  ini: ['type.ini', 'code'], cfg: ['type.config', 'code'], conf: ['type.config', 'code'], reg: ['type.reg', 'code'],
+  pdf: ['type.doc', 'pdf', 'PDF'], doc: ['type.doc', 'doc', 'Word'], docx: ['type.doc', 'doc', 'Word'], odt: ['type.odt', 'doc'],
+  xls: ['type.excel', 'sheet'], xlsx: ['type.excel', 'sheet'], csv: ['type.file', 'sheet', 'CSV'], ods: ['type.ods', 'sheet'],
+  ppt: ['type.slides', 'slide', 'PowerPoint'], pptx: ['type.slides', 'slide', 'PowerPoint'], odp: ['type.slides', 'slide', 'OpenDocument'],
+  jpg: ['type.image', 'image', 'JPEG'], jpeg: ['type.image', 'image', 'JPEG'], png: ['type.image', 'image', 'PNG'], gif: ['type.image', 'image', 'GIF'], webp: ['type.image', 'image', 'WebP'],
+  bmp: ['type.bmp', 'image'], svg: ['type.image', 'image', 'SVG'], ico: ['type.icon', 'image'], tif: ['type.image', 'image', 'TIFF'], tiff: ['type.image', 'image', 'TIFF'],
+  heic: ['type.image', 'image', 'HEIC'], avif: ['type.image', 'image', 'AVIF'], psd: ['type.doc', 'image', 'Photoshop'],
+  mp3: ['type.audio', 'audio', 'MP3'], wav: ['type.audio', 'audio', 'WAV'], flac: ['type.audio', 'audio', 'FLAC'], m4a: ['type.audio', 'audio', 'M4A'],
+  aac: ['type.audio', 'audio', 'AAC'], ogg: ['type.audio', 'audio', 'OGG'], wma: ['type.audio', 'audio', 'WMA'], opus: ['type.audio', 'audio', 'Opus'],
+  mp4: ['type.video', 'video', 'MP4'], mkv: ['type.video', 'video', 'MKV'], avi: ['type.video', 'video', 'AVI'], mov: ['type.video', 'video', 'QuickTime'],
+  webm: ['type.video', 'video', 'WebM'], wmv: ['type.video', 'video', 'WMV'], m4v: ['type.video', 'video', 'M4V'],
+  zip: ['type.archive', 'archive', 'ZIP'], rar: ['type.archive', 'archive', 'RAR'], '7z': ['type.archive', 'archive', '7-Zip'], tar: ['type.archive', 'archive', 'TAR'],
+  gz: ['type.archive', 'archive', 'GZip'], iso: ['type.iso', 'archive'],
+  exe: ['type.app', 'app'], msi: ['type.msi', 'app'], lnk: ['type.lnk', 'app'], url: ['type.url', 'app'],
+  bat: ['type.bat', 'code'], cmd: ['type.cmd', 'code'], ps1: ['type.ps1', 'code'], dll: ['type.dll', 'app'],
+  sys: ['type.sys', 'file'], js: ['type.file', 'code', 'JavaScript'], mjs: ['type.file', 'code', 'JavaScript'], ts: ['type.file', 'code', 'TypeScript'],
+  jsx: ['type.file', 'code', 'JSX'], tsx: ['type.file', 'code', 'TSX'], json: ['type.file', 'code', 'JSON'], html: ['type.doc', 'code', 'HTML'], htm: ['type.doc', 'code', 'HTML'],
+  css: ['type.file', 'code', 'CSS'], scss: ['type.file', 'code', 'SCSS'], xml: ['type.doc', 'code', 'XML'], yml: ['type.file', 'code', 'YAML'], yaml: ['type.file', 'code', 'YAML'],
+  py: ['type.file', 'code', 'Python'], java: ['type.file', 'code', 'Java'], c: ['type.source', 'code', 'C'], cpp: ['type.source', 'code', 'C++'],
+  h: ['type.header', 'code'], cs: ['type.source', 'code', 'C#'], go: ['type.file', 'code', 'Go'], rs: ['type.file', 'code', 'Rust'],
+  php: ['type.file', 'code', 'PHP'], sh: ['type.sh', 'code'], sql: ['type.file', 'code', 'SQL'], toml: ['type.file', 'code', 'TOML'],
+  ttf: ['type.font', 'file', 'TrueType'], otf: ['type.font', 'file', 'OpenType'], woff2: ['type.font', 'file', 'Web'],
+};
+const typeOf = (isDir, ext) => {
+  if (isDir) return [T('type.folder'), 'folder'];
+  const t = TYPES[ext];
+  if (t) return [T(t[0], { name: t[2] }), t[1]];
+  return [ext ? T('type.file', { name: ext.toUpperCase() }) : T('type.none'), 'file'];
 };
 const SYMBOL = { folder: 'f-folder', text: 'f-text', doc: 'f-text', code: 'f-code', image: 'f-image', audio: 'f-audio', video: 'f-video', archive: 'f-archive', pdf: 'f-pdf', sheet: 'f-sheet', slide: 'f-slide', app: 'f-app', file: 'f-file' };
 const NATIVE_ICON = new Set(['exe', 'lnk', 'url', 'ico', 'msi', 'scr', 'cpl', 'appref-ms']);
 const TEXT_EXT = new Set(['txt', 'md', 'log', 'ini', 'cfg', 'conf', 'json', 'js', 'mjs', 'ts', 'jsx', 'tsx', 'css', 'scss', 'html', 'htm', 'xml', 'csv', 'py', 'java', 'c', 'cpp', 'h', 'cs', 'go', 'rs', 'php', 'sh', 'bat', 'cmd', 'ps1', 'yml', 'yaml', 'toml', 'sql', 'reg', 'srt', 'gitignore', 'env']);
 const VIEW_EXT = new Set(['jpg', 'jpeg', 'jpe', 'jfif', 'png', 'gif', 'webp', 'bmp', 'dib', 'ico', 'svg', 'avif']);
 const PLAYABLE = new Set(['mp4', 'webm', 'm4v', 'mov', 'mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac', 'opus']);
-const KNOWN_LABELS = { desktop: 'Masaüstü', downloads: 'İndirilenler', documents: 'Belgeler', pictures: 'Resimler', music: 'Müzik', videos: 'Videolar' };
+// Windows' own names for the user folders, in the interface language.
+const KNOWN_LABELS = Object.fromEntries(['desktop', 'downloads', 'documents', 'pictures', 'music', 'videos'].map(k => [k, T('place.' + k)]));
 const KNOWN_ICONS = { desktop: 'i-desktop', downloads: 'i-download', documents: 'i-documents', pictures: 'i-pictures', music: 'i-music', videos: 'i-videos' };
 
 /* ---------------- Paths ---------------- */
@@ -128,18 +136,19 @@ let places = { home: '', known: [], drives: [], neuralPad: false };
 async function loadPlaces() {
   try { places = await nv.places(); } catch { /* the last known list stays */ }
 }
-const userName = () => baseName(places.home || 'Kullanıcı');
+const userName = () => baseName(places.home || T('place.user'));
 function driveInfo(p) {
   const r = rootOf(p).toLowerCase();
   return places.drives.find(d => d.root.toLowerCase() === r) || null;
 }
+const DRIVE_KINDS = { Removable: 'drive.usb', Network: 'drive.network', CDRom: 'drive.dvd' };
 function driveLabel(rootPath) {
   const d = driveInfo(rootPath);
-  const kind = !d ? 'Sürücü' : d.label || ({ Removable: 'USB Sürücü', Network: 'Ağ Sürücüsü', CDRom: 'DVD Sürücüsü' }[d.type] || 'Yerel Disk');
+  const kind = !d ? T('drive.any') : d.label || T(DRIVE_KINDS[d.type] || 'drive.local');
   return `${kind} (${rootPath.slice(0, 2).toUpperCase()})`;
 }
 function locLabel(loc) {
-  if (!loc || loc === 'pc') return 'Bu Bilgisayar';
+  if (!loc || loc === 'pc') return T('place.pc');
   const k = places.known.find(x => samePath(x.path, loc));
   if (k) return KNOWN_LABELS[k.key];
   if (samePath(loc, places.home)) return userName();
@@ -160,14 +169,14 @@ function toItem(dir, e) {
   const name = e.n;
   const isDir = !!e.d;
   const ext = isDir ? '' : extOf(name);
-  const t = isDir ? ['Dosya klasörü', 'folder'] : TYPES[ext] || [ext ? `${ext.toUpperCase()} Dosyası` : 'Dosya', 'file'];
+  const t = typeOf(isDir, ext);
   return {
     name, ext, isDir,
     path: e.path || joinPath(dir, name),
     size: e.s || 0, mtime: e.m || 0, ctime: e.c || 0, attrs: e.a || 0,
     type: t[0], cat: t[1],
     hidden: !!((e.a || 0) & 6),
-    lower: name.toLocaleLowerCase('tr-TR'),
+    lower: lowerName(name),
   };
 }
 const shownName = it => (S.showExt || it.isDir || !it.ext ? it.name : it.name.slice(0, -(it.ext.length + 1)));
@@ -226,7 +235,7 @@ async function navigate(tab, loc, { push = true, select = null, keep = false } =
     const r = await nv.list(loc);
     if (token !== tab.token) return false;
     if (!r.ok) {
-      toast(`"${loc}" açılamadı: ${r.error}`);
+      toast(T('toast.open-place-failed', { place: loc, error: r.error }));
       if (tab.loc) return false;
       resolved = 'pc';
     } else {
@@ -293,13 +302,15 @@ function goUp(t = active) {
 async function goTo(input) {
   const s = input.trim();
   if (!s) return;
-  if (['bu bilgisayar', 'this pc', 'bilgisayar'].includes(s.toLocaleLowerCase('tr-TR'))) { navigate(active, 'pc'); return; }
+  // This PC by name in either language (Turkish case folding for "BU BİLGİSAYAR", plain for "THIS PC").
+  const names = ['bu bilgisayar', 'this pc', 'bilgisayar', lowerName(T('place.pc'))];
+  if ([s.toLocaleLowerCase('tr-TR'), s.toLowerCase(), lowerName(s)].some(x => names.includes(x))) { navigate(active, 'pc'); return; }
   const r = await nv.resolve(s, currentDir() || places.home);
-  if (!r.ok) { toast(`"${s}" bulunamadı.`); return; }
+  if (!r.ok) { toast(T('toast.not-found', { path: s })); return; }
   if (r.isDir) navigate(active, r.path);
   else {
     const err = await nv.open(r.path);
-    if (err) toast(`Açılamadı: ${err}`);
+    if (err) toast(T('toast.open-failed', { error: err }));
   }
 }
 
@@ -314,7 +325,7 @@ async function openPathArg(p) {
 /* ---------------- Sorting and filtering ---------------- */
 function rebuild(tab) {
   const source = tab.search ? tab.search.results : tab.entries;
-  const f = tab.filter.trim().toLocaleLowerCase('tr-TR');
+  const f = lowerName(tab.filter.trim());
   const items = source.filter(it => (S.showHidden || !it.hidden) && (!f || it.lower.includes(f)));
   const k = S.sortKey;
   const dir = S.sortDir;
@@ -417,10 +428,10 @@ function renderAll() {
   renderStatus();
   updateCommands();
   schedulePreview();
-  const title = active.search ? `“${active.search.query}” sonuçları` : locLabel(active.loc);
+  const title = active.search ? T('search.results', { query: active.search.query }) : locLabel(active.loc);
   document.title = `${title} - NeuralNav`;
   el.bandTitle.textContent = title;
-  el.search.placeholder = isPCView() ? 'Bir klasör açınca arama yapılır' : `${locLabel(active.loc)} içinde ara`;
+  el.search.placeholder = isPCView() ? T('search.no-folder') : T('search.in', { place: locLabel(active.loc) });
   el.search.disabled = isPCView();
   el.searchClear.hidden = !(el.search.value || active.search);
 }
@@ -433,9 +444,9 @@ function renderTabs() {
     b.setAttribute('role', 'tab');
     b.setAttribute('aria-selected', String(t === active));
     b.tabIndex = t === active ? 0 : -1;
-    const label = t.search ? `Ara: ${t.search.query}` : locLabel(t.loc);
-    b.title = t.loc && t.loc !== 'pc' ? t.loc : 'Bu Bilgisayar';
-    b.innerHTML = `${svg(t.search ? 'i-search' : locIcon(t.loc))}<span class="tab-name">${esc(label)}</span><span class="tab-close" role="button" title="Sekmeyi kapat (Ctrl+W)" aria-label="Sekmeyi kapat">${svg('i-close')}</span>`;
+    const label = t.search ? T('tab.search', { query: t.search.query }) : locLabel(t.loc);
+    b.title = t.loc && t.loc !== 'pc' ? t.loc : T('place.pc');
+    b.innerHTML = `${svg(t.search ? 'i-search' : locIcon(t.loc))}<span class="tab-name">${esc(label)}</span><span class="tab-close" role="button" title="${esc(T('tab.close'))}" aria-label="${esc(T('tab.close.aria'))}">${svg('i-close')}</span>`;
     b.addEventListener('mousedown', e => { if (e.button === 1) e.preventDefault(); });
     b.addEventListener('click', e => { if (e.target.closest('.tab-close')) closeTab(t); else activateTab(t); });
     b.addEventListener('auxclick', e => { if (e.button === 1) closeTab(t); });
@@ -446,7 +457,7 @@ function renderTabs() {
 }
 
 function crumbsFor(loc) {
-  const out = [{ label: 'Bu Bilgisayar', path: 'pc' }];
+  const out = [{ label: T('place.pc'), path: 'pc' }];
   if (!loc || loc === 'pc') return out;
   const r = rootOf(loc);
   if (/^[a-z]:\\$/i.test(r)) out.push({ label: driveLabel(r), path: r });
@@ -464,7 +475,7 @@ function renderAddress() {
   const sep = `<span class="crumb-sep">${svg('i-chev')}</span>`;
   el.crumbs.innerHTML = parts.map((c, i) =>
     `${i ? sep : ''}<button class="crumb${i === parts.length - 1 && !active.search ? ' last' : ''}" type="button" data-path="${esc(c.path)}">${esc(c.label)}</button>`).join('')
-    + (active.search ? `${sep}<span class="crumb search">“${esc(active.search.query)}” sonuçları</span>` : '');
+    + (active.search ? `${sep}<span class="crumb search">${esc(T('search.results', { query: active.search.query }))}</span>` : '');
   requestAnimationFrame(() => { el.crumbs.scrollLeft = el.crumbs.scrollWidth; });
   $('#nav-back').disabled = active.hi <= 0;
   $('#nav-forward').disabled = active.hi >= active.history.length - 1;
@@ -474,33 +485,33 @@ function renderAddress() {
 function renderSidebar() {
   const cur = active ? (active.search ? null : active.loc) : null;
   const item = (p, label, icon, extra = '', cls = '') =>
-    `<button class="side-item${cls}${cur && samePath(cur, p) ? ' active' : ''}" type="button" data-path="${esc(p)}" title="${esc(p === 'pc' ? 'Bu Bilgisayar' : p)}">${svg(icon)}${extra || `<span class="side-label">${esc(label)}</span>`}</button>`;
-  let html = '<div class="side-title">HIZLI ERİŞİM</div>';
+    `<button class="side-item${cls}${cur && samePath(cur, p) ? ' active' : ''}" type="button" data-path="${esc(p)}" title="${esc(p === 'pc' ? T('place.pc') : p)}">${svg(icon)}${extra || `<span class="side-label">${esc(label)}</span>`}</button>`;
+  let html = `<div class="side-title">${esc(T('side.quick'))}</div>`;
   if (places.home) html += item(places.home, userName(), 'i-home');
   for (const k of places.known) html += item(k.path, KNOWN_LABELS[k.key], KNOWN_ICONS[k.key]);
   for (const p of S.pins) html += item(p, baseName(p) || p, 'i-pin', '', ' pin');
-  html += '<div class="side-title">SÜRÜCÜLER</div>';
+  html += `<div class="side-title">${esc(T('side.drives'))}</div>`;
   for (const d of places.drives) {
     if (!d.ready) { html += item(d.root, driveLabel(d.root), 'i-drive'); continue; }
     const used = d.total ? Math.round((1 - d.free / d.total) * 100) : 0;
     html += item(d.root, '', 'i-drive',
-      `<span class="side-drive"><span class="side-label">${esc(driveLabel(d.root))}</span><span class="bar${used > 90 ? ' full' : ''}"><i style="width:${used}%"></i></span><span class="side-sub">${fmtSize(d.free)} boş</span></span>`);
+      `<span class="side-drive"><span class="side-label">${esc(driveLabel(d.root))}</span><span class="bar${used > 90 ? ' full' : ''}"><i style="width:${used}%"></i></span><span class="side-sub">${esc(T('drive.free', { size: fmtSize(d.free) }))}</span></span>`);
   }
-  html += '<div class="side-title">DİĞER</div>';
-  html += item('pc', 'Bu Bilgisayar', 'i-pc');
-  html += `<button class="side-item" type="button" data-action="recycle" title="Windows'ta Geri Dönüşüm Kutusu'nu açar">${svg('i-trash')}<span class="side-label">Geri Dönüşüm Kutusu</span></button>`;
+  html += `<div class="side-title">${esc(T('side.other'))}</div>`;
+  html += item('pc', T('place.pc'), 'i-pc');
+  html += `<button class="side-item" type="button" data-action="recycle" title="${esc(T('side.recycle.title'))}">${svg('i-trash')}<span class="side-label">${esc(T('place.recycle'))}</span></button>`;
   el.sidebar.innerHTML = html;
 }
 
 function renderPC() {
   const known = places.known.map(k =>
-    `<button class="pc-card" type="button" data-path="${esc(k.path)}"><span class="ic cat-folder"><svg class="line"><use href="#${KNOWN_ICONS[k.key]}"/></svg></span><span class="pc-txt"><span class="pc-name">${KNOWN_LABELS[k.key]}</span></span></button>`).join('');
+    `<button class="pc-card" type="button" data-path="${esc(k.path)}"><span class="ic cat-folder"><svg class="line"><use href="#${KNOWN_ICONS[k.key]}"/></svg></span><span class="pc-txt"><span class="pc-name">${esc(KNOWN_LABELS[k.key])}</span></span></button>`).join('');
   const drives = places.drives.map(d => {
     const used = d.total ? Math.round((1 - d.free / d.total) * 100) : 0;
-    const sub = d.ready ? `${fmtSize(d.free)} boş / ${fmtSize(d.total)}` : 'Hazır değil';
-    return `<button class="pc-card" type="button" data-path="${esc(d.root)}"><span class="ic cat-drive"><svg><use href="#f-drive"/></svg></span><span class="pc-txt"><span class="pc-name">${esc(driveLabel(d.root))}</span>${d.ready ? `<span class="bar${used > 90 ? ' full' : ''}"><i style="width:${used}%"></i></span>` : ''}<span class="pc-sub">${sub}</span></span></button>`;
+    const sub = d.ready ? T('drive.free-of', { free: fmtSize(d.free), total: fmtSize(d.total) }) : T('drive.not-ready');
+    return `<button class="pc-card" type="button" data-path="${esc(d.root)}"><span class="ic cat-drive"><svg><use href="#f-drive"/></svg></span><span class="pc-txt"><span class="pc-name">${esc(driveLabel(d.root))}</span>${d.ready ? `<span class="bar${used > 90 ? ' full' : ''}"><i style="width:${used}%"></i></span>` : ''}<span class="pc-sub">${esc(sub)}</span></span></button>`;
   }).join('');
-  el.pc.innerHTML = `<section class="pc-sec"><h3>KLASÖRLER</h3><div class="pc-grid">${known}</div></section><section class="pc-sec"><h3>SÜRÜCÜLER</h3><div class="pc-grid drives">${drives}</div></section>`;
+  el.pc.innerHTML = `<section class="pc-sec"><h3>${esc(T('pc.folders'))}</h3><div class="pc-grid">${known}</div></section><section class="pc-sec"><h3>${esc(T('side.drives'))}</h3><div class="pc-grid drives">${drives}</div></section>`;
 }
 
 function computeLayout() {
@@ -514,8 +525,8 @@ function computeLayout() {
 }
 
 const HEADS = {
-  normal: [['name', 'Ad'], ['date', 'Değiştirme tarihi'], ['type', 'Tür'], ['size', 'Boyut']],
-  search: [['name', 'Ad'], ['loc', 'Konum'], ['date', 'Değiştirme tarihi'], ['size', 'Boyut']],
+  normal: [['name', T('head.name')], ['date', T('head.date')], ['type', T('head.type')], ['size', T('head.size')]],
+  search: [['name', T('head.name')], ['loc', T('head.loc')], ['date', T('head.date')], ['size', T('head.size')]],
 };
 
 function renderContent() {
@@ -529,13 +540,13 @@ function renderContent() {
   el.head.hidden = L.grid;
   if (!L.grid) {
     el.head.innerHTML = HEADS[t.search ? 'search' : 'normal'].map(([k, label]) =>
-      `<button class="h h-${k}" type="button" data-sort="${k}">${label}${S.sortKey === k ? `<span class="arrow">${S.sortDir > 0 ? '▲' : '▼'}</span>` : ''}</button>`).join('');
+      `<button class="h h-${k}" type="button" data-sort="${k}">${esc(label)}${S.sortKey === k ? `<span class="arrow">${S.sortDir > 0 ? '▲' : '▼'}</span>` : ''}</button>`).join('');
   }
   el.canvas.style.height = L.height + 'px';
   renderVisible(true);
   const searching = t.search && t.search.running;
   el.empty.hidden = t.items.length > 0 && !(searching && !t.items.length);
-  if (!t.items.length) el.empty.textContent = searching ? 'ARANIYOR…' : t.search ? 'Sonuç bulunamadı.' : t.filter ? 'Filtreyle eşleşen öğe yok.' : 'Bu klasör boş.';
+  if (!t.items.length) el.empty.textContent = T(searching ? 'empty.searching' : t.search ? 'empty.no-results' : t.filter ? 'empty.no-match' : 'empty.folder');
   el.empty.hidden = t.items.length > 0;
 }
 
@@ -645,24 +656,24 @@ function ensureVisible(i) {
 function renderStatus() {
   const t = active;
   if (isPCView(t)) {
-    el.stCount.textContent = `${places.drives.length} sürücü`;
+    el.stCount.textContent = T('status.drives', { n: fmtN(places.drives.length) });
     el.stSel.textContent = '';
   } else {
-    let count = `${fmtN(t.items.length)} öğe`;
-    if (t.search) count += t.search.running ? ' · aranıyor…' : t.search.truncated ? ' · ilk 5.000 sonuç' : ' · arama bitti';
+    let count = T('count.items', { n: fmtN(t.items.length) });
+    if (t.search) count += t.search.running ? T('status.searching') : t.search.truncated ? T('status.first', { n: fmtN(5000) }) : T('status.search-done');
     el.stCount.textContent = count;
     const sel = selItems(t);
     if (sel.length) {
       const files = sel.filter(i => !i.isDir);
       const bytes = files.reduce((s, i) => s + i.size, 0);
-      el.stSel.textContent = `${fmtN(sel.length)} öğe seçildi${files.length ? ' · ' + fmtSize(bytes) : ''}`;
+      el.stSel.textContent = T('status.selected', { n: fmtN(sel.length) }) + (files.length ? ' · ' + fmtSize(bytes) : '');
     } else el.stSel.textContent = '';
   }
-  el.stJob.textContent = jobs.size ? `${jobs.size} işlem sürüyor` : '';
+  el.stJob.textContent = jobs.size ? T('status.jobs', { n: fmtN(jobs.size) }) : '';
   const d = t.loc && t.loc !== 'pc' ? driveInfo(t.loc) : null;
   if (d && d.ready && d.total) {
     const used = Math.round((1 - d.free / d.total) * 100);
-    el.stDrive.innerHTML = `${esc(d.root.slice(0, 2))} · ${fmtSize(d.free)} boş <span class="bar${used > 90 ? ' full' : ''}"><i style="width:${used}%"></i></span>`;
+    el.stDrive.innerHTML = `${esc(d.root.slice(0, 2))} · ${esc(T('drive.free', { size: fmtSize(d.free) }))} <span class="bar${used > 90 ? ' full' : ''}"><i style="width:${used}%"></i></span>`;
   } else el.stDrive.textContent = '';
 }
 
@@ -701,7 +712,7 @@ async function renderPreview() {
   const tok = ++previewToken;
   const sel = selItems();
   if (sel.length !== 1) {
-    el.preview.innerHTML = `<div class="pv-empty">${sel.length ? `${fmtN(sel.length)} öğe seçildi.` : 'Önizlemek için bir öğe seç.'}</div>`;
+    el.preview.innerHTML = `<div class="pv-empty">${esc(sel.length ? T('pv.selected', { n: fmtN(sel.length) }) : T('pv.pick'))}</div>`;
     return;
   }
   const it = sel[0];
@@ -720,9 +731,10 @@ async function renderPreview() {
   if (it.isDir) {
     const r = await nv.list(it.path);
     if (tok !== previewToken) return;
-    extra = r.ok ? `<dt>İçerik</dt><dd>${fmtN(r.entries.length)} öğe</dd>` : '';
+    extra = r.ok ? `<dt>${esc(T('prop.contents'))}</dt><dd>${esc(T('count.items', { n: fmtN(r.entries.length) }))}</dd>` : '';
   }
-  el.preview.innerHTML = `<div class="pv-media">${media}</div><div class="pv-name">${esc(it.name)}</div><dl class="pv-meta"><dt>Tür</dt><dd>${esc(it.type)}</dd>${it.isDir ? '' : `<dt>Boyut</dt><dd>${fmtSize(it.size)}</dd>`}${extra}<dt>Değiştirme</dt><dd>${fmtDate(it.mtime)}</dd><dt>Oluşturma</dt><dd>${fmtDate(it.ctime)}</dd>${active.search ? `<dt>Konum</dt><dd>${esc(parentOf(it.path) || '')}</dd>` : ''}</dl>`;
+  const row = (key, value) => `<dt>${esc(T(key))}</dt><dd>${esc(value)}</dd>`;
+  el.preview.innerHTML = `<div class="pv-media">${media}</div><div class="pv-name">${esc(it.name)}</div><dl class="pv-meta">${row('prop.type', it.type)}${it.isDir ? '' : row('prop.size', fmtSize(it.size))}${extra}${row('prop.modified', fmtDate(it.mtime))}${row('prop.created', fmtDate(it.ctime))}${active.search ? row('prop.loc', parentOf(it.path) || '') : ''}</dl>`;
 }
 
 /* ---------------- Opening ---------------- */
@@ -740,7 +752,7 @@ async function openItem(it, { inNewTab = false } = {}) {
     }
   }
   const err = await nv.open(it.path);
-  if (err) toast(`Açılamadı: ${err}`);
+  if (err) toast(T('toast.open-failed', { error: err }));
 }
 function openSelection() {
   const items = selItems();
@@ -749,7 +761,7 @@ function openSelection() {
   const dirs = items.filter(i => i.isDir);
   // Together, so NeuralPad opens the notes in one window and NeuralView gets a single picture.
   const files = items.filter(i => !i.isDir).slice(0, 15);
-  if (files.length) nv.open(files.map(f => f.path)).then(err => { if (err) toast(`Açılamadı: ${err}`); });
+  if (files.length) nv.open(files.map(f => f.path)).then(err => { if (err) toast(T('toast.open-failed', { error: err })); });
   for (const d of dirs) addTab(d.path, { activate: false });
 }
 
@@ -761,21 +773,22 @@ async function toClipboard(op) {
   await nv.clipSet(op, paths);
   cutSet = op === 'move' ? new Set(paths) : new Set();
   renderVisible(true);
-  toast(`${fmtN(paths.length)} öğe ${op === 'move' ? 'kesildi' : 'kopyalandı'}.`);
+  toast(T(op === 'move' ? 'toast.cut' : 'toast.copied', { n: fmtN(paths.length) }));
 }
 async function pasteInto(dir) {
-  if (!dir) { toast('Buraya yapıştırılamaz.'); return; }
+  if (!dir) { toast(T('toast.no-paste-here')); return; }
   const c = await nv.clipGet();
-  if (!c || !c.paths || !c.paths.length) { toast('Panoda dosya yok.'); return; }
+  if (!c || !c.paths || !c.paths.length) { toast(T('toast.clipboard-empty')); return; }
   const op = c.op === 'move' ? 'move' : 'copy';
   startJob(op, c.paths, dir, { fromClipboard: op === 'move' });
 }
 
 async function createItem(kind) {
   const dir = currentDir();
-  if (!dir) { toast('Burada yeni öğe oluşturulamaz.'); return; }
-  const r = await nv.create(dir, kind === 'dir' ? 'Yeni klasör' : 'Yeni Metin Belgesi.txt', kind);
-  if (!r.ok) { toast(`Oluşturulamadı: ${r.error}`); return; }
+  if (!dir) { toast(T('toast.no-new-here')); return; }
+  // The first name follows the interface language, as Explorer's does ("Yeni klasör" / "New folder").
+  const r = await nv.create(dir, T(kind === 'dir' ? 'name.new-folder' : 'name.new-text'), kind);
+  if (!r.ok) { toast(T('toast.create-failed', { error: r.error })); return; }
   pushUndo({ type: 'create', path: r.path });
   await navigate(active, dir, { push: false, keep: true, select: r.path });
   startRename(r.path);
@@ -787,20 +800,21 @@ async function trashSelection() {
   const focus = active.focus;
   const r = await nv.trash(items.map(i => i.path));
   const done = items.length - r.failed.length;
-  if (done) toast(`${fmtN(done)} öğe Geri Dönüşüm Kutusu'na taşındı.`);
-  if (r.failed.length) toast(`${fmtN(r.failed.length)} öğe silinemedi: ${r.failed[0].message}`);
+  if (done) toast(T('toast.trashed', { n: fmtN(done) }));
+  if (r.failed.length) toast(T('toast.delete-failed', { n: fmtN(r.failed.length), error: r.failed[0].message }));
   await afterRemoval(items, focus);
 }
 async function deletePermanently() {
   const items = selItems();
   if (!items.length) return;
-  const what = items.length === 1 ? `"${items[0].name}"` : `${fmtN(items.length)} öğe`;
-  const ok = await confirmBox({ title: 'Kalıcı olarak sil', text: `${what} kalıcı olarak silinsin mi? Geri Dönüşüm Kutusu'na gitmez ve geri alınamaz.`, okLabel: 'Kalıcı olarak sil', danger: true });
+  const n = items.length;
+  const what = n === 1 ? `"${items[0].name}"` : T('count.items', { n: fmtN(n) });
+  const ok = await confirmBox({ title: T('dlg.delete'), text: T('dlg.delete.text', { what, n }), okLabel: T('dlg.delete'), danger: true });
   if (!ok) return;
   const focus = active.focus;
   const r = await nv.deletePermanent(items.map(i => i.path));
-  if (r.failed.length) toast(`${fmtN(r.failed.length)} öğe silinemedi: ${r.failed[0].message}`);
-  else toast(`${what} kalıcı olarak silindi.`);
+  if (r.failed.length) toast(T('toast.delete-failed', { n: fmtN(r.failed.length), error: r.failed[0].message }));
+  else toast(T('toast.deleted', { what, n }));
   await afterRemoval(items, focus);
 }
 async function afterRemoval(items, focus) {
@@ -859,7 +873,7 @@ function startRename(target) {
     el.scroller.focus({ preventScroll: true });
     if (!commit || !value || value === it.name) return;
     const r = await nv.rename(it.path, value);
-    if (!r.ok) { toast(`Yeniden adlandırılamadı: ${r.error}`); return; }
+    if (!r.ok) { toast(T('toast.rename-failed', { error: r.error })); return; }
     pushUndo({ type: 'rename', from: it.path, to: r.path });
     if (t.search) {
       const idx = t.search.results.findIndex(x => x.path === it.path);
@@ -885,11 +899,11 @@ const undoStack = [];
 function pushUndo(u) { undoStack.push(u); if (undoStack.length > 40) undoStack.shift(); }
 async function undo() {
   const u = undoStack.pop();
-  if (!u) { toast('Geri alınacak işlem yok.'); return; }
+  if (!u) { toast(T('toast.nothing-to-undo')); return; }
   if (u.type === 'rename') {
     const r = await nv.rename(u.to, baseName(u.from));
-    if (!r.ok) { toast(`Geri alınamadı: ${r.error}`); return; }
-    toast('Yeniden adlandırma geri alındı.');
+    if (!r.ok) { toast(T('toast.undo-failed', { error: r.error })); return; }
+    toast(T('toast.undo-rename'));
     refreshWhere([parentOf(u.from)]);
   } else if (u.type === 'move') {
     const groups = new Map();
@@ -899,11 +913,11 @@ async function undo() {
       groups.get(back).push(dest);
     }
     for (const [back, dests] of groups) startJob('move', dests, back, { noUndo: true });
-    toast('Taşıma geri alınıyor.');
+    toast(T('toast.undo-move'));
   } else if (u.type === 'copy' || u.type === 'create') {
     const paths = u.type === 'copy' ? u.pairs.map(p => p[1]) : [u.path];
     const r = await nv.trash(paths);
-    toast(r.failed.length ? `Geri alınamadı: ${r.failed[0].message}` : `${u.type === 'copy' ? 'Kopyalama' : 'Oluşturma'} geri alındı; öğeler Geri Dönüşüm Kutusu'nda.`);
+    toast(r.failed.length ? T('toast.undo-failed', { error: r.failed[0].message }) : T(u.type === 'copy' ? 'toast.undo-copy' : 'toast.undo-create'));
     refreshWhere(paths.map(parentOf));
   }
 }
@@ -926,8 +940,8 @@ nv.onJob(m => {
     case 'progress': j.progress = m; break;
     case 'conflict': conflictQueue.push({ j, m }); pumpConflicts(); break;
     case 'done': finishJob(j, m.result); break;
-    case 'cancelled': jobs.delete(j.id); toast('İşlem iptal edildi.'); refreshWhere([j.destDir, ...(j.sources || []).map(parentOf)]); break;
-    case 'error': jobs.delete(j.id); toast(`İşlem yapılamadı: ${m.message}`); break;
+    case 'cancelled': jobs.delete(j.id); toast(T('toast.job-cancelled')); refreshWhere([j.destDir, ...(j.sources || []).map(parentOf)]); break;
+    case 'error': jobs.delete(j.id); toast(T('toast.job-failed', { error: m.message })); break;
   }
   renderJobs();
   renderStatus();
@@ -942,8 +956,8 @@ function finishJob(j, result) {
     const isSource = (j.sources || []).some(s => samePath(parentOf(s), t.loc));
     if (isDest || isSource) navigate(t, t.loc, { push: false, keep: !isDest, select: isDest && t === active && result.done.length ? result.done : null });
   }
-  if (result.errors.length) toast(`${fmtN(result.errors.length)} öğe işlenemedi: ${result.errors[0].message}`);
-  else if (!result.done.length && result.skipped) toast('Öğeler atlandı; değişiklik yapılmadı.');
+  if (result.errors.length) toast(T('toast.job-errors', { n: fmtN(result.errors.length), error: result.errors[0].message }));
+  else if (!result.done.length && result.skipped) toast(T('toast.job-skipped'));
 }
 let jobsTimer = 0;
 function renderJobs() {
@@ -952,9 +966,9 @@ function renderJobs() {
   el.jobs.innerHTML = visible.map(j => {
     const p = j.progress;
     const pct = p && p.totalBytes ? Math.round(p.doneBytes / p.totalBytes * 100) : p && p.totalFiles ? Math.round(p.doneFiles / p.totalFiles * 100) : 0;
-    const verb = j.op === 'move' ? 'Taşınıyor' : 'Kopyalanıyor';
-    const detail = p ? `${p.totalBytes ? `${fmtSize(p.doneBytes)} / ${fmtSize(p.totalBytes)}` : `${fmtN(p.doneFiles)} / ${fmtN(p.totalFiles)}`} · ${esc(p.current || '')}` : 'Hazırlanıyor…';
-    return `<div class="job"><div class="job-top"><span class="job-title">${verb} → ${esc(locLabel(j.destDir || ''))}</span><button class="job-cancel" type="button" data-job="${j.id}">İptal</button></div><span class="bar"><i style="width:${pct}%"></i></span><span class="job-detail">${detail}</span></div>`;
+    const verb = T(j.op === 'move' ? 'job.moving' : 'job.copying');
+    const detail = p ? `${p.totalBytes ? `${fmtSize(p.doneBytes)} / ${fmtSize(p.totalBytes)}` : `${fmtN(p.doneFiles)} / ${fmtN(p.totalFiles)}`} · ${esc(p.current || '')}` : esc(T('job.preparing'));
+    return `<div class="job"><div class="job-top"><span class="job-title">${esc(verb)} → ${esc(locLabel(j.destDir || ''))}</span><button class="job-cancel" type="button" data-job="${j.id}">${esc(T('job.cancel'))}</button></div><span class="bar"><i style="width:${pct}%"></i></span><span class="job-detail">${detail}</span></div>`;
   }).join('');
   clearTimeout(jobsTimer);
   if (jobs.size) jobsTimer = setTimeout(renderJobs, 450);
@@ -971,12 +985,12 @@ async function pumpConflicts() {
   conflictOpen = true;
   const { j, m } = conflictQueue.shift();
   const name = baseName(m.dest);
-  $('#cf-text').textContent = `"${name}" adlı bir ${m.isDir ? 'klasör' : 'dosya'} ${locLabel(parentOf(m.dest) || '')} içinde zaten var.`;
-  const info = (size, mtime) => (m.isDir ? `Klasör\n${fmtDate(mtime)}` : `${fmtSize(size)}\n${fmtDate(mtime)}`);
+  $('#cf-text').textContent = T(m.isDir ? 'cf.text-folder' : 'cf.text-file', { name, place: locLabel(parentOf(m.dest) || '') });
+  const info = (size, mtime) => (m.isDir ? `${T('cf.folder')}\n${fmtDate(mtime)}` : `${fmtSize(size)}\n${fmtDate(mtime)}`);
   $('#cf-src').textContent = info(m.srcSize, m.srcMtime);
   $('#cf-dest').textContent = info(m.destSize, m.destMtime);
   $('#cf-src').style.whiteSpace = $('#cf-dest').style.whiteSpace = 'pre-line';
-  $('#cf-replace').textContent = m.isDir ? 'Birleştir' : 'Değiştir';
+  $('#cf-replace').textContent = T(m.isDir ? 'cf.merge' : 'cf.replace');
   $('#cf-all').checked = false;
   const r = await ask($('#dlg-conflict'));
   nv.conflictReply(j.id, m.reqId, { action: ['replace', 'keep', 'skip'].includes(r) ? r : 'cancel', all: $('#cf-all').checked });
@@ -1039,35 +1053,36 @@ async function showProps(items) {
   if (!items.length) {
     const dir = currentDir();
     if (!dir) return;
-    items = [{ name: locLabel(dir), path: dir, isDir: true, type: 'Dosya klasörü', cat: 'folder', ext: '' }];
+    items = [{ name: locLabel(dir), path: dir, isDir: true, type: T('type.folder'), cat: 'folder', ext: '' }];
   }
   const dlg = $('#dlg-props');
   const rows = $('#pr-rows');
   const one = items.length === 1 ? items[0] : null;
   $('#pr-icon').innerHTML = one ? iconHTML(one, true) : `<span class="ic cat-file"><svg><use href="#f-file"/></svg></span>`;
-  $('#pr-name').textContent = one ? one.name : `${fmtN(items.length)} öğe`;
+  $('#pr-name').textContent = one ? one.name : T('count.items', { n: fmtN(items.length) });
   const parents = [...new Set(items.map(i => parentOf(i.path) || ''))];
+  // [label, value, value is markup]
   const cells = [];
-  cells.push(['Tür', one ? one.type : [...new Set(items.map(i => i.type))].length === 1 ? items[0].type : 'Çeşitli türler']);
-  cells.push(['Konum', parents.length === 1 ? parents[0] || 'Bu Bilgisayar' : 'Çeşitli klasörler']);
-  cells.push(['Boyut', '<span id="pr-size">Hesaplanıyor…</span>']);
-  cells.push(['İçerik', '<span id="pr-contents">—</span>']);
+  cells.push([T('prop.type'), one ? one.type : [...new Set(items.map(i => i.type))].length === 1 ? items[0].type : T('prop.types-mixed')]);
+  cells.push([T('prop.loc'), parents.length === 1 ? parents[0] || T('place.pc') : T('prop.folders-mixed')]);
+  cells.push([T('prop.size'), `<span id="pr-size">${esc(T('prop.calculating'))}</span>`, true]);
+  cells.push([T('prop.contents'), '<span id="pr-contents">—</span>', true]);
   if (one) {
     const st = await nv.stat(one.path);
     if (st.ok) {
-      cells.push(['Oluşturma', fmtDate(st.ctime)], ['Değiştirme', fmtDate(st.mtime)], ['Erişim', fmtDate(st.atime)]);
-      const attrs = [st.attrs & 1 ? 'Salt okunur' : '', st.attrs & 2 ? 'Gizli' : '', st.attrs & 4 ? 'Sistem' : ''].filter(Boolean);
-      cells.push(['Öznitelikler', attrs.length ? attrs.join(', ') : 'Yok']);
+      cells.push([T('prop.created'), fmtDate(st.ctime)], [T('prop.modified'), fmtDate(st.mtime)], [T('prop.accessed'), fmtDate(st.atime)]);
+      const attrs = [st.attrs & 1 ? T('attr.readonly') : '', st.attrs & 2 ? T('attr.hidden') : '', st.attrs & 4 ? T('attr.system') : ''].filter(Boolean);
+      cells.push([T('prop.attrs'), attrs.length ? attrs.join(', ') : T('attr.none')]);
     }
   }
-  rows.innerHTML = cells.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${k === 'Boyut' || k === 'İçerik' ? v : esc(v)}</dd>`).join('');
+  rows.innerHTML = cells.map(([k, v, html]) => `<dt>${esc(k)}</dt><dd>${html ? v : esc(v)}</dd>`).join('');
   const total = { bytes: 0, files: 0, dirs: 0 };
   const show = (extra = { bytes: 0, files: 0, dirs: 0 }, doneAll = false) => {
     const b = total.bytes + extra.bytes;
     const sz = $('#pr-size');
     const ct = $('#pr-contents');
-    if (sz) sz.textContent = `${fmtSize(b)} (${fmtN(b)} bayt)${doneAll ? '' : ' · hesaplanıyor…'}`;
-    if (ct) ct.textContent = `${fmtN(total.files + extra.files)} dosya, ${fmtN(total.dirs + extra.dirs)} klasör`;
+    if (sz) sz.textContent = T('prop.size.value', { size: fmtSize(b), n: fmtN(b) }) + (doneAll ? '' : T('prop.calculating.more'));
+    if (ct) ct.textContent = `${T('count.files', { n: fmtN(total.files + extra.files) })}, ${T('count.folders', { n: fmtN(total.dirs + extra.dirs) })}`;
   };
   for (const i of items) if (!i.isDir) { total.bytes += i.size; total.files++; }
   show();
@@ -1101,7 +1116,7 @@ function ask(dlg) {
     dlg.addEventListener('close', () => res(dlg.returnValue || 'cancel'), { once: true });
   });
 }
-async function confirmBox({ title, text, okLabel = 'Tamam', danger = false }) {
+async function confirmBox({ title, text, okLabel = T('dlg.ok'), danger = false }) {
   $('#cfm-title').textContent = title;
   $('#cfm-text').textContent = text;
   const ok = $('#cfm-ok');
@@ -1110,21 +1125,21 @@ async function confirmBox({ title, text, okLabel = 'Tamam', danger = false }) {
   return (await ask($('#dlg-confirm'))) === 'ok';
 }
 let toastTimer = 0;
-function toast(msg) {
+function toast(msg, ms = 3200) {
   el.toast.textContent = msg;
   el.toast.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.toast.classList.remove('show'), 3200);
+  toastTimer = setTimeout(() => el.toast.classList.remove('show'), ms);
 }
 
 const SHORTCUT_DOC = [
-  ['Aç', 'Enter / çift tıklama'], ['Geri / İleri', 'Alt+Sol / Alt+Sağ / Geri tuşu'], ['Üst klasör', 'Alt+Yukarı'],
-  ['Adres çubuğu', 'Ctrl+L / Alt+D / F4'], ['Ara', 'Ctrl+F / Ctrl+E'], ['Yenile', 'F5'],
-  ['Yeni sekme / Sekmeyi kapat', 'Ctrl+T / Ctrl+W'], ['Sonraki / önceki sekme', 'Ctrl+Tab / Ctrl+Shift+Tab'], ['Yeni pencere', 'Ctrl+N'],
-  ['Yeni klasör', 'Ctrl+Shift+N'], ['Yeniden adlandır', 'F2'], ['Kes / Kopyala / Yapıştır', 'Ctrl+X / Ctrl+C / Ctrl+V'],
-  ['Geri Dönüşüm Kutusu\'na taşı', 'Del / Ctrl+D'], ['Kalıcı olarak sil (onay ister)', 'Shift+Del'], ['Geri al', 'Ctrl+Z'],
-  ['Tümünü seç', 'Ctrl+A'], ['Yolu kopyala', 'Ctrl+Shift+C'], ['Özellikler', 'Alt+Enter'], ['Önizleme bölmesi', 'Alt+P'],
-  ['Ada göre atla', 'Harf yaz'], ['Kopyala / taşı (sürüklerken)', 'Ctrl / Shift basılı tut'],
+  [T('keys.open'), T('keys.open.k')], [T('keys.back-forward'), T('keys.back-forward.k')], [T('keys.up'), T('keys.up.k')],
+  [T('keys.address'), 'Ctrl+L / Alt+D / F4'], [T('keys.search'), 'Ctrl+F / Ctrl+E'], [T('keys.refresh'), 'F5'],
+  [T('keys.tabs'), 'Ctrl+T / Ctrl+W'], [T('keys.cycle'), 'Ctrl+Tab / Ctrl+Shift+Tab'], [T('keys.new-window'), 'Ctrl+N'],
+  [T('keys.new-folder'), 'Ctrl+Shift+N'], [T('keys.rename'), 'F2'], [T('keys.clipboard'), 'Ctrl+X / Ctrl+C / Ctrl+V'],
+  [T('keys.trash'), 'Del / Ctrl+D'], [T('keys.delete'), 'Shift+Del'], [T('keys.undo'), 'Ctrl+Z'],
+  [T('keys.select-all'), 'Ctrl+A'], [T('keys.copy-path'), 'Ctrl+Shift+C'], [T('keys.props'), 'Alt+Enter'], [T('keys.preview'), 'Alt+P'],
+  [T('keys.type-ahead'), T('keys.type-ahead.k')], [T('keys.drag'), T('keys.drag.k')],
 ];
 function openShortcuts() {
   $('#keys-list').innerHTML = SHORTCUT_DOC.map(([a, k]) => `<span>${esc(a)}</span><span class="kk">${esc(k)}</span>`).join('');
@@ -1244,37 +1259,40 @@ document.addEventListener('mousedown', e => {
 window.addEventListener('blur', () => closeMenus(false));
 
 const NEW_MENU = () => [
-  { label: 'Klasör', key: 'Ctrl+Shift+N', icon: 'i-newfolder', run: () => createItem('dir') },
-  { label: 'Metin belgesi', icon: 'i-newfile', run: () => createItem('file') },
+  { label: T('menu.new-folder'), key: 'Ctrl+Shift+N', icon: 'i-newfolder', run: () => createItem('dir') },
+  { label: T('menu.new-text'), icon: 'i-newfile', run: () => createItem('file') },
 ];
 const SORT_MENU = () => [
   ...(active.search ? HEADS.search : HEADS.normal).map(([k, label]) => ({ label, radio: () => S.sortKey === k, run: () => { if (S.sortKey !== k) setSort(k); } })),
   '-',
-  { label: 'Artan', radio: () => S.sortDir > 0, run: () => { S.sortDir = 1; saveSettings(); resort(); } },
-  { label: 'Azalan', radio: () => S.sortDir < 0, run: () => { S.sortDir = -1; saveSettings(); resort(); } },
+  { label: T('menu.ascending'), radio: () => S.sortDir > 0, run: () => { S.sortDir = 1; saveSettings(); resort(); } },
+  { label: T('menu.descending'), radio: () => S.sortDir < 0, run: () => { S.sortDir = -1; saveSettings(); resort(); } },
 ];
 const VIEW_MENU = () => [
-  { label: 'Ayrıntılar', icon: 'i-list', radio: () => S.view === 'details', run: () => setView('details') },
-  { label: 'Kutucuklar', icon: 'i-view', radio: () => S.view === 'grid', run: () => setView('grid') },
+  { label: T('menu.details'), icon: 'i-list', radio: () => S.view === 'details', run: () => setView('details') },
+  { label: T('menu.tiles'), icon: 'i-view', radio: () => S.view === 'grid', run: () => setView('grid') },
   '-',
-  { label: 'Gizli öğeler', check: () => S.showHidden, run: () => { S.showHidden = !S.showHidden; saveSettings(); resort(); renderStatus(); } },
-  { label: 'Dosya uzantıları', check: () => S.showExt, run: () => { S.showExt = !S.showExt; saveSettings(); renderVisible(true); } },
-  { label: 'Önizleme bölmesi', key: 'Alt+P', check: () => S.preview, run: togglePreview },
+  { label: T('menu.hidden'), check: () => S.showHidden, run: () => { S.showHidden = !S.showHidden; saveSettings(); resort(); renderStatus(); } },
+  { label: T('menu.extensions'), check: () => S.showExt, run: () => { S.showExt = !S.showExt; saveSettings(); renderVisible(true); } },
+  { label: T('menu.preview'), key: 'Alt+P', check: () => S.preview, run: togglePreview },
 ];
+// The series language: a pick shows from the next start, so only the note changes now.
+const languages = NeuralI18n.languageChoices(window, note => toast(note, 6000));
 const MORE_MENU = () => [
-  { label: 'Yeni pencere', key: 'Ctrl+N', icon: 'i-window', run: () => nv.newWindow(currentDir() || '') },
-  { label: 'Terminalde aç', icon: 'i-terminal', enabled: () => !!currentDir(), run: () => nv.openTerminal(currentDir()) },
-  { label: "Windows Gezgini'nde aç", icon: 'i-folder', enabled: () => !!currentDir(), run: () => nv.showInExplorer(currentDir()) },
-  { label: 'Geri Dönüşüm Kutusu', icon: 'i-trash', run: () => nv.openRecycleBin() },
+  { label: T('menu.new-window'), key: 'Ctrl+N', icon: 'i-window', run: () => nv.newWindow(currentDir() || '') },
+  { label: T('menu.terminal'), icon: 'i-terminal', enabled: () => !!currentDir(), run: () => nv.openTerminal(currentDir()) },
+  { label: T('menu.explorer'), icon: 'i-folder', enabled: () => !!currentDir(), run: () => nv.showInExplorer(currentDir()) },
+  { label: T('place.recycle'), icon: 'i-trash', run: () => nv.openRecycleBin() },
   '-',
-  { label: "Gezgin pencerelerini NeuralNav'a aktar", check: () => watcher.enabled, enabled: () => watcher.available, run: toggleWatcher },
-  { label: 'Tema', sub: [
-    ...THEMES.map(t => ({ label: t.name, radio: () => S.theme === t.id, run: () => setTheme(t.id) })),
+  { label: T('menu.watcher'), check: () => watcher.enabled, enabled: () => watcher.available, run: toggleWatcher },
+  { label: T('menu.theme'), sub: [
+    ...THEMES.map(th => ({ label: th.name, radio: () => S.theme === th.id, run: () => setTheme(th.id) })),
     '-',
-    { label: 'Temayı seriyle eşitle', check: () => S.syncTheme, run: toggleThemeSync },
+    { label: T('menu.theme-sync'), check: () => S.syncTheme, run: toggleThemeSync },
   ] },
-  { label: 'Klavye kısayolları', run: openShortcuts },
-  { label: 'NeuralNav hakkında', run: () => ask($('#dlg-about')) },
+  { label: T('lang.menu'), sub: languages().map(l => ({ label: l.label, radio: l.checked, run: l.pick })) },
+  { label: T('menu.keys'), run: openShortcuts },
+  { label: T('menu.about'), run: () => ask($('#dlg-about')) },
 ];
 
 function itemMenu() {
@@ -1282,50 +1300,50 @@ function itemMenu() {
   const one = items.length === 1 ? items[0] : null;
   const allFiles = items.every(i => !i.isDir);
   const textLike = items.length && allFiles && items.every(i => TEXT_EXT.has(i.ext) || !i.ext);
-  const m = [{ label: 'Aç', key: 'Enter', run: openSelection }];
+  const m = [{ label: T('ctx.open'), key: 'Enter', run: openSelection }];
   if (one && one.isDir) {
-    m.push({ label: 'Yeni sekmede aç', run: () => addTab(one.path, { activate: false }) });
-    m.push({ label: 'Yeni pencerede aç', run: () => nv.newWindow(one.path) });
+    m.push({ label: T('ctx.open-tab'), run: () => addTab(one.path, { activate: false }) });
+    m.push({ label: T('ctx.open-window'), run: () => nv.newWindow(one.path) });
   }
-  if (one && !one.isDir) m.push({ label: 'Birlikte aç…', run: () => nv.openWith(one.path) });
-  if (textLike && places.neuralPad) m.push({ label: 'NeuralPad ile aç', icon: 'i-documents', run: () => nv.openInNeuralPad(items.map(i => i.path)) });
+  if (one && !one.isDir) m.push({ label: T('ctx.open-with'), run: () => nv.openWith(one.path) });
+  if (textLike && places.neuralPad) m.push({ label: T('ctx.neuralpad'), icon: 'i-documents', run: () => nv.openInNeuralPad(items.map(i => i.path)) });
   const imageLike = items.length && allFiles && items.every(i => VIEW_EXT.has(i.ext));
-  if (imageLike && places.neuralView) m.push({ label: 'NeuralView ile aç', icon: 'i-pictures', run: () => nv.openInNeuralView(items[0].path) });
-  if (active.search && one) m.push({ label: 'Dosya konumunu aç', run: () => navigate(active, parentOf(one.path), { select: one.path }) });
+  if (imageLike && places.neuralView) m.push({ label: T('ctx.neuralview'), icon: 'i-pictures', run: () => nv.openInNeuralView(items[0].path) });
+  if (active.search && one) m.push({ label: T('ctx.open-location'), run: () => navigate(active, parentOf(one.path), { select: one.path }) });
   m.push('-');
-  m.push({ label: 'Kes', key: 'Ctrl+X', icon: 'i-cut', run: () => toClipboard('move') });
-  m.push({ label: 'Kopyala', key: 'Ctrl+C', icon: 'i-copy', run: () => toClipboard('copy') });
-  if (one && one.isDir) m.push({ label: 'Bu klasöre yapıştır', icon: 'i-paste', run: () => pasteInto(one.path) });
-  m.push({ label: 'Yolu kopyala', key: 'Ctrl+Shift+C', run: copyPaths });
+  m.push({ label: T('ctx.cut'), key: 'Ctrl+X', icon: 'i-cut', run: () => toClipboard('move') });
+  m.push({ label: T('ctx.copy'), key: 'Ctrl+C', icon: 'i-copy', run: () => toClipboard('copy') });
+  if (one && one.isDir) m.push({ label: T('ctx.paste-into'), icon: 'i-paste', run: () => pasteInto(one.path) });
+  m.push({ label: T('ctx.copy-path'), key: 'Ctrl+Shift+C', run: copyPaths });
   m.push('-');
-  m.push({ label: 'Yeniden adlandır', key: 'F2', icon: 'i-rename', enabled: () => !!one, run: () => startRename() });
-  m.push({ label: 'Sil', key: 'Del', icon: 'i-delete', run: trashSelection });
-  m.push({ label: 'Kalıcı olarak sil…', key: 'Shift+Del', run: deletePermanently });
+  m.push({ label: T('ctx.rename'), key: 'F2', icon: 'i-rename', enabled: () => !!one, run: () => startRename() });
+  m.push({ label: T('ctx.delete'), key: 'Del', icon: 'i-delete', run: trashSelection });
+  m.push({ label: T('ctx.delete-permanent'), key: 'Shift+Del', run: deletePermanently });
   m.push('-');
   if (one && one.isDir) {
     const pinned = S.pins.some(p => samePath(p, one.path));
-    m.push({ label: pinned ? 'Hızlı erişimden kaldır' : 'Hızlı erişime sabitle', icon: 'i-pin', run: () => togglePin(one.path) });
-    m.push({ label: 'Terminalde aç', icon: 'i-terminal', run: () => nv.openTerminal(one.path) });
+    m.push({ label: T(pinned ? 'ctx.unpin' : 'ctx.pin'), icon: 'i-pin', run: () => togglePin(one.path) });
+    m.push({ label: T('menu.terminal'), icon: 'i-terminal', run: () => nv.openTerminal(one.path) });
   }
-  if (one) m.push({ label: "Windows Gezgini'nde göster", icon: 'i-folder', run: () => nv.showInExplorer(one.path) });
-  m.push({ label: 'Özellikler', key: 'Alt+Enter', icon: 'i-props', run: () => showProps(selItems()) });
+  if (one) m.push({ label: T('ctx.show-in-explorer'), icon: 'i-folder', run: () => nv.showInExplorer(one.path) });
+  m.push({ label: T('ctx.props'), key: 'Alt+Enter', icon: 'i-props', run: () => showProps(selItems()) });
   return m;
 }
 function backgroundMenu() {
   const dir = currentDir();
   return [
-    { label: 'Görünüm', icon: 'i-view', sub: VIEW_MENU() },
-    { label: 'Sırala', icon: 'i-sort', sub: SORT_MENU() },
-    { label: 'Yenile', key: 'F5', icon: 'i-refresh', run: () => refresh() },
+    { label: T('cmd.view'), icon: 'i-view', sub: VIEW_MENU() },
+    { label: T('cmd.sort'), icon: 'i-sort', sub: SORT_MENU() },
+    { label: T('ctx.refresh'), key: 'F5', icon: 'i-refresh', run: () => refresh() },
     '-',
-    { label: 'Yapıştır', key: 'Ctrl+V', icon: 'i-paste', enabled: () => !!dir, run: () => pasteInto(dir) },
-    { label: 'Geri al', key: 'Ctrl+Z', icon: 'i-undo', enabled: () => undoStack.length > 0, run: undo },
+    { label: T('ctx.paste'), key: 'Ctrl+V', icon: 'i-paste', enabled: () => !!dir, run: () => pasteInto(dir) },
+    { label: T('ctx.undo'), key: 'Ctrl+Z', icon: 'i-undo', enabled: () => undoStack.length > 0, run: undo },
     '-',
-    { label: 'Yeni', icon: 'i-plus', enabled: () => !!dir, sub: NEW_MENU() },
+    { label: T('cmd.new'), icon: 'i-plus', enabled: () => !!dir, sub: NEW_MENU() },
     '-',
-    { label: 'Terminalde aç', icon: 'i-terminal', enabled: () => !!dir, run: () => nv.openTerminal(dir) },
-    { label: "Windows Gezgini'nde aç", icon: 'i-folder', enabled: () => !!dir, run: () => nv.showInExplorer(dir) },
-    { label: 'Özellikler', icon: 'i-props', enabled: () => !!dir, run: () => showProps([]) },
+    { label: T('menu.terminal'), icon: 'i-terminal', enabled: () => !!dir, run: () => nv.openTerminal(dir) },
+    { label: T('menu.explorer'), icon: 'i-folder', enabled: () => !!dir, run: () => nv.showInExplorer(dir) },
+    { label: T('ctx.props'), icon: 'i-props', enabled: () => !!dir, run: () => showProps([]) },
   ];
 }
 
@@ -1333,9 +1351,7 @@ let watcher = { available: false, enabled: false };
 async function toggleWatcher() {
   const on = await nv.watcherSet(!watcher.enabled);
   watcher.enabled = on;
-  toast(on
-    ? "Açık: yeni Gezgin pencereleri NeuralNav'da açılacak (bilgisayar açılınca da)."
-    : 'Kapalı: Gezgin pencereleri artık Windows Gezgini\'nde kalacak.');
+  toast(T(on ? 'toast.watcher-on' : 'toast.watcher-off'));
 }
 
 function setView(v) { S.view = v; saveSettings(); renderContent(); if (active.focus >= 0) ensureVisible(active.focus); }
@@ -1349,7 +1365,7 @@ function togglePin(p) {
 async function copyPaths() {
   const paths = selPaths();
   const text = (paths.length ? paths : [currentDir() || '']).filter(Boolean).map(p => `"${p}"`).join('\r\n');
-  try { await navigator.clipboard.writeText(text); toast('Yol panoya kopyalandı.'); } catch { toast('Yol kopyalanamadı.'); }
+  try { await navigator.clipboard.writeText(text); toast(T('toast.path-copied')); } catch { toast(T('toast.path-copy-failed')); }
 }
 
 /* ---------------- Command bar and toolbar ---------------- */
@@ -1393,7 +1409,7 @@ el.crumbs.addEventListener('auxclick', e => {
 function editAddress() {
   el.crumbs.hidden = true;
   el.addressInput.hidden = false;
-  el.addressInput.value = active.loc === 'pc' || !active.loc ? 'Bu Bilgisayar' : active.loc;
+  el.addressInput.value = active.loc === 'pc' || !active.loc ? T('place.pc') : active.loc;
   el.addressInput.focus();
   el.addressInput.select();
 }
@@ -1446,11 +1462,11 @@ el.sidebar.addEventListener('contextmenu', e => {
   if (!b) return;
   const p = b.dataset.path;
   const items = [
-    { label: 'Aç', run: () => navigate(active, p) },
-    { label: 'Yeni sekmede aç', run: () => addTab(p, { activate: false }) },
-    { label: 'Yeni pencerede aç', run: () => nv.newWindow(p === 'pc' ? '' : p) },
+    { label: T('ctx.open'), run: () => navigate(active, p) },
+    { label: T('ctx.open-tab'), run: () => addTab(p, { activate: false }) },
+    { label: T('ctx.open-window'), run: () => nv.newWindow(p === 'pc' ? '' : p) },
   ];
-  if (b.classList.contains('pin')) items.push('-', { label: 'Hızlı erişimden kaldır', icon: 'i-pin', run: () => togglePin(p) });
+  if (b.classList.contains('pin')) items.push('-', { label: T('ctx.unpin'), icon: 'i-pin', run: () => togglePin(p) });
   openMenu(items, e.clientX, e.clientY, null);
 });
 
@@ -1659,7 +1675,7 @@ function typeAhead(ch) {
   const now = Date.now();
   taBuf = now - taTime > 900 ? ch : taBuf + ch;
   taTime = now;
-  const q = taBuf.toLocaleLowerCase('tr-TR');
+  const q = lowerName(taBuf);
   const items = active.items;
   const start = taBuf.length === 1 ? active.focus + 1 : Math.max(0, active.focus);
   for (let k = 0; k < items.length; k++) {
@@ -1720,7 +1736,7 @@ $('#win-close').addEventListener('click', () => nv.close());
 nv.onMaximized(on => {
   root.classList.toggle('is-max', on);
   const b = $('#win-max');
-  const label = on ? 'Önceki boyuta dön' : 'Ekranı kapla';
+  const label = T(on ? 'win.restore' : 'win.maximize');
   b.setAttribute('aria-label', label);
   b.title = label;
 });
@@ -1740,7 +1756,7 @@ for (const h of document.querySelectorAll('.rz')) {
   });
 }
 nv.onCloseRequest(async () => {
-  const ok = await confirmBox({ title: 'Devam eden işlem', text: 'Kopyalama ya da taşıma sürüyor. Pencere kapanırsa işlem yarıda kalır. Yine de kapatılsın mı?', okLabel: 'İptal et ve kapat', danger: true });
+  const ok = await confirmBox({ title: T('close.title'), text: T('close.text'), okLabel: T('close.ok'), danger: true });
   if (!ok) return;
   for (const j of jobs.values()) nv.cancelJob(j.id);
   nv.confirmClose();

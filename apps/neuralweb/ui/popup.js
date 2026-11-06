@@ -3,6 +3,8 @@
 // and sends the choice back. The main process decides where it goes and who gets the answer.
 const rootEl = document.getElementById("root");
 const H = document.documentElement;
+// Interface texts in the series language (lang\*.json through language.js and i18n.js).
+const T = NeuralI18n.page(window);
 let cur = null; // { id, kind, data, width, maxHeight, path, focusEl }
 let autoTimer = 0;
 const ICON = {
@@ -48,6 +50,7 @@ function picture(src) {
 const pick = (value, keepOpen) => { if (cur) nw.pick(cur.id, value, keepOpen); };
 function applyTheme(theme, priv) {
   H.className = `theme-${theme || "neon"}${priv ? " private" : ""}`;
+  H.lang = T.lang;
 }
 
 nw.on("popup:render", (p) => {
@@ -60,7 +63,7 @@ nw.on("popup:update", ({ id, data }) => {
   if (!cur || cur.id !== id) return;
   if (cur.kind === "menu" && data && !data.items) {
     const z = rootEl.querySelector(".zoom-val");
-    if (z && data.zoom != null) z.textContent = `%${data.zoom}`;
+    if (z && data.zoom != null) z.textContent = T("zoom.pct", { n: data.zoom });
     return;
   }
   cur.data = data;
@@ -134,7 +137,7 @@ BUILD.menu = (inner) => {
         b.addEventListener("click", () => pick(value, keep));
         return b;
       };
-      row.append(el("span"), el("span", "l", it.label), zb("−", "zoom:out", true, "Uzaklaştır (Ctrl+-)"), el("span", "zoom-val", `%${it.zoom}`), zb("+", "zoom:in", true, "Yakınlaştır (Ctrl++)"), el("span"), zb("", "zoom:full", false, "Tam ekran (F11)"));
+      row.append(el("span"), el("span", "l", it.label), zb("−", "zoom:out", true, T("zoom.out")), el("span", "zoom-val", T("zoom.pct", { n: it.zoom })), zb("+", "zoom:in", true, T("zoom.in")), el("span"), zb("", "zoom:full", false, T("zoom.full")));
       box.append(row);
       return;
     }
@@ -250,7 +253,7 @@ BUILD.prompt = (inner, d) => {
     } else pick(button);
   };
   const btns = el("div", "p-btns");
-  const buttons = d.buttons || [{ id: "ok", label: "Tamam", primary: true }];
+  const buttons = d.buttons || [{ id: "ok", label: T("dlg.ok"), primary: true }];
   const primary = buttons.find((b) => b.primary) || buttons[buttons.length - 1];
   for (const b of buttons) {
     const btn = el("button", "btn" + (b.primary ? " primary" : b.danger ? " danger" : ""), b.label);
@@ -274,7 +277,7 @@ function size(n) {
   const u = ["B", "KB", "MB", "GB", "TB"];
   let i = 0;
   while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; }
-  return `${n.toLocaleString("tr-TR", { maximumFractionDigits: n < 10 && i ? 1 : 0 })} ${u[i]}`;
+  return `${n.toLocaleString(T.locale, { maximumFractionDigits: n < 10 && i ? 1 : 0 })} ${u[i]}`;
 }
 function speedOf(it) {
   const now = Date.now();
@@ -289,13 +292,13 @@ function statusOf(it) {
     case "progressing": {
       const v = speedOf(it);
       const left = it.total && v > 0 ? Math.max(1, Math.round((it.total - it.received) / v)) : 0;
-      const eta = left ? (left > 90 ? ` · ${Math.round(left / 60)} dk kaldı` : ` · ${left} sn kaldı`) : "";
-      return `${size(it.received)}${it.total ? " / " + size(it.total) : ""}${v > 0 ? ` · ${size(v)}/sn` : ""}${eta}`;
+      const eta = left ? " · " + (left > 90 ? T("dl.eta.min", { n: Math.round(left / 60) }) : T("dl.eta.sec", { n: left })) : "";
+      return `${size(it.received)}${it.total ? " / " + size(it.total) : ""}${v > 0 ? " · " + T("dl.speed", { size: size(v) }) : ""}${eta}`;
     }
-    case "paused": return `Duraklatıldı · ${size(it.received)}${it.total ? " / " + size(it.total) : ""}`;
-    case "completed": return `${size(it.total || it.received)} · Tamamlandı`;
-    case "cancelled": return "İptal edildi";
-    default: return "Başarısız oldu";
+    case "paused": return `${T("dl.paused")} · ${size(it.received)}${it.total ? " / " + size(it.total) : ""}`;
+    case "completed": return `${size(it.total || it.received)} · ${T("dl.completed")}`;
+    case "cancelled": return T("dl.cancelled");
+    default: return T("dl.failed");
   }
 }
 function iconButton(d, title, onClick, cls = "") {
@@ -310,14 +313,14 @@ function iconButton(d, title, onClick, cls = "") {
 }
 BUILD.downloads = (inner, d) => {
   const box = el("div", "dl");
-  box.append(el("div", "head", d.active ? `İndiriliyor · ${d.active}` : "İndirilenler"));
+  box.append(el("div", "head", d.active ? T("dl.head.active", { n: d.active }) : T("page.downloads")));
   const list = el("div", "dl-list");
-  if (!d.recent || !d.recent.length) list.append(el("div", "dl-empty", "Henüz indirilen dosya yok."));
+  if (!d.recent || !d.recent.length) list.append(el("div", "dl-empty", T("dl.none")));
   for (const it of d.recent || []) {
     const live = it.state === "progressing" || it.state === "paused";
     const bad = it.state === "cancelled" || it.state === "interrupted";
     const row = el("div", "dl-row" + (it.state === "completed" ? " done" : "") + (bad ? " bad" : "") + (it.state === "paused" ? " paused" : ""));
-    const ext = (it.filename.match(/\.([a-z0-9]{1,5})$/i) || [, "dosya"])[1];
+    const ext = (it.filename.match(/\.([a-z0-9]{1,5})$/i) || [, T("dl.file")])[1];
     row.append(el("div", "dl-ic", ext));
     const mid = el("div");
     mid.append(el("div", "dl-name", it.filename), el("div", "dl-status", statusOf(it)));
@@ -330,17 +333,17 @@ BUILD.downloads = (inner, d) => {
     }
     const acts = el("div", "dl-acts");
     const act = (action) => () => pick({ action, id: it.id }, action !== "open");
-    if (it.state === "progressing") acts.append(iconButton(ICON.pause, "Duraklat", act("pause")), iconButton(ICON.x, "İptal et", act("cancel"), "x"));
-    else if (it.state === "paused") acts.append(iconButton(ICON.play, "Devam et", act("resume")), iconButton(ICON.x, "İptal et", act("cancel"), "x"));
-    else if (it.state === "completed") acts.append(iconButton(ICON.dir, "Klasörde göster", () => pick({ action: "show", id: it.id })));
-    else acts.append(iconButton(ICON.retry, "Yeniden dene", act("retry")), iconButton(ICON.x, "Listeden kaldır", act("remove"), "x"));
+    if (it.state === "progressing") acts.append(iconButton(ICON.pause, T("dl.pause"), act("pause")), iconButton(ICON.x, T("dl.cancel"), act("cancel"), "x"));
+    else if (it.state === "paused") acts.append(iconButton(ICON.play, T("dl.resume"), act("resume")), iconButton(ICON.x, T("dl.cancel"), act("cancel"), "x"));
+    else if (it.state === "completed") acts.append(iconButton(ICON.dir, T("dl.show"), () => pick({ action: "show", id: it.id })));
+    else acts.append(iconButton(ICON.retry, T("dl.retry"), act("retry")), iconButton(ICON.x, T("dl.remove"), act("remove"), "x"));
     row.append(mid, acts);
-    if (it.state === "completed") { row.title = "Dosyayı aç"; row.addEventListener("click", () => pick({ action: "open", id: it.id })); }
+    if (it.state === "completed") { row.title = T("dl.open-file"); row.addEventListener("click", () => pick({ action: "open", id: it.id })); }
     list.append(row);
   }
   box.append(list);
   const foot = el("div", "foot");
-  const all = el("button", "btn", "Tüm indirilenler");
+  const all = el("button", "btn", T("dl.all"));
   all.type = "button";
   all.dataset.key = "all";
   all.addEventListener("click", () => pick({ action: "all" }));
@@ -359,18 +362,18 @@ BUILD.downloads = (inner, d) => {
 /* ---------- site info ---------- */
 BUILD.siteinfo = (inner, d) => {
   const box = el("div", "site");
-  box.append(el("div", "head", d.host || "Site bilgileri"));
+  box.append(el("div", "head", d.host || T("site.info")));
   const sec = el("div", "site-sec " + (d.security || ""));
   sec.append(icon(d.security === "secure" ? ICON.lock : d.security === "insecure" ? ICON.warn : d.security === "file" ? ICON.file : ICON.globe), el("div", "st", d.title));
   if (d.text) sec.append(el("div", "tx", d.text));
   box.append(sec);
   if (d.origin && /^https?:/.test(d.origin)) {
-    box.append(el("div", "site-h", "İzinler"));
-    if (!d.perms || !d.perms.length) box.append(el("div", "site-none", "Bu site için kaydedilmiş izin yok."));
+    box.append(el("div", "site-h", T("site.perms")));
+    if (!d.perms || !d.perms.length) box.append(el("div", "site-none", T("site.no-perms")));
     for (const p of d.perms || []) {
       const row = el("div", "perm");
-      row.append(el("span", null, p.label), el("span", "v" + (p.value === "block" ? " block" : ""), p.value === "allow" ? "İZİN VERİLDİ" : "ENGELLENDİ"));
-      const reset = el("button", "btn", "Sıfırla");
+      row.append(el("span", null, p.label), el("span", "v" + (p.value === "block" ? " block" : ""), T(p.value === "allow" ? "perm.allowed" : "perm.blocked")));
+      const reset = el("button", "btn", T("site.reset"));
       reset.type = "button";
       reset.dataset.key = "reset-" + p.perm;
       reset.addEventListener("click", () => pick({ action: "reset", perm: p.perm }, true));
@@ -379,7 +382,7 @@ BUILD.siteinfo = (inner, d) => {
     }
   }
   const foot = el("div", "foot");
-  const set = el("button", "btn", "Site ayarları");
+  const set = el("button", "btn", T("site.settings"));
   set.type = "button";
   set.addEventListener("click", () => pick({ action: "settings" }));
   foot.append(set);
@@ -391,51 +394,51 @@ BUILD.siteinfo = (inner, d) => {
 BUILD.shield = (inner, d) => {
   const state = !d.enabled ? "off" : !d.web ? "na" : d.siteOff ? "site" : "on";
   const box = el("div", "shield " + state);
-  box.append(el("div", "head", d.host ? `Kalkan · ${d.host}` : "Kalkan"));
+  box.append(el("div", "head", d.host ? T("shield.head", { host: d.host }) : T("shield.name")));
   const big = el("div", "sh-big");
   const ic = icon("M8 1.8l5 1.9v4c0 3.2-2.1 5.4-5 6.5-2.9-1.1-5-3.3-5-6.5v-4z");
   big.append(ic);
   const txt = el("div", "sh-txt");
   if (state === "on") {
-    txt.append(el("b", "sh-num", d.count.toLocaleString("tr-TR")), el("span", null, d.count === 1 ? "reklam ya da izleyici isteği bu sayfada engellendi" : "reklam ve izleyici isteği bu sayfada engellendi"));
+    txt.append(el("b", "sh-num", d.count.toLocaleString(T.locale)), el("span", null, T("shield.blocked-here", { n: d.count })));
   } else {
-    txt.append(el("b", "sh-state", state === "site" ? "Bu sitede kapalı" : state === "off" ? "Kalkan kapalı" : "Bu sayfada çalışmaz"),
-      el("span", null, state === "site" ? "Bu sitedeki reklamlar ve izleyiciler yükleniyor." : state === "off" ? "Hiçbir sitede reklam ve izleyici engellenmiyor." : "Kalkan yalnızca web sitelerinde çalışır."));
+    txt.append(el("b", "sh-state", T(state === "site" ? "shield.state.site" : state === "off" ? "shield.title.off" : "shield.state.na")),
+      el("span", null, T(state === "site" ? "shield.text.site" : state === "off" ? "shield.text.off" : "shield.text.na")));
   }
   big.append(txt);
   box.append(big);
-  if (d.enabled && !d.ready) box.append(el("div", "sh-note", d.updating ? "Engelleme listeleri indiriliyor…" : "Engelleme listeleri henüz yüklenmedi."));
+  if (d.enabled && !d.ready) box.append(el("div", "sh-note", T(d.updating ? "shield.lists.loading" : "shield.lists.none")));
   if (state === "on" || state === "site") {
     const row = el("button", "sh-switch");
     row.type = "button";
     row.dataset.key = "site";
     row.setAttribute("role", "switch");
     row.setAttribute("aria-checked", String(state === "on"));
-    row.append(el("span", "sh-l", "Bu sitede kalkan"), el("span", "sh-sw"));
+    row.append(el("span", "sh-l", T("shield.site-switch")), el("span", "sh-sw"));
     row.addEventListener("click", () => pick({ action: "site", on: state !== "on" }, true));
     box.append(row);
-    if (d.pending) box.append(el("div", "sh-note", "Panel kapanınca sayfa yenilenip değişiklik uygulanır."));
+    if (d.pending) box.append(el("div", "sh-note", T("shield.pending")));
   }
   if (state === "on" && d.hosts && d.hosts.length) {
-    box.append(el("div", "site-h", "En çok engellenenler"));
+    box.append(el("div", "site-h", T("shield.top")));
     const list = el("div", "sh-hosts");
     for (const h of d.hosts) {
       const r = el("div", "sh-host");
-      r.append(el("span", "h", h.host), el("span", "n", h.n.toLocaleString("tr-TR")));
+      r.append(el("span", "h", h.host), el("span", "n", h.n.toLocaleString(T.locale)));
       list.append(r);
     }
     box.append(list);
   }
   const foot = el("div", "foot");
   if (!d.enabled) {
-    const on = el("button", "btn primary", "Kalkanı aç");
+    const on = el("button", "btn primary", T("shield.turn-on"));
     on.type = "button";
     on.dataset.key = "global";
     on.addEventListener("click", () => pick({ action: "global", on: true }, true));
     foot.append(on);
   }
-  if (d.today && !d.priv) foot.prepend(el("span", "sh-today", `Bugün toplam ${d.today.toLocaleString("tr-TR")}`));
-  const set = el("button", "btn", "Kalkan ayarları");
+  if (d.today && !d.priv) foot.prepend(el("span", "sh-today", T("shield.today", { n: d.today.toLocaleString(T.locale) })));
+  const set = el("button", "btn", T("shield.settings"));
   set.type = "button";
   set.addEventListener("click", () => pick({ action: "settings" }));
   foot.append(set);
@@ -446,14 +449,14 @@ BUILD.shield = (inner, d) => {
 /* ---------- saved accounts under a login box (the page keeps the keyboard) ---------- */
 BUILD.accounts = (inner, d) => {
   const box = el("div", "accounts");
-  box.append(el("div", "acc-head", `Kayıtlı hesaplar · ${d.host}`));
+  box.append(el("div", "acc-head", T("pw.saved-accounts", { host: d.host })));
   (d.items || []).forEach((it, i) => {
     const row = el("div", "acc" + (i === d.sel ? " sel" : ""));
-    row.append(icon("M10.5 2.5a3 3 0 1 1-2.6 4.5L3 11.9V13.5h1.6v-1.2h1.2V11h1.2l1.4-1.4A3 3 0 0 1 10.5 2.5zM11 5h.01"), el("span", "u", it.username || "(kullanıcı adı yok)"), el("span", "m", "••••••••"));
+    row.append(icon("M10.5 2.5a3 3 0 1 1-2.6 4.5L3 11.9V13.5h1.6v-1.2h1.2V11h1.2l1.4-1.4A3 3 0 0 1 10.5 2.5zM11 5h.01"), el("span", "u", it.username || T("pw.no-username")), el("span", "m", "••••••••"));
     row.addEventListener("mousedown", (e) => { e.preventDefault(); if (e.button === 0) pick(it.id); });
     box.append(row);
   });
-  const manage = el("div", "acc acc-manage", "Şifreleri yönet…");
+  const manage = el("div", "acc acc-manage", T("pw.manage"));
   manage.addEventListener("mousedown", (e) => { e.preventDefault(); if (e.button === 0) pick("manage"); });
   box.append(manage);
   inner.append(box);

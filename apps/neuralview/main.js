@@ -8,8 +8,12 @@ const fsp = fs.promises;
 const path = require("path");
 const { spawn } = require("child_process");
 const meta = require("./meta");
-// The series theme: next to main.js when installed, in apps\shared when run from source.
-const themeSync = require(fs.existsSync(path.join(__dirname, "theme-sync.js")) ? "./theme-sync" : "../shared/theme-sync");
+// Shared with the series: next to main.js when installed, in apps\shared when run from source.
+const shared = (name) => require(fs.existsSync(path.join(__dirname, `${name}.js`)) ? `./${name}` : `../shared/${name}`);
+const themeSync = shared("theme-sync");
+const language = shared("language");
+let L = null; // the interface language, read once app is ready (lang\*.json)
+const T = (key, vars) => (L ? L.t(key, vars) : key);
 
 app.setAppUserModelId("NeuralView.VW3");
 // Tests that start NeuralView through another program (NeuralNav) give it a throwaway profile this way.
@@ -25,9 +29,9 @@ const MIME = {
   ".svg": "image/svg+xml", ".avif": "image/avif", ".heic": "image/heic", ".heif": "image/heif",
 };
 const isImage = (p) => Object.prototype.hasOwnProperty.call(MIME, path.extname(p).toLowerCase());
-const FILTERS = [
-  { name: "Resimler", extensions: Object.keys(MIME).map((e) => e.slice(1)) },
-  { name: "Tüm Dosyalar (*.*)", extensions: ["*"] },
+const filters = () => [
+  { name: T("dlg.filter.images"), extensions: Object.keys(MIME).map((e) => e.slice(1)) },
+  { name: T("dlg.filter.all"), extensions: ["*"] },
 ];
 // Tests set these, so that deleting, copying and launching NeuralNav never reach the real Recycle Bin, clipboard
 // and programs: the trash becomes a folder, the clipboard files in a folder, a launch a line in a file.
@@ -65,13 +69,13 @@ function writeJSON(name, value) {
 
 function describe(err) {
   switch (err && err.code) {
-    case "ENOENT": return "Dosya bulunamadı.";
+    case "ENOENT": return T("err.not-found");
     case "EACCES":
-    case "EPERM": return "Bu konuma erişim izni yok.";
-    case "EBUSY": return "Dosya başka bir program tarafından kullanılıyor.";
-    case "EEXIST": return "Bu adla bir dosya zaten var.";
-    case "ENOSPC": return "Diskte yer kalmadı.";
-    default: return (err && err.message) || "Bilinmeyen hata.";
+    case "EPERM": return T("err.access");
+    case "EBUSY": return T("err.busy");
+    case "EEXIST": return T("err.exists");
+    case "ENOSPC": return T("err.no-space");
+    default: return (err && err.message) || T("err.unknown");
   }
 }
 
@@ -302,10 +306,10 @@ ipcMain.handle("vw:pending-paths", (e) => {
 });
 ipcMain.handle("vw:open-dialog", async (e, dir) => {
   const r = await dialog.showOpenDialog(winOf(e), {
-    title: "Resim aç",
+    title: T("dlg.open"),
     defaultPath: dir || undefined,
     properties: ["openFile"],
-    filters: FILTERS,
+    filters: filters(),
   });
   return r.canceled ? null : r.filePaths[0];
 });
@@ -365,7 +369,7 @@ ipcMain.handle("vw:meta", async (_e, p) => {
 
 ipcMain.handle("vw:copy-image", async (_e, png) => {
   const img = nativeImage.createFromBuffer(Buffer.from(png));
-  if (img.isEmpty()) return { ok: false, error: "Resim panoya kopyalanamadı." };
+  if (img.isEmpty()) return { ok: false, error: T("err.copy-image") };
   if (TEST_CLIPBOARD) {
     fs.mkdirSync(TEST_CLIPBOARD, { recursive: true });
     fs.writeFileSync(path.join(TEST_CLIPBOARD, "pano.png"), img.toPNG());
@@ -383,7 +387,7 @@ ipcMain.handle("vw:copy-text", (_e, text) => {
 ipcMain.handle("vw:trash", async (_e, p) => {
   try {
     const file = String(p);
-    if (!isImage(file)) throw new Error("Yalnızca resimler silinebilir.");
+    if (!isImage(file)) throw new Error(T("err.only-images"));
     if (TEST_TRASH) {
       await fsp.mkdir(TEST_TRASH, { recursive: true });
       await fsp.rename(file, path.join(TEST_TRASH, path.basename(file)));
@@ -398,10 +402,10 @@ const RESERVED = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])(\..*)?$/i;
 ipcMain.handle("vw:rename", async (_e, p, newName) => {
   const file = String(p);
   const name = String(newName).trim();
-  if (!name) return { ok: false, error: "Ad boş olamaz." };
-  if (/[<>:"/\\|?*\x00-\x1f]/.test(name)) return { ok: false, error: 'Ad şu karakterleri içeremez: \\ / : * ? " < > |' };
-  if (/[. ]$/.test(name)) return { ok: false, error: "Ad nokta ya da boşlukla bitemez." };
-  if (RESERVED.test(name)) return { ok: false, error: "Bu ad Windows'a ayrılmış." };
+  if (!name) return { ok: false, error: T("err.name-empty") };
+  if (/[<>:"/\\|?*\x00-\x1f]/.test(name)) return { ok: false, error: T("err.name-chars") };
+  if (/[. ]$/.test(name)) return { ok: false, error: T("err.name-end") };
+  if (RESERVED.test(name)) return { ok: false, error: T("err.name-reserved") };
   const target = path.join(path.dirname(file), name);
   if (target === file) return { ok: true, path: file };
   try {
@@ -442,12 +446,15 @@ ipcMain.handle("vw:save-rotation", async (_e, p, job) => {
     let out;
     if (job.kind === "jpeg") {
       const buf = await fsp.readFile(file);
-      out = meta.setJpegOrientation(buf, meta.rotateOrientation(meta.jpegOrientation(buf), Number(job.quarterTurns) || 0));
+      // meta.js reports a file it cannot rotate in plain English for developers; the user gets a sentence of ours.
+      try {
+        out = meta.setJpegOrientation(buf, meta.rotateOrientation(meta.jpegOrientation(buf), Number(job.quarterTurns) || 0));
+      } catch (e) { throw new Error(T("err.jpeg")); }
     } else if (job.kind === "bmp") {
       out = meta.encodeBmp(job.width, job.height, Buffer.from(job.rgba));
     } else if (job.kind === "encoded") {
       out = Buffer.from(job.bytes);
-    } else throw new Error("Bu biçimde döndürme kaydedilemez.");
+    } else throw new Error(T("err.rotate-format"));
     const tmp = file + ".nvtmp";
     await fsp.writeFile(tmp, out);
     await fsp.rename(tmp, file);
@@ -476,6 +483,8 @@ if (!app.requestSingleInstanceLock()) {
   app.on("window-all-closed", () => app.quit());
   app.whenReady().then(() => {
     Menu.setApplicationMenu(null);
+    L = language.load({ appDir: __dirname, name: "NeuralView", systemLanguages: app.getPreferredSystemLanguages() });
+    L.wire(ipcMain);
     registerProtocols();
     themeSync.wire({ ipcMain, BrowserWindow, prefix: "vw", name: "NeuralView" });
     mainWin = createWindow(pathsFromArgs(process.argv, process.cwd()));

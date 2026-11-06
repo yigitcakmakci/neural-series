@@ -87,6 +87,33 @@ check(C.toSpawn({ type: "launch", app: "cmd", args: ["/c", "calc"] }, exeOf) ===
 s = C.suggest("pad not.txt & calc.exe", env());
 check(s.every((i) => i.disabled || i.action.type !== "launch" || i.action.args.length <= 1), "shell syntax is just part of a file name");
 
+console.log("in English (main.js hands over the user's language)");
+const LANG = path.join(__dirname, "..", "..", "apps", "neuraldeck", "lang");
+const dict = (id) => JSON.parse(fs.readFileSync(path.join(LANG, `${id}.json`), "utf8"));
+const i18n = require("../../apps/shared/i18n");
+const tr = dict("tr"), en = dict("en");
+const tables = [...C.PROGRAMS.map((p) => p.what), ...C.COMMANDS.flatMap((c) => [c.usage, c.title, c.what]).filter(Boolean), ...C.THEMES.map((t) => "theme." + t.id)];
+check(tables.every((k) => k in tr && k in en), "every text key of the tables is in tr.json and en.json", tables.filter((k) => !(k in tr && k in en)).join(" "));
+C.setTexts(i18n.create({ lang: "en", dict: { ...tr, ...en } }));
+const TURKISH = /[çğıöşüÇĞİÖŞÜ]/;
+const shown = (input, o) => C.suggest(input, env(o)).flatMap((i) => [i.title, i.detail]);
+check(first("pad").title === "Start NeuralPad" && first("").detail === "Calculator", "titles and descriptions follow the language", j([first("pad").title, first("").detail]));
+check(first("not defteri").action.app === "NeuralPad" && first("notepad").action.app === "NeuralPad" && first("image viewer").action.app === "NeuralView" && first("dosya gezgini").action.app === "NeuralNav" && first("file explorer").action.app === "NeuralNav",
+  "descriptions are found in both languages");
+check(first("= 1/0").disabled && first("= 1/0").detail === "DIVISION BY ZERO (0x0D)" && first("=12*7").title === "= 84", "calculator errors in English", first("= 1/0").detail);
+check(/is not installed$/.test(C.suggest("", env({ installed: new Set(["NeuralPad"]) })).find((i) => i.title === "NeuralWeb").detail), "not installed, in English");
+check(C.suggest("nav C:\\yok\\boyle-bir-klasor", env())[0].detail === "Folder not found" && first("web javascript:alert(1)").detail === "Only http and https addresses can be opened.", "refusals in English");
+s = C.suggest("sea", env());
+check(s.some((i) => i.title === "search <words>" && i.complete === "search ") && C.suggest("ara", env())[0].title === "search <words>", "the English command word is shown and completed", j(s.map((i) => i.title)));
+s = C.suggest("tema", env({ theme: "ice" }));
+check(s.length === 4 && s.find((i) => i.action.theme === "ice").title === "Theme: Ice" && s.find((i) => i.action.theme === "ice").detail === "Current theme" && s.find((i) => i.action.theme === "daylight").complete === "theme daylight",
+  "tema and theme list the English theme names", j(s.map((i) => [i.title, i.complete])));
+check(first("tema gündüz").action.theme === "daylight" && first("ayarlar").title === "NeuralDeck settings", "the Turkish command words still work");
+const left = ["", "pad", "= 1/0", "nav C:\\yok", "web x y", "ara", "tema", "ayarlar", "ter", "neo istanbul"].flatMap((q) => shown(q)).filter((x) => TURKISH.test(x) && !/neo istanbul|yok/.test(x));
+check(!left.length, "no Turkish left in English suggestions", left.join(" | "));
+C.setTexts(null);
+check(first("pad").title === "Başlat: NeuralPad", "setTexts(null) goes back to Turkish");
+
 fs.rmSync(path.dirname(HOME), { recursive: true, force: true });
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

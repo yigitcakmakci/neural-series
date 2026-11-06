@@ -9,7 +9,10 @@ const { StringDecoder } = require("string_decoder");
 // Shared with the series: next to main.js when installed, in apps\shared when run from source.
 const shared = (name) => require(fs.existsSync(path.join(__dirname, `${name}.js`)) ? `./${name}` : `../shared/${name}`);
 const themeSync = shared("theme-sync");
-const handoff = shared("handoff").create({ self: "NeuralTerm", shell });
+const language = shared("language");
+let L = null; // the interface language, read once app is ready (lang\*.json)
+const T = (key, vars) => (L ? L.t(key, vars) : key);
+const handoff = shared("handoff").create({ self: "NeuralTerm", shell, t: T });
 
 app.setAppUserModelId("NeuralTerm.NT5");
 
@@ -51,7 +54,7 @@ function detectShells() {
   if (fs.existsSync(ps)) list.push({ id: "powershell", name: "Windows PowerShell", cmd: `"${ps}" -NoLogo -NoExit -Command "${utf8}"` });
   const pwsh = findOnPath("pwsh.exe") || [path.join(process.env.ProgramFiles || "", "PowerShell", "7", "pwsh.exe")].find((p) => fs.existsSync(p));
   if (pwsh) list.push({ id: "pwsh", name: "PowerShell 7", cmd: `"${pwsh}" -NoLogo -NoExit -Command "${utf8}"` });
-  list.push({ id: "cmd", name: "Komut İstemi", cmd: `"${path.join(SYS32, "cmd.exe")}" /K chcp 65001 >nul` });
+  list.push({ id: "cmd", name: T("shell.cmd"), cmd: `"${path.join(SYS32, "cmd.exe")}" /K chcp 65001 >nul` });
   const bash = [path.join(process.env.ProgramFiles || "", "Git", "bin", "bash.exe")].find((p) => fs.existsSync(p));
   if (bash) list.push({ id: "gitbash", name: "Git Bash", cmd: `"${bash}" --login -i` });
   const wsl = path.join(SYS32, "wsl.exe");
@@ -247,7 +250,7 @@ ipcMain.handle("nt:open-link", async (_e, kind, target) => {
   const t = String(target);
   if (kind === "url") return handoff.openUrl(t);
   if (kind === "path" && path.isAbsolute(t) && (await statOf(t))) return handoff.showInNav(t);
-  return "Bulunamadı.";
+  return T("link.missing");
 });
 
 /* ---------- shell sessions ---------- */
@@ -319,6 +322,8 @@ if (!app.requestSingleInstanceLock()) {
   app.on("window-all-closed", () => app.quit());
   app.whenReady().then(() => {
     Menu.setApplicationMenu(null);
+    L = language.load({ appDir: __dirname, name: "NeuralTerm", systemLanguages: app.getPreferredSystemLanguages() });
+    L.wire(ipcMain);
     themeSync.wire({ ipcMain, BrowserWindow, prefix: "nt", name: "NeuralTerm" });
     mainWin = createWindow({ dirs: dirsFromArgs(process.argv, process.cwd()) });
   });

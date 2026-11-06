@@ -7,7 +7,10 @@
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const deck = window.deck;
-if (!deck) { document.body.textContent = 'NeuralDeck yalnızca masaüstü uygulaması olarak çalışır.'; return; }
+// Interface texts in the series language (lang*.json through language.js and i18n.js).
+const T = NeuralI18n.page(window);
+// Without the desktop shell there is no preload, so no texts either: the page's own Turkish.
+if (!deck) { document.body.textContent = T.has('app.desktop-only') ? T('app.desktop-only') : 'NeuralDeck yalnızca masaüstü uygulaması olarak çalışır.'; return; }
 
 const root = document.documentElement;
 const q = $('#q');
@@ -123,7 +126,7 @@ function showShortcut(s) {
   $('#band-hint').textContent = shortcut.ok ? shortcut.accel : '';
   const w = $('#warn');
   w.hidden = shortcut.ok;
-  w.textContent = shortcut.ok ? '' : `${shortcut.accel} kısayolu kaydedilemedi: başka bir program kullanıyor olabilir. Başka bir kısayol seçmek için "ayarlar" yaz.`;
+  w.textContent = shortcut.ok ? '' : T('warn.shortcut', { accel: shortcut.accel });
   $('#set-shortcut').textContent = shortcut.accel || '—';
 }
 
@@ -134,6 +137,7 @@ function openSettings() {
   settingsEl.hidden = false;
   $('#set-msg').textContent = '';
   $('#set-msg').classList.remove('err');
+  renderLanguages();
   $('#set-shortcut').focus();
   fit();
 }
@@ -150,9 +154,9 @@ async function startCapture() {
   await deck.capture(true);
   const b = $('#set-shortcut');
   b.classList.add('capturing');
-  b.textContent = 'Tuşlara bas…';
+  b.textContent = T('set.press');
   $('#set-msg').classList.remove('err');
-  $('#set-msg').textContent = 'Ctrl, Alt, Shift ya da Win ile birlikte bir tuşa bas. Vazgeçmek için Esc.';
+  $('#set-msg').textContent = T('set.capture');
 }
 async function stopCapture(result) {
   capturing = false;
@@ -173,20 +177,38 @@ function accelOf(e) {
   if (!key) return null;
   return [e.ctrlKey && 'Ctrl', e.altKey && 'Alt', e.shiftKey && 'Shift', e.metaKey && 'Super', key].filter(Boolean).join('+');
 }
+// The series language: a pick shows from the next start of each program, so only the note changes now.
+const languages = NeuralI18n.languageChoices(window, note => {
+  $('#set-msg').classList.remove('err');
+  $('#set-msg').textContent = note;
+  fit();
+});
+function renderLanguages() {
+  const box = $('#set-langs');
+  box.replaceChildren(...languages().map(l => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'btn';
+    b.textContent = l.label;
+    b.setAttribute('aria-pressed', String(l.checked()));
+    b.addEventListener('click', async () => { await l.pick(); renderLanguages(); });
+    return b;
+  }));
+}
 $('#set-shortcut').addEventListener('click', () => { if (!capturing) startCapture(); });
 $('#set-back').addEventListener('click', closeSettings);
 window.addEventListener('keydown', async e => {
   if (settingsEl.hidden) return;
   if (capturing) {
     e.preventDefault();
-    if (e.key === 'Escape') { await stopCapture(); $('#set-msg').textContent = 'Kısayol değişmedi.'; return; }
+    if (e.key === 'Escape') { await stopCapture(); $('#set-msg').textContent = T('set.unchanged'); return; }
     const accel = accelOf(e);
     if (!accel) return;
     const r = await deck.setShortcut(accel);
     await stopCapture(r);
     const m = $('#set-msg');
     m.classList.toggle('err', !!r.error);
-    m.textContent = r.error ? r.error + (r.ok ? ` Kısayol ${r.accel} olarak kaldı.` : '') : `Yeni kısayol: ${r.accel}`;
+    m.textContent = r.error ? r.error + (r.ok ? ' ' + T('set.kept', { accel: r.accel }) : '') : T('set.new', { accel: r.accel });
     return;
   }
   if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeSettings(); }

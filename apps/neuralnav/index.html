@@ -74,72 +74,72 @@
       <!-- Top band (draggable) -->
       <header class="band">
         <div class="brand" aria-hidden="true"><span class="brand-model">NV-4</span><span class="brand-name">NEURALNAV</span></div>
-        <div class="band-title" id="band-title">Bu Bilgisayar</div>
+        <div class="band-title" id="band-title" data-i18n="place.pc">Bu Bilgisayar</div>
         <span class="hazard" aria-hidden="true"></span>
         <div class="win-btns">
-          <button class="win-btn" id="win-min" type="button" aria-label="Simge durumuna küçült" title="Küçült"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 9.5h8"/></svg></button>
-          <button class="win-btn" id="win-max" type="button" aria-label="Ekranı kapla" title="Ekranı kapla"><svg class="ic-max" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5h7v7h-7z"/></svg><svg class="ic-restore" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5h5v5M2.5 4.5h5v5h-5z"/></svg></button>
-          <button class="win-btn close" id="win-close" type="button" aria-label="Kapat" title="Kapat"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button>
+          <button class="win-btn" id="win-min" type="button" aria-label="Simge durumuna küçült" title="Küçült" data-i18n-aria-label="win.minimize.aria" data-i18n-title="win.minimize"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 9.5h8"/></svg></button>
+          <button class="win-btn" id="win-max" type="button" aria-label="Ekranı kapla" title="Ekranı kapla" data-i18n-aria-label="win.maximize" data-i18n-title="win.maximize"><svg class="ic-max" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5h7v7h-7z"/></svg><svg class="ic-restore" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5h5v5M2.5 4.5h5v5h-5z"/></svg></button>
+          <button class="win-btn close" id="win-close" type="button" aria-label="Kapat" title="Kapat" data-i18n-aria-label="win.close" data-i18n-title="win.close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button>
         </div>
       </header>
 
       <!-- Tabs -->
-      <div class="tabbar" role="tablist" aria-label="Açık konumlar">
+      <div class="tabbar" role="tablist" aria-label="Açık konumlar" data-i18n-aria-label="tabs.aria">
         <div class="tabs" id="tabs"></div>
-        <button class="tab-new" id="tab-new" type="button" title="Yeni sekme (Ctrl+T)" aria-label="Yeni sekme">+</button>
+        <button class="tab-new" id="tab-new" type="button" title="Yeni sekme (Ctrl+T)" aria-label="Yeni sekme" data-i18n-title="tab.new" data-i18n-aria-label="tab.new.aria">+</button>
       </div>
 
       <!-- Navigation, address, search -->
       <div class="toolbar">
         <div class="nav-btns">
-          <button class="tb" id="nav-back" type="button" title="Geri (Alt+Sol)" aria-label="Geri"><svg><use href="#i-back"/></svg></button>
-          <button class="tb" id="nav-forward" type="button" title="İleri (Alt+Sağ)" aria-label="İleri"><svg><use href="#i-forward"/></svg></button>
-          <button class="tb" id="nav-up" type="button" title="Üst klasör (Alt+Yukarı)" aria-label="Üst klasör"><svg><use href="#i-up"/></svg></button>
-          <button class="tb" id="nav-refresh" type="button" title="Yenile (F5)" aria-label="Yenile"><svg><use href="#i-refresh"/></svg></button>
+          <button class="tb" id="nav-back" type="button" title="Geri (Alt+Sol)" aria-label="Geri" data-i18n-title="nav.back" data-i18n-aria-label="nav.back.aria"><svg><use href="#i-back"/></svg></button>
+          <button class="tb" id="nav-forward" type="button" title="İleri (Alt+Sağ)" aria-label="İleri" data-i18n-title="nav.forward" data-i18n-aria-label="nav.forward.aria"><svg><use href="#i-forward"/></svg></button>
+          <button class="tb" id="nav-up" type="button" title="Üst klasör (Alt+Yukarı)" aria-label="Üst klasör" data-i18n-title="nav.up" data-i18n-aria-label="nav.up.aria"><svg><use href="#i-up"/></svg></button>
+          <button class="tb" id="nav-refresh" type="button" title="Yenile (F5)" aria-label="Yenile" data-i18n-title="nav.refresh" data-i18n-aria-label="nav.refresh.aria"><svg><use href="#i-refresh"/></svg></button>
         </div>
-        <div class="address" id="address" title="Adresi yazmak için tıkla (Ctrl+L)">
+        <div class="address" id="address" title="Adresi yazmak için tıkla (Ctrl+L)" data-i18n-title="address.title">
           <div class="crumbs" id="crumbs"></div>
-          <input id="address-input" type="text" spellcheck="false" aria-label="Adres" hidden>
+          <input id="address-input" type="text" spellcheck="false" aria-label="Adres" data-i18n-aria-label="address.aria" hidden>
         </div>
         <label class="searchbox">
           <svg aria-hidden="true"><use href="#i-search"/></svg>
-          <input id="search" type="text" spellcheck="false" placeholder="Ara" aria-label="Ara">
-          <button id="search-clear" type="button" title="Aramayı temizle (Esc)" aria-label="Aramayı temizle" hidden><svg><use href="#i-close"/></svg></button>
+          <input id="search" type="text" spellcheck="false" placeholder="Ara" aria-label="Ara" data-i18n-placeholder="search.box" data-i18n-aria-label="search.box">
+          <button id="search-clear" type="button" title="Aramayı temizle (Esc)" aria-label="Aramayı temizle" data-i18n-title="search.clear" data-i18n-aria-label="search.clear.aria" hidden><svg><use href="#i-close"/></svg></button>
         </label>
       </div>
 
       <!-- Commands -->
       <div class="cmdbar" id="cmdbar">
-        <button class="cmd" data-cmd="new" type="button" title="Yeni öğe"><svg><use href="#i-plus"/></svg><span>Yeni</span></button>
+        <button class="cmd" data-cmd="new" type="button" title="Yeni öğe" data-i18n-title="cmd.new.title"><svg><use href="#i-plus"/></svg><span data-i18n="cmd.new">Yeni</span></button>
         <span class="sep"></span>
-        <button class="cmd" data-cmd="cut" type="button" title="Kes (Ctrl+X)" aria-label="Kes"><svg><use href="#i-cut"/></svg></button>
-        <button class="cmd" data-cmd="copy" type="button" title="Kopyala (Ctrl+C)" aria-label="Kopyala"><svg><use href="#i-copy"/></svg></button>
-        <button class="cmd" data-cmd="paste" type="button" title="Yapıştır (Ctrl+V)" aria-label="Yapıştır"><svg><use href="#i-paste"/></svg></button>
-        <button class="cmd" data-cmd="rename" type="button" title="Yeniden adlandır (F2)" aria-label="Yeniden adlandır"><svg><use href="#i-rename"/></svg></button>
-        <button class="cmd" data-cmd="delete" type="button" title="Geri Dönüşüm Kutusu'na taşı (Del)" aria-label="Sil"><svg><use href="#i-delete"/></svg></button>
+        <button class="cmd" data-cmd="cut" type="button" title="Kes (Ctrl+X)" aria-label="Kes" data-i18n-title="cmd.cut" data-i18n-aria-label="cmd.cut.aria"><svg><use href="#i-cut"/></svg></button>
+        <button class="cmd" data-cmd="copy" type="button" title="Kopyala (Ctrl+C)" aria-label="Kopyala" data-i18n-title="cmd.copy" data-i18n-aria-label="cmd.copy.aria"><svg><use href="#i-copy"/></svg></button>
+        <button class="cmd" data-cmd="paste" type="button" title="Yapıştır (Ctrl+V)" aria-label="Yapıştır" data-i18n-title="cmd.paste" data-i18n-aria-label="cmd.paste.aria"><svg><use href="#i-paste"/></svg></button>
+        <button class="cmd" data-cmd="rename" type="button" title="Yeniden adlandır (F2)" aria-label="Yeniden adlandır" data-i18n-title="cmd.rename" data-i18n-aria-label="cmd.rename.aria"><svg><use href="#i-rename"/></svg></button>
+        <button class="cmd" data-cmd="delete" type="button" title="Geri Dönüşüm Kutusu'na taşı (Del)" aria-label="Sil" data-i18n-title="cmd.delete" data-i18n-aria-label="cmd.delete.aria"><svg><use href="#i-delete"/></svg></button>
         <span class="sep"></span>
-        <button class="cmd" data-cmd="sort" type="button" title="Sırala"><svg><use href="#i-sort"/></svg><span>Sırala</span></button>
-        <button class="cmd" data-cmd="view" type="button" title="Görünüm"><svg><use href="#i-view"/></svg><span>Görünüm</span></button>
-        <button class="cmd" data-cmd="preview" type="button" title="Önizleme bölmesi (Alt+P)" aria-pressed="false"><svg><use href="#i-preview"/></svg><span>Önizleme</span></button>
+        <button class="cmd" data-cmd="sort" type="button" title="Sırala" data-i18n-title="cmd.sort"><svg><use href="#i-sort"/></svg><span data-i18n="cmd.sort">Sırala</span></button>
+        <button class="cmd" data-cmd="view" type="button" title="Görünüm" data-i18n-title="cmd.view"><svg><use href="#i-view"/></svg><span data-i18n="cmd.view">Görünüm</span></button>
+        <button class="cmd" data-cmd="preview" type="button" title="Önizleme bölmesi (Alt+P)" aria-pressed="false" data-i18n-title="cmd.preview.title"><svg><use href="#i-preview"/></svg><span data-i18n="cmd.preview">Önizleme</span></button>
         <span class="grow"></span>
-        <button class="cmd" data-cmd="terminal" type="button" title="Bu klasörde terminal aç" aria-label="Terminal"><svg><use href="#i-terminal"/></svg></button>
-        <button class="cmd" data-cmd="more" type="button" title="Diğer seçenekler" aria-label="Diğer seçenekler"><svg><use href="#i-more"/></svg></button>
+        <button class="cmd" data-cmd="terminal" type="button" title="Bu klasörde terminal aç" aria-label="Terminal" data-i18n-title="cmd.terminal" data-i18n-aria-label="cmd.terminal.aria"><svg><use href="#i-terminal"/></svg></button>
+        <button class="cmd" data-cmd="more" type="button" title="Diğer seçenekler" aria-label="Diğer seçenekler" data-i18n-title="cmd.more" data-i18n-aria-label="cmd.more"><svg><use href="#i-more"/></svg></button>
       </div>
 
       <div class="main" id="main">
-        <nav class="sidebar" id="sidebar" aria-label="Konumlar"></nav>
+        <nav class="sidebar" id="sidebar" aria-label="Konumlar" data-i18n-aria-label="side.aria"></nav>
 
         <section class="content" id="content">
           <div class="beam-track" aria-hidden="true"><div class="beam"></div></div>
           <div class="list-head" id="list-head" hidden></div>
-          <div class="scroller" id="scroller" tabindex="0" aria-label="Dosyalar">
+          <div class="scroller" id="scroller" tabindex="0" aria-label="Dosyalar" data-i18n-aria-label="list.aria">
             <div class="canvas" id="canvas"><div class="layer" id="layer"></div></div>
           </div>
           <div class="pc-view" id="pc-view" hidden></div>
           <div class="empty" id="empty" hidden></div>
         </section>
 
-        <aside class="preview" id="preview" hidden aria-label="Önizleme"></aside>
+        <aside class="preview" id="preview" hidden aria-label="Önizleme" data-i18n-aria-label="cmd.preview"></aside>
       </div>
 
       <footer class="statusbar">
@@ -170,20 +170,20 @@
 <dialog class="hud-dialog wide" id="dlg-conflict">
   <form method="dialog">
     <div class="dlg-body">
-      <h2 class="dlg-head">Aynı adlı öğe</h2>
+      <h2 class="dlg-head" data-i18n="cf.title">Aynı adlı öğe</h2>
       <div class="dlg-content">
         <p id="cf-text"></p>
         <div class="cf-cards">
-          <div class="cf-card"><span class="cf-label">GELEN</span><span id="cf-src"></span></div>
-          <div class="cf-card"><span class="cf-label">HEDEFTEKİ</span><span id="cf-dest"></span></div>
+          <div class="cf-card"><span class="cf-label" data-i18n="cf.src">GELEN</span><span id="cf-src"></span></div>
+          <div class="cf-card"><span class="cf-label" data-i18n="cf.dest">HEDEFTEKİ</span><span id="cf-dest"></span></div>
         </div>
-        <label class="check"><input type="checkbox" id="cf-all"> Kalan çakışmalara da uygula</label>
+        <label class="check"><input type="checkbox" id="cf-all"> <span data-i18n="cf.all">Kalan çakışmalara da uygula</span></label>
       </div>
       <div class="btns">
-        <button value="replace" class="primary" id="cf-replace">Değiştir</button>
-        <button value="keep">İkisini de tut</button>
-        <button value="skip">Atla</button>
-        <button value="cancel">İptal</button>
+        <button value="replace" class="primary" id="cf-replace" data-i18n="cf.replace">Değiştir</button>
+        <button value="keep" data-i18n="cf.keep">İkisini de tut</button>
+        <button value="skip" data-i18n="cf.skip">Atla</button>
+        <button value="cancel" data-i18n="cf.cancel">İptal</button>
       </div>
     </div>
   </form>
@@ -193,11 +193,11 @@
 <dialog class="hud-dialog" id="dlg-confirm">
   <form method="dialog">
     <div class="dlg-body">
-      <h2 class="dlg-head" id="cfm-title">Onay</h2>
+      <h2 class="dlg-head" id="cfm-title" data-i18n="dlg.confirm">Onay</h2>
       <div class="dlg-content"><p id="cfm-text"></p></div>
       <div class="btns">
-        <button value="ok" class="primary" id="cfm-ok">Tamam</button>
-        <button value="cancel">Vazgeç</button>
+        <button value="ok" class="primary" id="cfm-ok" data-i18n="dlg.ok">Tamam</button>
+        <button value="cancel" data-i18n="dlg.cancel">Vazgeç</button>
       </div>
     </div>
   </form>
@@ -207,12 +207,12 @@
 <dialog class="hud-dialog wide" id="dlg-props">
   <form method="dialog">
     <div class="dlg-body">
-      <h2 class="dlg-head">Özellikler</h2>
+      <h2 class="dlg-head" data-i18n="dlg.props">Özellikler</h2>
       <div class="dlg-content">
         <div class="pr-top"><span class="pr-icon" id="pr-icon"></span><span class="pr-name" id="pr-name"></span></div>
         <dl class="pr-rows" id="pr-rows"></dl>
       </div>
-      <div class="btns"><button value="ok" class="primary">Tamam</button></div>
+      <div class="btns"><button value="ok" class="primary" data-i18n="dlg.ok">Tamam</button></div>
     </div>
   </form>
 </dialog>
@@ -221,9 +221,9 @@
 <dialog class="hud-dialog wide" id="dlg-keys">
   <form method="dialog">
     <div class="dlg-body">
-      <h2 class="dlg-head">Klavye kısayolları</h2>
+      <h2 class="dlg-head" data-i18n="dlg.keys">Klavye kısayolları</h2>
       <div class="dlg-content"><div class="keys" id="keys-list"></div></div>
-      <div class="btns"><button value="ok" class="primary">Tamam</button></div>
+      <div class="btns"><button value="ok" class="primary" data-i18n="dlg.ok">Tamam</button></div>
     </div>
   </form>
 </dialog>
@@ -232,17 +232,18 @@
 <dialog class="hud-dialog" id="dlg-about">
   <form method="dialog">
     <div class="dlg-body">
-      <h2 class="dlg-head">NeuralNav hakkında</h2>
+      <h2 class="dlg-head" data-i18n="dlg.about">NeuralNav hakkında</h2>
       <div class="dlg-content">
         <p class="about-mark" aria-hidden="true">NV-4</p>
-        <p>Dosya gezgini, Neo-İstanbul ağından. NeuralCalc ve NeuralPad ile aynı ailedendir.</p>
-        <p class="hint">Sürüm 1.0 · Sildiğin öğeler Geri Dönüşüm Kutusu'na gider; kalıcı silme (Shift+Del) her seferinde onay ister.</p>
+        <p data-i18n="about.text">Dosya gezgini, Neo-İstanbul ağından. NeuralCalc ve NeuralPad ile aynı ailedendir.</p>
+        <p class="hint" data-i18n="about.hint">Sürüm 1.0 · Sildiğin öğeler Geri Dönüşüm Kutusu'na gider; kalıcı silme (Shift+Del) her seferinde onay ister.</p>
       </div>
-      <div class="btns"><button value="ok" class="primary">Tamam</button></div>
+      <div class="btns"><button value="ok" class="primary" data-i18n="dlg.ok">Tamam</button></div>
     </div>
   </form>
 </dialog>
 
+<script src="../shared/i18n.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

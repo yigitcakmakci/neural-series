@@ -26,9 +26,11 @@ function run(exe, args, input) {
 }
 
 class Vault {
-  constructor(dir, helpers) {
+  // t: the program's texts (language.js), for the Windows Hello prompt and the import errors.
+  constructor(dir, helpers, t = (key) => key) {
     this.file = path.join(dir, "passwords.json");
     this.helpers = helpers; // { dpapi: path to nwdpapi.exe, hello: path to nwhello.exe }
+    this.t = t;
     try { this.data = JSON.parse(fs.readFileSync(this.file, "utf8")); } catch (e) { this.data = {}; }
     this.data = { logins: [], never: [], ...this.data };
     this.verifiedUntil = 0;
@@ -103,7 +105,7 @@ class Vault {
     if (test) ok = test === "verified";
     else {
       ok = await new Promise((resolve) => {
-        execFile(this.helpers.hello, [String(hwnd), "NeuralWeb: kaydedilmiş şifreyi görmek için kimliğini doğrula"], { windowsHide: true }, (err) => {
+        execFile(this.helpers.hello, [String(hwnd), this.t("pw.hello")], { windowsHide: true }, (err) => {
           // 0 verified; 2 means Windows Hello is not set up, then the Windows sign-in itself is the only lock
           resolve(!err || err.code === 2);
         });
@@ -122,10 +124,10 @@ class Vault {
     try {
       const state = JSON.parse(fs.readFileSync(path.join(edgeDir, "Local State"), "utf8"));
       const wrapped = Buffer.from(state.os_crypt.encrypted_key, "base64");
-      if (wrapped.subarray(0, 5).toString() !== "DPAPI") throw new Error("anahtar biçimi tanınmadı");
+      if (wrapped.subarray(0, 5).toString() !== "DPAPI") throw new Error("unknown key format"); // never shown: replaced below
       key = Buffer.from(await run(this.helpers.dpapi, ["unprotect"], wrapped.subarray(5).toString("base64")), "base64");
     } catch (e) {
-      result.errors.push("Edge'in şifre anahtarı okunamadı.");
+      result.errors.push(this.t("pw.err.key"));
       return result;
     }
     const tmp = path.join(os.tmpdir(), `neuralweb-edge-logins-${process.pid}.sqlite`);
@@ -158,7 +160,7 @@ class Vault {
       }
       this.save();
     } catch (e) {
-      result.errors.push(e.code === "EBUSY" ? "Edge açıkken şifre dosyası kopyalanamadı; Edge'i kapatıp yeniden dene." : e.code === "ENOENT" ? "Bu Edge profilinde şifre dosyası yok." : "Şifreler okunamadı.");
+      result.errors.push(this.t(e.code === "EBUSY" ? "pw.err.busy" : e.code === "ENOENT" ? "pw.err.missing" : "pw.err.read"));
     } finally {
       key.fill(0);
       try { fs.rmSync(tmp, { force: true }); } catch (e) { /* temp file */ }
@@ -172,9 +174,10 @@ class Vault {
     const head = (rows.shift() || []).map((h) => h.trim().toLowerCase());
     const col = (names) => head.findIndex((h) => names.includes(h));
     const iu = col(["url", "origin", "web site", "website"]);
+    // Column names as Edge, Chrome and Firefox write them, and as a Turkish spreadsheet may name them.
     const in_ = col(["username", "user", "login", "kullanıcı adı"]);
     const ip = col(["password", "şifre", "parola"]);
-    if (iu < 0 || ip < 0) throw new Error("Dosyada url ve password sütunları yok.");
+    if (iu < 0 || ip < 0) throw new Error(this.t("pw.err.columns"));
     for (const r of rows) {
       const origin = originOf((r[iu] || "").trim());
       const password = r[ip] || "";

@@ -1,4 +1,5 @@
 "use strict";
+require("../../tools/lang-env")(); // the programs it starts speak Turkish, the language of its checks
 // End-to-end test of NeuralWeb's password manager with generated test accounts on a local test site.
 // Windows Hello is never raised: NEURALWEB_TEST_HELLO answers for it in test profiles.
 // Usage: node test-passwords.js [--installed]

@@ -4,17 +4,21 @@
 const { app, BrowserWindow, ipcMain, dialog, screen, Menu } = require("electron");
 const fs = require("fs");
 const path = require("path");
-// The series theme: next to main.js when installed, in apps\shared when run from source.
-const themeSync = require(fs.existsSync(path.join(__dirname, "theme-sync.js")) ? "./theme-sync" : "../shared/theme-sync");
+// Shared with the series: next to main.js when installed, in apps\shared when run from source.
+const shared = (name) => require(fs.existsSync(path.join(__dirname, `${name}.js`)) ? `./${name}` : `../shared/${name}`);
+const themeSync = shared("theme-sync");
+const language = shared("language");
+let L = null; // the interface language, read once app is ready (lang\*.json)
+const T = (key, vars) => (L ? L.t(key, vars) : key);
 
 app.setAppUserModelId("NeuralPad.NP7");
 
 const MIN_W = 560;
 const MIN_H = 340;
 const MAX_FILE = 64 * 1024 * 1024;
-const FILTERS = [
-  { name: "Metin Belgeleri (*.txt)", extensions: ["txt"] },
-  { name: "Tüm Dosyalar (*.*)", extensions: ["*"] },
+const filters = () => [
+  { name: T("filter.text"), extensions: ["txt"] },
+  { name: T("filter.all"), extensions: ["*"] },
 ];
 
 let mainWin = null;
@@ -35,13 +39,13 @@ function writeJSON(name, value) {
 
 function describe(err) {
   switch (err && err.code) {
-    case "ENOENT": return "Dosya bulunamadı.";
+    case "ENOENT": return T("err.not-found");
     case "EACCES":
-    case "EPERM": return "Bu konuma erişim izni yok.";
-    case "EBUSY": return "Dosya başka bir program tarafından kullanılıyor.";
-    case "EISDIR": return "Bu bir klasör.";
-    case "ENOSPC": return "Diskte yer kalmadı.";
-    default: return (err && err.message) || "Bilinmeyen hata.";
+    case "EPERM": return T("err.access");
+    case "EBUSY": return T("err.busy");
+    case "EISDIR": return T("err.is-dir");
+    case "ENOSPC": return T("err.no-space");
+    default: return (err && err.message) || T("err.unknown");
   }
 }
 
@@ -224,26 +228,26 @@ ipcMain.handle("np:pending-files", (e) => {
 });
 ipcMain.handle("np:open-dialog", async (e, dir) => {
   const r = await dialog.showOpenDialog(winOf(e), {
-    title: "Aç",
+    title: T("dlg.open"),
     defaultPath: dir || undefined,
     properties: ["openFile", "multiSelections"],
-    filters: FILTERS,
+    filters: filters(),
   });
   return r.canceled ? [] : r.filePaths;
 });
 ipcMain.handle("np:save-dialog", async (e, suggested) => {
   const r = await dialog.showSaveDialog(winOf(e), {
-    title: "Farklı kaydet",
-    defaultPath: suggested || "Başlıksız.txt",
-    filters: FILTERS,
+    title: T("dlg.save-as"),
+    defaultPath: suggested || T("doc.untitled") + ".txt",
+    filters: filters(),
   });
   return r.canceled || !r.filePath ? null : r.filePath;
 });
 ipcMain.handle("np:read-file", async (_e, p) => {
   try {
     const st = await fs.promises.stat(p);
-    if (!st.isFile()) return { ok: false, error: "Bu bir dosya değil." };
-    if (st.size > MAX_FILE) return { ok: false, error: "Dosya 64 MB'tan büyük." };
+    if (!st.isFile()) return { ok: false, error: T("err.not-file") };
+    if (st.size > MAX_FILE) return { ok: false, error: T("err.too-big") };
     return { ok: true, path: p, name: path.basename(p), bytes: await fs.promises.readFile(p) };
   } catch (err) {
     return { ok: false, error: describe(err) };
@@ -277,6 +281,8 @@ if (!app.requestSingleInstanceLock()) {
   app.on("window-all-closed", () => app.quit());
   app.whenReady().then(() => {
     Menu.setApplicationMenu(null);
+    L = language.load({ appDir: __dirname, name: "NeuralPad", systemLanguages: app.getPreferredSystemLanguages() });
+    L.wire(ipcMain);
     themeSync.wire({ ipcMain, BrowserWindow, prefix: "np", name: "NeuralPad" });
     mainWin = createWindow({ files: filesFromArgs(process.argv, process.cwd()) });
   });

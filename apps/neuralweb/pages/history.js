@@ -23,7 +23,7 @@ async function load(reset) {
     if (day !== lastDay) { lastDay = day; list.append(el("div", "day", day)); }
     list.append(row(r, icons[r.host]));
   }
-  if (!list.children.length) list.append(el("div", "empty", query ? `“${query}” ile eşleşen kayıt yok.` : "Tarama geçmişin boş."));
+  if (!list.children.length) list.append(el("div", "empty", query ? T("hist.no-match", { query }) : T("hist.empty")));
   $("#more").hidden = rows.length < PAGE;
   loading = false;
 }
@@ -35,7 +35,7 @@ function row(r, fav) {
   const main = el("span", "main");
   main.append(a, el("span", "host", r.host));
   const acts = el("span", "acts");
-  acts.append(iconButton(ICON.x, "Geçmişten kaldır", async () => {
+  acts.append(iconButton(ICON.x, T("hist.remove"), async () => {
     await neural.call("removeHistory", r.url);
     const prev = item.previousElementSibling;
     item.remove();
@@ -53,9 +53,9 @@ $("#q").addEventListener("input", () => {
 $("#more").addEventListener("click", () => load(false));
 new IntersectionObserver((e) => { if (e[0].isIntersecting && !$("#more").hidden) load(false); }).observe($("#more"));
 $("#clear").addEventListener("click", async () => {
-  if (!(await confirmBox("Tüm geçmişi sil", "Tarama geçmişinin tamamı silinecek. Bu geri alınamaz."))) return;
+  if (!(await confirmBox(T("hist.clear"), T("hist.clear.confirm")))) return;
   await neural.call("clearHistory");
-  toast("Tarama geçmişi silindi.");
+  toast(T("hist.cleared"));
   load(true);
 });
 window.addEventListener("neural", (e) => { if (e.detail === "history") load(true); });

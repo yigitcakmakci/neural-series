@@ -35,15 +35,12 @@ namespace NeuralSetup
         bool busy;
         string failMessage = "", workStep = "";
         int X, Y, W;
-        static readonly string[] InstallSteps = { "Hoş geldin", "Programlar", "Windows", "Kurulum", "Tamam" };
-        static readonly string[] UninstallSteps = { "Kaldır", "Siliniyor", "Tamam" };
+        bool previewing; // a page opened with /onizle: nothing is installed or deleted when it closes
 
         public Wizard(NeuralForm form, Options options, Payload pack, bool uninstall, bool existingInstall)
         {
             f = form; o = options; payload = pack; uninstallMode = uninstall; existing = existingInstall;
-            f.Steps = uninstall ? UninstallSteps : InstallSteps;
-            f.BandTitle = uninstall ? "NEURAL KALDIRMA" : "NEURAL KURULUM";
-            f.Text = uninstall ? "Neural serisini kaldır" : "Neural serisi kurulumu";
+            page = uninstall ? Page.UWelcome : Page.Welcome;
             f.Screen.PaintContent = Paint;
             f.Back.Click += delegate { Go(-1); };
             f.Next.Click += delegate { Go(+1); };
@@ -52,7 +49,27 @@ namespace NeuralSetup
             spin.Tick += delegate { if (bar != null && busy) bar.Tick(); };
             spin.Start();
             f.Disposed += delegate { spin.Dispose(); };
-            Show(uninstall ? Page.UWelcome : Page.Welcome);
+            // Before the window exists Focus() does nothing, and WinForms would give the first page's first control
+            // (a language button) the focus: Enter must start the wizard.
+            f.Shown += delegate { if (f.Next.Visible && f.Next.Enabled) { f.ActiveControl = f.Next; f.Next.Focus(); } };
+            Retext();
+        }
+
+        // Puts every text of the window into the current language and builds the page again with it.
+        void Retext()
+        {
+            f.Steps = uninstallMode ? L.UninstallSteps : L.InstallSteps;
+            f.BandTitle = uninstallMode ? L.BandUninstall : L.BandSetup;
+            f.Text = uninstallMode ? L.WindowUninstall : L.WindowSetup;
+            f.Back.Text = L.Back;
+            Show(page);
+        }
+        // The language buttons of the first page: the wizard changes at once; the choice is written when installing.
+        void SetLanguage(string id)
+        {
+            if (busy || going || id == L.Lang) return;
+            L.Lang = id;
+            Retext();
         }
 
         /* ------------------------------------------------------------ navigation */
@@ -81,17 +98,17 @@ namespace NeuralSetup
                     else if (CloseRunning()) { Show(Page.Work); Run(false); }
                     break;
                 case Page.Done:
-                    if (cOpenWeb != null && cOpenWeb.Checked && !o.Test) TryStart(new Engine(o, null, null).ExePath("NeuralWeb"));
+                    if (cOpenWeb != null && cOpenWeb.Checked && !o.Test && !previewing) TryStart(new Engine(o, null, null).ExePath("NeuralWeb"));
                     f.Close();
                     break;
                 case Page.Fail: f.Close(); break;
                 case Page.UWelcome:
                     o.RemoveData = cRemoveData.Checked;
-                    if (o.RemoveData && NDialog.Ask(f, "VERİLER SİLİNECEK", "Yer imlerin, geçmişin, kayıtlı şifrelerin, notların ve bütün ayarların kalıcı olarak silinecek. Bu geri alınamaz.\n\nDevam edilsin mi?", "Verileri de sil", "Vazgeç") != 0) return;
+                    if (o.RemoveData && NDialog.Ask(f, L.DlgDataTitle, L.DlgDataText, L.DlgDataYes, L.Cancel) != 0) return;
                     if (CloseRunning()) { Show(Page.UWork); Run(true); }
                     break;
                 case Page.UDone:
-                    new Engine(o, null, null).ScheduleSelfDelete();
+                    if (!previewing) new Engine(o, null, null).ScheduleSelfDelete();
                     f.Close();
                     break;
             }
@@ -99,15 +116,15 @@ namespace NeuralSetup
         void OnClose()
         {
             if (going) return;
-            if (busy) { NDialog.Ask(f, "BEKLE", "İşlem sürüyor; yarıda kesilirse programlar eksik kalır. Bitmesine birkaç saniye kaldı.", "Tamam"); return; }
-            if (page == Page.Done || page == Page.Fail || page == Page.UDone)
+            if (busy && !previewing) { NDialog.Ask(f, L.DlgWaitTitle, L.DlgWaitText, L.Ok); return; }
+            if (page == Page.Done || page == Page.Fail || page == Page.UDone || previewing)
             {
-                if (page == Page.UDone) new Engine(o, null, null).ScheduleSelfDelete();
+                if (page == Page.UDone && !previewing) new Engine(o, null, null).ScheduleSelfDelete();
                 f.Close();
                 return;
             }
-            string text = uninstallMode ? "Neural serisi kaldırılmadan çıkılsın mı?" : "Kurulum yapılmadan çıkılsın mı?";
-            if (NDialog.Ask(f, "ÇIKIŞ", text, "Çık", "Vazgeç") == 0) f.Close();
+            string text = uninstallMode ? L.DlgExitUninstall : L.DlgExitSetup;
+            if (NDialog.Ask(f, L.DlgExitTitle, text, L.DlgExitYes, L.Cancel) == 0) f.Close();
         }
 
         bool ReadApps()
@@ -125,12 +142,12 @@ namespace NeuralSetup
         }
         bool CheckTarget()
         {
-            if (o.Apps.Count == 0) { NDialog.Ask(f, "PROGRAM SEÇ", "Kurmak için en az bir program seç.", "Tamam"); return false; }
+            if (o.Apps.Count == 0) { NDialog.Ask(f, L.DlgAppsTitle, L.DlgAppsText, L.Ok); return false; }
             string root = o.Root;
             try { root = Path.GetFullPath(root); } catch { root = null; }
             if (string.IsNullOrEmpty(root) || !Path.IsPathRooted(root) || root.TrimEnd('\\').Length <= 3)
             {
-                NDialog.Ask(f, "KLASÖR", "Geçerli bir kurulum klasörü seç (ör. C:\\Users\\" + Environment.UserName + "\\Neural).", "Tamam");
+                NDialog.Ask(f, L.DlgFolderTitle, L.DlgFolderInvalid(Environment.UserName), L.Ok);
                 return false;
             }
             try
@@ -142,14 +159,14 @@ namespace NeuralSetup
             }
             catch
             {
-                NDialog.Ask(f, "KLASÖR", "Bu klasöre yazılamıyor. Yönetici izni gerektirmeyen bir yer seç; kişisel klasörün en güvenli seçenek.", "Tamam");
+                NDialog.Ask(f, L.DlgFolderTitle, L.DlgFolderReadOnly, L.Ok);
                 return false;
             }
             o.Root = root;
             long need = Need(), free = long.MaxValue;
             try { free = new DriveInfo(Path.GetPathRoot(root)).AvailableFreeSpace; } catch { }
             if (free < need)
-                return NDialog.Ask(f, "DİSK ALANI", string.Format("Kurulum için yaklaşık {0} gerekiyor, {1} sürücüsünde {2} boş.\n\nYine de devam edilsin mi?", Size(need), Path.GetPathRoot(root), Size(free)), "Devam et", "Vazgeç") == 0;
+                return NDialog.Ask(f, L.DlgDiskTitle, L.DlgDiskText(Size(need), Path.GetPathRoot(root), Size(free)), L.DlgDiskYes, L.Cancel) == 0;
             return true;
         }
         long Need()
@@ -160,7 +177,7 @@ namespace NeuralSetup
         }
         static string Size(long b)
         {
-            return b >= (1L << 30) ? (b / (double)(1L << 30)).ToString("0.0", new System.Globalization.CultureInfo("tr-TR")) + " GB" : (b >> 20) + " MB";
+            return b >= (1L << 30) ? (b / (double)(1L << 30)).ToString("0.0", L.Culture) + " GB" : (b >> 20) + " MB";
         }
 
         // Programs from this installation must be closed first; the Explorer watcher is stopped by the engine itself.
@@ -171,14 +188,14 @@ namespace NeuralSetup
                 var running = Engine.RunningIn(o.Root).Where(p => !Engine.IsBackground(p)).ToList();
                 if (running.Count == 0) return true;
                 string names = string.Join(", ", running.Select(p => p.ProcessName).Distinct());
-                int a = NDialog.Ask(f, "AÇIK PROGRAMLAR", "Devam etmeden önce şunları kapat: " + names + ".\n\n\"Benim yerime kapat\" pencerelerine kapatma isteği gönderir; kaydedilmemiş bir şey varsa program sorar.", "Yeniden dene", "Benim yerime kapat", "Vazgeç");
+                int a = NDialog.Ask(f, L.DlgRunningTitle, L.DlgRunningText(names), L.DlgRunningRetry, L.DlgRunningClose, L.Cancel);
                 if (a == 2 || a < 0) return false;
                 if (a == 1)
                 {
                     foreach (var p in running) { try { p.CloseMainWindow(); } catch { } }
                     string status = f.Status;
                     f.Next.Enabled = f.Back.Enabled = false;
-                    f.Status = "Programlar kapatılıyor…";
+                    f.Status = L.StatusClosing;
                     f.Invalidate();
                     var until = DateTime.Now.AddSeconds(8);
                     while (DateTime.Now < until && Engine.RunningIn(o.Root).Any(p => !Engine.IsBackground(p))) { Application.DoEvents(); Thread.Sleep(200); }
@@ -207,7 +224,7 @@ namespace NeuralSetup
                 {
                     busy = false;
                     WriteLog();
-                    if (err != null) { failMessage = err.Message; logLines.Add("HATA: " + err); Show(Page.Fail); }
+                    if (err != null) { failMessage = err.Message; logLines.Add(L.LogError + err); Show(Page.Fail); }
                     else Show(uninstall ? Page.UDone : Page.Done);
                 });
             });
@@ -260,16 +277,17 @@ namespace NeuralSetup
             f.Next.Invalidate();
         }
 
-        void Add(string kind, string text, Font font, int gap)
+        void Add(string kind, string text, Font font, int gap) { Add(kind, text, font, gap, W); }
+        void Add(string kind, string text, Font font, int gap, int width)
         {
-            int h = T.TextHeight(text, font, W);
-            items.Add(new Item { Kind = kind, Text = text, R = new Rectangle(X, Y, W, h) });
+            int h = T.TextHeight(text, font, width);
+            items.Add(new Item { Kind = kind, Text = text, R = new Rectangle(X, Y, width, h) });
             Y += h + T.P(gap);
         }
         void Title(string s) { Add("title", s, T.Display(19f), 10); }
         void Lead(string s) { Add("lead", s, T.Body(10.5f), 14); }
         void Note(string s) { Add("note", s, T.Body(9f), 10); }
-        void Label(string s) { Add("label", T.Spaced(s.ToUpper(new System.Globalization.CultureInfo("tr-TR"))), T.Mono(8.5f), 8); }
+        void Label(string s) { Add("label", T.Spaced(s.ToUpper(L.Culture)), T.Mono(8.5f), 8); }
         void Box(string kind, string s)
         {
             int h = T.TextHeight(s, T.Body(9.5f), W - T.P(36)) + T.P(24);
@@ -284,12 +302,38 @@ namespace NeuralSetup
             f.Screen.Controls.Add(c);
             return c;
         }
+        // A button sized to its text, at least the given width.
+        NButton Button(string text, int minWidth)
+        {
+            var b = new NButton { Text = text };
+            b.Size = new Size(Math.Max(T.P(minWidth), TextRenderer.MeasureText(text, b.Font).Width + T.P(34)), T.P(36));
+            return b;
+        }
+
+        // Türkçe / English in the top right corner of the first page, the chosen one lit; returns the width it takes.
+        int LanguageButtons()
+        {
+            int x = X + W;
+            for (int i = L.Ids.Length - 1; i >= 0; i--)
+            {
+                string id = L.Ids[i];
+                var b = new NButton { Text = L.NameOf(id), Primary = id == L.Lang, AccessibleName = L.LanguageChoice + ": " + L.NameOf(id) };
+                b.Size = new Size(TextRenderer.MeasureText(b.Text, b.Font).Width + T.P(30), T.P(32));
+                x -= b.Width;
+                b.Location = new Point(x, Y);
+                x -= T.P(6);
+                b.Click += delegate { SetLanguage(id); };
+                f.Screen.Controls.Add(b);
+            }
+            return X + W - x;
+        }
 
         void BuildWelcome()
         {
-            f.Status = payload != null ? "Paket: " + Size(new FileInfo(Process.GetCurrentProcess().MainModule.FileName).Length) + " · Neural serisi " + Engine.Version : "";
-            Title("Neural serisine hoş geldin");
-            Lead("Bu sihirbaz Neural serisinin yedi programını bilgisayarına kurar. Hepsi aynı Neural tasarımını ve tek bir ortak Electron çalışma klasörünü paylaşır.");
+            f.Status = payload != null ? L.StatusPackage(Size(new FileInfo(Process.GetCurrentProcess().MainModule.FileName).Length), Engine.Version) : "";
+            int languages = LanguageButtons();
+            Add("title", L.WelcomeTitle, T.Display(19f), 10, W - languages - T.P(10));
+            Lead(L.WelcomeLead);
             foreach (var a in Apps.All)
             {
                 items.Add(new Item { Kind = "app", Code = a.Code, Text = a.Id, Sub = a.Summary, R = new Rectangle(X, Y, W, T.P(30)) });
@@ -297,24 +341,24 @@ namespace NeuralSetup
             }
             Y += T.P(12);
             if (existing)
-                Box("info", "Bilgisayarında bir Neural kurulumu var: " + o.Root + "\nKurulum onu güncelleyecek. Ayarların, yer imlerin, şifrelerin ve notların olduğu gibi kalır.");
+                Box("info", L.WelcomeExisting(o.Root));
             else
-                Note("Ayarlar ve kişisel veriler programlardan ayrı tutulur; güncelleme ya da yeniden kurulum onlara dokunmaz.");
-            f.Next.Text = "Başla  ›";
+                Note(L.WelcomeNote);
+            f.Next.Text = L.WelcomeStart;
         }
 
         void BuildApps()
         {
             f.Back.Visible = true;
-            f.Next.Text = "İleri  ›";
-            Title("Programlar ve konum");
-            Lead("Kurulacak programları ve kurulum klasörünü seç. Seçmediğin programlar bilgisayarında zaten kuruluysa oldukları gibi kalır.");
+            f.Next.Text = L.Next;
+            Title(L.AppsTitle);
+            Lead(L.AppsLead);
             int colW = (W - T.P(14)) / 2, y0 = Y, rowH = 0, i = 0;
             foreach (var a in Apps.All)
             {
                 long size = payload != null ? payload.SizeOf("base/") + payload.SizeOf("apps/" + a.Id + "/") : 0;
                 int col = i % 2, x = X + col * (colW + T.P(14));
-                var c = Check(a.Id + "  " + a.Code, a.Summary + (size > 0 ? " · " + Size(size) : ""), o.Apps.Contains(a.Id), x, Y, colW);
+                var c = Check(a.Id + "  " + a.Code, a.Summary + (size > 0 ? " · " + Size(size) : ""), o.Apps.Contains(a.Id), x, Y, colW);
                 c.Changed += delegate { UpdateNeedStatus(); };
                 appChecks[a.Id] = c;
                 rowH = Math.Max(rowH, c.Height);
@@ -322,12 +366,12 @@ namespace NeuralSetup
                 i++;
             }
             Y += T.P(10);
-            Label("Kurulum klasörü");
+            Label(L.AppsFolder);
             pathBox = new PathBox { Location = new Point(X, Y), Size = new Size(W, T.P(36)) };
             pathBox.Box.Text = o.Root;
             pathBox.Browse.Click += delegate
             {
-                using (var d = new FolderBrowserDialog { Description = "Neural programlarının kurulacağı yeri seç. Seçtiğin klasörün içinde bir Neural klasörü açılır.", ShowNewFolderButton = true })
+                using (var d = new FolderBrowserDialog { Description = L.AppsBrowse, ShowNewFolderButton = true })
                 {
                     string parent = Path.GetDirectoryName(pathBox.Box.Text.TrimEnd('\\'));
                     if (Directory.Exists(parent)) d.SelectedPath = parent;
@@ -341,7 +385,7 @@ namespace NeuralSetup
             pathBox.Box.TextChanged += delegate { UpdateNeedStatus(); };
             f.Screen.Controls.Add(pathBox);
             Y += pathBox.Height + T.P(10);
-            Note("Programlar ortak Electron dosyalarını sabit bağlantıyla paylaşır; aynı dosyalar diskte bir kez durur.");
+            Note(L.AppsNote);
             UpdateNeedStatus();
         }
         void UpdateNeedStatus()
@@ -349,9 +393,9 @@ namespace NeuralSetup
             var keep = new HashSet<string>(o.Apps);
             o.Apps.Clear();
             foreach (var kv in appChecks) if (kv.Value.Checked) o.Apps.Add(kv.Key);
-            string free = "";
-            try { free = " · boş: " + Size(new DriveInfo(Path.GetPathRoot(Path.GetFullPath(pathBox.Box.Text))).AvailableFreeSpace); } catch { }
-            f.Status = "Gereken alan ≈ " + Size(Need()) + free;
+            string free = null;
+            try { free = Size(new DriveInfo(Path.GetPathRoot(Path.GetFullPath(pathBox.Box.Text))).AvailableFreeSpace); } catch { }
+            f.Status = L.StatusNeed(Size(Need()), free);
             if (page != Page.Apps) { o.Apps.Clear(); foreach (var a in keep) o.Apps.Add(a); }
             f.Invalidate();
         }
@@ -359,27 +403,27 @@ namespace NeuralSetup
         void BuildWindows()
         {
             f.Back.Visible = true;
-            f.Next.Text = existing ? "Güncelle" : "Kur";
-            f.Status = "Sonradan kurulumla değiştirebilirsin.";
-            Title("Windows ile bağlantılar");
-            Lead("Hangi Windows özelliklerinin Neural programlarını kullanacağını seç. Kutuyu kaldırırsan o bağlantı geri alınır.");
+            f.Next.Text = existing ? L.Update : L.Install;
+            f.Status = L.WinStatus;
+            Title(L.WinTitle);
+            Lead(L.WinLead);
             int colW = (W - T.P(14)) / 2, x1 = X, x2 = X + colW + T.P(14);
             bool pad = o.Apps.Contains("NeuralPad"), nav = o.Apps.Contains("NeuralNav"), term = o.Apps.Contains("NeuralTerm"), web = o.Apps.Contains("NeuralWeb"), view = o.Apps.Contains("NeuralView"), deck = o.Apps.Contains("NeuralDeck");
             Func<NCheck, NCheck, int> row = (a, b) => Math.Max(a.Height, b == null ? 0 : b.Height) + T.P(10);
-            cStart = Check("Başlat menüsü kısayolları", "Programlar Başlat menüsünde ve Windows aramasında görünür.", o.StartMenu, x1, Y, colW);
-            cWeb = Check("NeuralWeb'i tarayıcı olarak tanıt", "Varsayılan tarayıcıyı yine sen Windows Ayarlar'dan seçersin.", web && o.WebRegister, x2, Y, colW);
+            cStart = Check(L.OptStart, L.OptStartSub, o.StartMenu, x1, Y, colW);
+            cWeb = Check(L.OptWeb, L.OptWebSub, web && o.WebRegister, x2, Y, colW);
             Y += row(cStart, cWeb);
-            cPad = Check("NeuralPad: .txt için \"Birlikte aç\"", "Varsayılan not defterin değişmez.", pad && o.PadOpenWith, x1, Y, colW);
-            cView = Check("NeuralView: resimler için \"Birlikte aç\"", "Ayarlar'daki Varsayılan uygulamalar listesine de girer; varsayılanı sen seçersin.", view && o.ViewOpenWith, x2, Y, colW);
+            cPad = Check(L.OptPad, L.OptPadSub, pad && o.PadOpenWith, x1, Y, colW);
+            cView = Check(L.OptView, L.OptViewSub, view && o.ViewOpenWith, x2, Y, colW);
             Y += row(cPad, cView);
-            cTerm = Check("NeuralTerm: nt komutu ve sağ tık", "Win+R'de nt; klasörlerde \"NeuralTerm'de aç\".", term && o.TermCommands, x1, Y, colW);
-            cNavMenu = Check("NeuralNav: \"NeuralNav ile aç\"", "Klasörlerin ve sürücülerin sağ tık menüsüne eklenir.", nav && o.NavMenu, x2, Y, colW);
+            cTerm = Check(L.OptTerm, L.OptTermSub, term && o.TermCommands, x1, Y, colW);
+            cNavMenu = Check(L.OptNavMenu, L.OptNavMenuSub, nav && o.NavMenu, x2, Y, colW);
             Y += row(cTerm, cNavMenu);
-            cNavDefault = Check("NeuralNav varsayılan klasör açıcı", "Klasörlere çift tıklayınca NeuralNav açılır. Kaldırınca Windows Gezgini geri gelir.", nav && o.NavDefault, x1, Y, colW);
-            cNavWatch = Check("Gezgin pencerelerini yakala", "Küçük bir izleyici, Win+E dahil açılan Gezgin pencerelerini NeuralNav'a çevirir.", nav && o.NavDefault && o.NavWatch, x2, Y, colW);
+            cNavDefault = Check(L.OptNavDefault, L.OptNavDefaultSub, nav && o.NavDefault, x1, Y, colW);
+            cNavWatch = Check(L.OptNavWatch, L.OptNavWatchSub, nav && o.NavDefault && o.NavWatch, x2, Y, colW);
             Y += row(cNavDefault, cNavWatch);
-            cIcons = Check("Windows simgelerini değiştir", "Bu Bilgisayar, Geri Dönüşüm Kutusu, Ağ ve kullanıcı klasörü Neural simgelerini alır.", o.WindowsIcons, x1, Y, colW);
-            cDeck = Check("NeuralDeck: açılışta başlat", "Windows açılınca başlar; Alt+Space ile açılan komut paleti arka planda bekler.", deck && o.DeckAutostart, x2, Y, colW);
+            cIcons = Check(L.OptIcons, L.OptIconsSub, o.WindowsIcons, x1, Y, colW);
+            cDeck = Check(L.OptDeck, L.OptDeckSub, deck && o.DeckAutostart, x2, Y, colW);
             Y += row(cIcons, cDeck);
             cPad.Enabled = pad; cTerm.Enabled = term; cWeb.Enabled = web; cView.Enabled = view; cDeck.Enabled = deck; cNavMenu.Enabled = nav; cNavDefault.Enabled = nav;
             cNavWatch.Enabled = nav && cNavDefault.Checked;
@@ -388,10 +432,10 @@ namespace NeuralSetup
 
         void BuildWork(bool uninstall)
         {
-            f.Next.Text = uninstall ? "Siliniyor…" : "Kuruluyor…";
+            f.Next.Text = uninstall ? L.Removing : L.Installing;
             f.Next.Enabled = false;
-            Title(uninstall ? "Kaldırılıyor" : existing ? "Güncelleniyor" : "Kuruluyor");
-            Lead(uninstall ? "Programlar, kısayollar ve Windows bağlantıları kaldırılıyor." : "Dosyalar açılıyor, her programa kendi simgesi basılıyor ve Windows'a tanıtılıyor. Bu bir iki dakika sürebilir.");
+            Title(uninstall ? L.WorkTitleUninstall : existing ? L.WorkTitleUpdate : L.WorkTitleInstall);
+            Lead(uninstall ? L.WorkLeadUninstall : L.WorkLeadInstall);
             items.Add(new Item { Kind = "step", R = new Rectangle(X, Y, W, T.P(22)) });
             Y += T.P(28);
             bar = new NProgress { Location = new Point(X, Y), Size = new Size(W, T.P(18)) };
@@ -404,44 +448,44 @@ namespace NeuralSetup
 
         void BuildDone()
         {
-            f.Next.Text = "Bitir";
+            f.Next.Text = L.Finish;
             f.Status = o.Root;
-            Title(existing ? "Güncelleme tamamlandı" : "Kurulum tamamlandı");
-            Lead("Neural serisi hazır. Programlar Başlat menüsünde; hepsi " + o.Root + " klasöründe.");
+            Title(existing ? L.DoneTitleUpdate : L.DoneTitleInstall);
+            Lead(L.DoneLead(o.Root));
             bool web = o.Apps.Contains("NeuralWeb"), view = o.Apps.Contains("NeuralView");
             if (web)
             {
-                cOpenWeb = Check("NeuralWeb'i şimdi aç", "Bitir'e basınca tarayıcı açılır.", !o.Test, X, Y, W / 2);
+                cOpenWeb = Check(L.DoneOpenWeb, L.DoneOpenWebSub, !o.Test, X, Y, W / 2);
                 Y += cOpenWeb.Height + T.P(14);
             }
             // Windows lets only the user choose a default app; each button opens that program's page in Settings.
             var defaults = new List<NButton>();
             Func<string, string, int, NButton> settingsButton = (text, app, width) =>
             {
-                var b = new NButton { Text = text, Size = new Size(T.P(width), T.P(36)) };
+                var b = Button(text, width);
                 b.Click += delegate { TryStart("ms-settings:defaultapps?registeredAppUser=" + app); };
                 return b;
             };
-            if (web && o.WebRegister) defaults.Add(settingsButton("Varsayılan tarayıcıyı seç…", "NeuralWeb", 250));
-            if (view && o.ViewOpenWith) defaults.Add(settingsButton("Varsayılan resim uygulaması yap…", "NeuralView", 290));
+            if (web && o.WebRegister) defaults.Add(settingsButton(L.DoneDefaultBrowser, "NeuralWeb", 250));
+            if (view && o.ViewOpenWith) defaults.Add(settingsButton(L.DoneDefaultPictures, "NeuralView", 290));
             if (defaults.Count > 0)
             {
                 int x = X;
                 foreach (var b in defaults) { b.Location = new Point(x, Y); f.Screen.Controls.Add(b); x += b.Width + T.P(12); }
                 Y += defaults[0].Height + T.P(10);
-                Note("Windows varsayılan uygulamayı yalnızca senin seçmene izin verir; " + (defaults.Count > 1 ? "her düğme" : "düğme") + " Ayarlar'da o programın sayfasını açar.");
+                Note(L.DoneDefaultsNote(defaults.Count > 1));
                 Y += T.P(8);
             }
-            Note("Seçenekleri değiştirmek için kurulumu yeniden çalıştırman yeterli. Kaldırmak için: Windows Ayarlar › Uygulamalar › Neural serisi.");
-            Note("Kurulum günlüğü: " + Path.Combine(Path.GetTempPath(), "neural-kurulum.log"));
+            Note(L.DoneNote);
+            Note(L.DoneLog(Path.Combine(Path.GetTempPath(), "neural-kurulum.log")));
         }
 
         void BuildFail()
         {
-            f.Next.Text = "Kapat";
-            Title("İşlem tamamlanamadı");
+            f.Next.Text = L.Close;
+            Title(L.FailTitle);
             Box("warn", failMessage);
-            Note("Ayrıntılar kurulum günlüğünde: " + Path.Combine(Path.GetTempPath(), "neural-kurulum.log") + ". Kurulumu yeniden çalıştırmak yarım kalan işi tamamlar.");
+            Note(L.FailNote(Path.Combine(Path.GetTempPath(), "neural-kurulum.log")));
             logView = new LogView { Location = new Point(X, Y), Size = new Size(W, Math.Max(T.P(80), f.Screen.Height - Y - T.P(28))) };
             foreach (var l in logLines) logView.Add(l);
             f.Screen.Controls.Add(logView);
@@ -449,24 +493,23 @@ namespace NeuralSetup
 
         void BuildUninstall()
         {
-            f.Next.Text = "Kaldır";
+            f.Next.Text = L.UninstallButton;
             f.Next.Primary = false; f.Next.Danger = true;
             f.Status = o.Root;
-            Title("Neural serisini kaldır");
+            Title(L.UninstallTitle);
             var installed = Apps.All.Where(a => Directory.Exists(Path.Combine(o.Root, a.Id, "Program"))).Select(a => a.Id).ToList();
-            Lead("Şunlar silinecek: " + (installed.Count > 0 ? string.Join(", ", installed) : "Neural programları") + ", ortak Electron dosyaları, Başlat menüsü kısayolları ve Windows bağlantıları."
-                + (o.NavDefault ? " Klasörleri yine Windows Gezgini açacak." : ""));
-            cRemoveData = Check("Ayarlarımı ve kişisel verilerimi de sil", "Yer imleri, geçmiş, kayıtlı şifreler, notlar ve bütün program ayarları. Bu geri alınamaz.", false, X, Y, W);
+            Lead(L.UninstallLead(installed.Count > 0 ? string.Join(", ", installed) : null, o.NavDefault));
+            cRemoveData = Check(L.UninstallData, L.UninstallDataSub, false, X, Y, W);
             Y += cRemoveData.Height + T.P(16);
-            Note("Kaynak kodlarla çalışıyorsan programların Kaynak klasörlerine dokunulmaz.");
+            Note(L.UninstallNote);
         }
 
         void BuildUDone()
         {
-            f.Next.Text = "Bitir";
-            Title("Neural serisi kaldırıldı");
-            Lead(o.RemoveData ? "Programlar ve bütün verileri silindi." : "Programlar silindi. Ayarların ve kişisel verilerin duruyor; Neural serisini yeniden kurarsan kaldığın yerden devam eder.");
-            Note("Görev çubuğuna sabitlediğin simgeler varsa Windows onları bir sonraki oturumda temizler.");
+            f.Next.Text = L.Finish;
+            Title(L.UDoneTitle);
+            Lead(o.RemoveData ? L.UDoneLeadData : L.UDoneLead);
+            Note(L.UDoneNote);
         }
 
         /* ------------------------------------------------------------ painting */
@@ -511,21 +554,29 @@ namespace NeuralSetup
         }
 
         /* ------------------------------------------------------------ previews for screenshots (test mode only) */
+        // Nothing runs: the work pages show sample lines, and closing a preview installs or deletes nothing.
         public void Preview(string which)
         {
+            previewing = true;
             switch (which)
             {
                 case "programlar": Show(Page.Apps); break;
                 case "windows": Show(Page.Windows); break;
                 case "kurulum":
-                    Show(Page.Work);
+                case "siliniyor":
+                    bool remove = which == "siliniyor";
+                    Show(remove ? Page.UWork : Page.Work);
                     busy = true;
-                    workStep = "NeuralWeb simgesi basılıyor";
+                    workStep = remove ? L.ProgressDeleting("NeuralWeb") : L.ProgressStamping("NeuralWeb");
                     bar.Value = 0.62;
-                    foreach (var l in new[] { "Kurulum klasörü: " + o.Root, "Ortak Electron çalışma dosyaları → Ortak\\Electron", "NeuralCalc KX-9 → ...\\NeuralCalc\\Program", "  ortak dosyalara 72 sabit bağlantı", "  NeuralCalc.exe kendi simgesi ve adıyla hazır", "NeuralWeb NW-1 → ...\\NeuralWeb\\Program" }) logView.Add(l);
+                    var lines = remove
+                        ? new[] { L.LogUninstalling(o.Root), L.LogUnregistered, L.LogShortcutDeleted(Apps.Get("NeuralCalc").ShortcutName + ".lnk"), L.LogProgramDeleted("NeuralCalc"), L.LogProgramDeleted("NeuralPad"), L.LogProgramDeleted("NeuralNav") }
+                        : new[] { L.LogInstallFolder(o.Root), L.LogRuntime, "NeuralCalc KX-9 → ...\\NeuralCalc\\Program", L.LogLinks(72), L.LogExeReady("NeuralCalc"), "NeuralWeb NW-1 → ...\\NeuralWeb\\Program" };
+                    foreach (var l in lines) logView.Add(l);
                     break;
                 case "tamam": Show(Page.Done); break;
-                case "hata": failMessage = "Örnek hata: dosya kullanımda."; Show(Page.Fail); break;
+                case "kaldirildi": Show(Page.UDone); break;
+                case "hata": failMessage = L.SampleError; Show(Page.Fail); break;
             }
         }
     }

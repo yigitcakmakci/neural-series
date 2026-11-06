@@ -1,7 +1,8 @@
 // The NeuralCalc KX-9 engine: lexer, parser/evaluator and number formatting, shared by NeuralCalc (a <script> tag,
-// global NeuralCalcEngine) and NeuralDeck (require). Errors are CalcError with a code; ERR maps codes to the
-// calculator's [hex code, message] pair. evaluate(src, { angle: "DEG" | "RAD", ans }) takes the calculator's own
-// notation: × ÷ − √ π, "~" for a unary minus, "ANS", "E" for exponents (plain + - * / ^ ( ) % ! work too).
+// global NeuralCalcEngine) and NeuralDeck (require). Errors are CalcError with a code; ERR maps codes to the hex code
+// the calculator's display shows and the key of the message, which each program finds in its own language files
+// (lang\*.json). evaluate(src, { angle: "DEG" | "RAD", ans }) takes the calculator's own notation: × ÷ − √ π, "~" for
+// a unary minus, "ANS", "E" for exponents (plain + - * / ^ ( ) % ! work too).
 (function (root, factory) {
   if (typeof module === "object" && module.exports) module.exports = factory();
   else root.NeuralCalcEngine = factory();
@@ -11,13 +12,13 @@
   class CalcError extends Error { constructor(code) { super(code); this.code = code; } }
   const fail = (code) => { throw new CalcError(code); };
   const ERR = {
-    SYNTAX: ["0x01", "SÖZDİZİMİ HATASI"],
-    DIV0: ["0x0D", "SIFIRA BÖLME"],
-    COMPLEX: ["0x1C", "KARMAŞIK SONUÇ"],
-    DOMAIN: ["0x2D", "TANIM DIŞI DEĞER"],
-    UNDEF: ["0x3F", "TANIMSIZ"],
-    FACT: ["0x4A", "n! YALNIZ DOĞAL SAYIDA"],
-    OVERFLOW: ["0xFF", "TAŞMA"],
+    SYNTAX: { hex: "0x01", key: "err.syntax" },
+    DIV0: { hex: "0x0D", key: "err.div0" },
+    COMPLEX: { hex: "0x1C", key: "err.complex" },
+    DOMAIN: { hex: "0x2D", key: "err.domain" },
+    UNDEF: { hex: "0x3F", key: "err.undef" },
+    FACT: { hex: "0x4A", key: "err.fact" },
+    OVERFLOW: { hex: "0xFF", key: "err.overflow" },
   };
   const OPS = { "−": "-", "~": "-", "×": "*", "÷": "/" };
 

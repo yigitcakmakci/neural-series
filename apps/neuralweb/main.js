@@ -9,10 +9,14 @@ const { Store, hostOf } = require("./store");
 const { Shield, bareHost } = require("./shield");
 const { Vault, originOf: loginOrigin } = require("./passwords");
 // Shared with the series: next to main.js when installed, in apps\shared when run from source.
-const shared = (name) => require(fs.existsSync(path.join(__dirname, `${name}.js`)) ? `./${name}` : `../shared/${name}`);
+const sharedFile = (name) => (fs.existsSync(path.join(__dirname, `${name}.js`)) ? path.join(__dirname, `${name}.js`) : path.join(__dirname, "..", "shared", `${name}.js`));
+const shared = (name) => require(sharedFile(name));
 const { ThemeSync } = shared("theme-sync");
+const language = shared("language");
+let L = null; // the interface language, read once app is ready (lang\*.json)
+const T = (key, vars) => (L ? L.t(key, vars) : key);
 // Downloads open in the series' programs: pictures in NeuralView, notes in NeuralPad, their folder in NeuralNav.
-const handoff = shared("handoff").create({ self: "NeuralWeb", shell });
+const handoff = shared("handoff").create({ self: "NeuralWeb", shell, t: T });
 
 app.setAppUserModelId("NeuralWeb.NW1");
 // Tests run against a throwaway profile.
@@ -77,16 +81,19 @@ const googleSearch = (q) => `https://www.google.com/search?q=${encodeURIComponen
 /* ============================================================ internal pages (neural://) */
 const MIME = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon", ".woff2": "font/woff2" };
 // neural://history/ is pages/history.html; any other path on a page host is a shared file from pages/ (pages.css, history.js…),
-// except fonts/…, which comes from the app's bundled typefaces.
+// except fonts/…, which comes from the app's bundled typefaces. i18n.js lies in pages/ when installed (build.ps1 copies
+// it there); from source it comes from the series' shared modules.
 const PAGE_CSP = "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'";
 async function servePage(request) {
   const u = new URL(request.url);
-  if (!PAGES.has(u.hostname)) return new Response("Bulunamadı", { status: 404 });
+  const notFound = () => new Response(T("page.not-found"), { status: 404, headers: { "content-type": "text/plain; charset=utf-8" } });
+  if (!PAGES.has(u.hostname)) return notFound();
   let rel = u.pathname === "/" || u.pathname === "" ? `${u.hostname}.html` : decodeURIComponent(u.pathname).replace(/^\/+/, "");
   let dir = PAGES_DIR;
   if (rel.startsWith("fonts/")) { dir = FONTS_DIR; rel = rel.slice("fonts/".length); }
-  const file = path.normalize(path.join(dir, rel));
-  if (!file.startsWith(dir + path.sep)) return new Response("Bulunamadı", { status: 404 });
+  let file = path.normalize(path.join(dir, rel));
+  if (!file.startsWith(dir + path.sep)) return notFound();
+  if (dir === PAGES_DIR && rel === "i18n.js" && !fs.existsSync(file)) file = sharedFile("i18n");
   try {
     const data = await fs.promises.readFile(file);
     return new Response(data, { headers: {
@@ -96,7 +103,7 @@ async function servePage(request) {
       "content-security-policy": PAGE_CSP,
     } });
   } catch (e) {
-    return new Response("Bulunamadı", { status: 404 });
+    return notFound();
   }
 }
 
@@ -121,14 +128,15 @@ function setupSession(ses, priv) {
 }
 
 const ALWAYS = new Set(["fullscreen", "clipboard-sanitized-write", "pointerLock", "keyboardLock"]);
+// What a site may ask for, as the text keys of the question ("… wants to: <what>").
 const ASK = {
-  media: "kamera ve mikrofonunu kullanmak",
-  geolocation: "konumunu öğrenmek",
-  notifications: "bildirim göndermek",
-  "clipboard-read": "panodaki metni okumak",
-  midi: "MIDI cihazlarını kullanmak",
-  midiSysex: "MIDI cihazlarını tam erişimle kullanmak",
-  openExternal: "bir bağlantıyı Windows'taki başka bir uygulamada açmak",
+  media: "perm.ask.media",
+  geolocation: "perm.ask.geolocation",
+  notifications: "perm.ask.notifications",
+  "clipboard-read": "perm.ask.clipboard",
+  midi: "perm.ask.midi",
+  midiSysex: "perm.ask.midi-sysex",
+  openExternal: "perm.ask.external",
 };
 const originOf = (url) => { try { return new URL(url).origin; } catch (e) { return ""; } };
 function permStore(priv) {
@@ -155,15 +163,15 @@ function onPermissionRequest(wc, permission, callback, details, priv) {
   if (!found) return callback(false);
   let what = ASK[permission];
   if (permission === "media" && Array.isArray(details.mediaTypes)) {
-    what = details.mediaTypes.includes("video") && details.mediaTypes.includes("audio") ? "kamera ve mikrofonunu kullanmak" : details.mediaTypes.includes("video") ? "kamerasını kullanmak" : "mikrofonunu kullanmak";
+    what = details.mediaTypes.includes("video") && details.mediaTypes.includes("audio") ? "perm.ask.media" : details.mediaTypes.includes("video") ? "perm.ask.camera" : "perm.ask.mic";
   }
-  const host = hostOf(origin) || origin || "Bu sayfa";
+  const host = hostOf(origin) || origin || T("perm.this-page");
   const extra = permission === "openExternal" && details.externalURL ? `\n${String(details.externalURL).slice(0, 120)}` : "";
   queuePrompt(found.w, {
-    title: `${host} şunu istiyor:`,
-    text: `Bu bilgisayarın ${what}.${extra}`,
+    title: T("perm.title", { host }),
+    text: T("perm.text", { what: T(what) }) + extra,
     icon: permission,
-    buttons: [{ id: "block", label: "Engelle" }, { id: "allow", label: "İzin ver", primary: true }],
+    buttons: [{ id: "block", label: T("perm.block") }, { id: "allow", label: T("perm.allow"), primary: true }],
   }, (choice) => {
     const allow = choice === "allow";
     if (choice && permission !== "openExternal") ps.set(origin, permission, allow ? "allow" : "block");
@@ -432,10 +440,10 @@ function attachTab(w, tab) {
   wc.on("will-prevent-unload", (e) => {
     if (tab.forceLeave) { tab.forceLeave = false; e.preventDefault(); return; }
     queuePrompt(w, {
-      title: "Bu siteden ayrılmak istiyor musun?",
-      text: "Yaptığın değişiklikler kaydedilmemiş olabilir.",
+      title: T("leave.title"),
+      text: T("leave.text"),
       icon: "leave",
-      buttons: [{ id: "stay", label: "Kal" }, { id: "leave", label: "Ayrıl", danger: true }],
+      buttons: [{ id: "stay", label: T("leave.stay") }, { id: "leave", label: T("leave.leave"), danger: true }],
     }, (choice) => {
       if (choice !== "leave") return;
       tab.forceLeave = true;
@@ -450,8 +458,8 @@ function windowOpen(w, tab, d) {
   const url = d.url || "";
   if (/^(mailto|tel|sms|callto|ms-[a-z-]+|zoommtg|msteams|spotify|steam|discord|slack|tg|whatsapp):/i.test(url)) {
     queuePrompt(w, {
-      title: "Harici uygulama açılsın mı?", text: url.slice(0, 160), icon: "openExternal",
-      buttons: [{ id: "no", label: "Vazgeç" }, { id: "open", label: "Aç", primary: true }],
+      title: T("external.title"), text: url.slice(0, 160), icon: "openExternal",
+      buttons: [{ id: "no", label: T("dlg.cancel") }, { id: "open", label: T("dlg.open"), primary: true }],
     }, (c) => { if (c === "open") shell.openExternal(url); });
     return { action: "deny" };
   }
@@ -585,7 +593,7 @@ function tabState(t) {
   return {
     id: t.id,
     url: isNewTab(url) ? "" : url,
-    title: t.title || (isNewTab(url) ? "Yeni sekme" : url.replace(/^https?:\/\//, "")),
+    title: t.title || (isNewTab(url) ? T("tab.new-tab") : url.replace(/^https?:\/\//, "")),
     favicon: t.favicon,
     loading: t.loading, audible: t.audible, muted: (() => { try { return t.wc.isAudioMuted(); } catch (e) { return false; } })(),
     pinned: t.pinned, crashed: t.crashed,
@@ -690,12 +698,12 @@ ipcMain.on("pw:submit", (e, c) => {
   const existing = vault.find(origin, username);
   if (existing && vault.decrypt(existing) === password) { vault.touch(existing.id); return; }
   const host = new URL(origin).host;
-  const who = `Kullanıcı adı: ${username || "(yok)"}`;
+  const who = T("pw.prompt.user", { user: username || T("pw.prompt.no-user") });
   queuePrompt(w, existing
-    ? { title: "Şifre güncellensin mi?", text: `${host}\n${who}\nBu hesap için kayıtlı şifre farklı.`, icon: "key",
-        buttons: [{ id: "no", label: "Hayır" }, { id: "save", label: "Güncelle", primary: true }] }
-    : { title: "Şifre kaydedilsin mi?", text: `${host}\n${who}\nŞifre: ${"•".repeat(Math.min(12, password.length))}`, icon: "key",
-        buttons: [{ id: "never", label: "Bu sitede asla" }, { id: "no", label: "Şimdi değil" }, { id: "save", label: "Kaydet", primary: true }] },
+    ? { title: T("pw.prompt.update"), text: `${host}\n${who}\n${T("pw.prompt.differs")}`, icon: "key",
+        buttons: [{ id: "no", label: T("pw.prompt.no") }, { id: "save", label: T("pw.prompt.do-update"), primary: true }] }
+    : { title: T("pw.prompt.save"), text: `${host}\n${who}\n${T("pw.prompt.pass", { dots: "•".repeat(Math.min(12, password.length)) })}`, icon: "key",
+        buttons: [{ id: "never", label: T("pw.prompt.never") }, { id: "no", label: T("pw.prompt.not-now") }, { id: "save", label: T("dlg.save"), primary: true }] },
   (choice) => {
     if (choice === "save") vault.upsert({ origin, username, password });
     else if (choice === "never") vault.setNever(origin, true);
@@ -828,56 +836,56 @@ function contextMenu(w, tab, p) {
   const wc = tab.wc;
   if (p.misspelledWord) {
     for (const s of (p.dictionarySuggestions || []).slice(0, 5)) add(s, () => wc.replaceMisspelling(s), { bold: true });
-    add("Sözlüğe ekle", () => w.ses.addWordToSpellCheckerDictionary(p.misspelledWord));
+    add(T("ctx.add-word"), () => w.ses.addWordToSpellCheckerDictionary(p.misspelledWord));
     sep();
   }
   if (p.linkURL) {
-    add("Bağlantıyı yeni sekmede aç", () => createTab(w, { url: p.linkURL, background: true, index: w.tabs.indexOf(tab) + 1 }));
-    add("Bağlantıyı yeni pencerede aç", () => createWindow({ priv: w.priv, urls: [p.linkURL] }));
-    if (!w.priv) add("Bağlantıyı gizli pencerede aç", () => createWindow({ priv: true, urls: [p.linkURL] }));
+    add(T("ctx.link-tab"), () => createTab(w, { url: p.linkURL, background: true, index: w.tabs.indexOf(tab) + 1 }));
+    add(T("ctx.link-window"), () => createWindow({ priv: w.priv, urls: [p.linkURL] }));
+    if (!w.priv) add(T("ctx.link-private"), () => createWindow({ priv: true, urls: [p.linkURL] }));
     sep();
-    add("Bağlantıyı farklı kaydet", () => wc.downloadURL(p.linkURL));
-    add("Bağlantı adresini kopyala", () => clipboard.writeText(p.linkURL));
+    add(T("ctx.link-save"), () => wc.downloadURL(p.linkURL));
+    add(T("ctx.link-copy"), () => clipboard.writeText(p.linkURL));
     sep();
   }
   if (p.mediaType === "image" && p.srcURL) {
-    add("Resmi yeni sekmede aç", () => createTab(w, { url: p.srcURL, background: true, index: w.tabs.indexOf(tab) + 1 }));
-    add("Resmi farklı kaydet", () => wc.downloadURL(p.srcURL));
-    add("Resmi kopyala", () => wc.copyImageAt(p.x, p.y));
-    add("Resim adresini kopyala", () => clipboard.writeText(p.srcURL));
+    add(T("ctx.image-tab"), () => createTab(w, { url: p.srcURL, background: true, index: w.tabs.indexOf(tab) + 1 }));
+    add(T("ctx.image-save"), () => wc.downloadURL(p.srcURL));
+    add(T("ctx.image-copy"), () => wc.copyImageAt(p.x, p.y));
+    add(T("ctx.image-copy-address"), () => clipboard.writeText(p.srcURL));
     sep();
   } else if ((p.mediaType === "video" || p.mediaType === "audio") && p.srcURL && !p.srcURL.startsWith("blob:")) {
-    add(p.mediaType === "video" ? "Videoyu yeni sekmede aç" : "Sesi yeni sekmede aç", () => createTab(w, { url: p.srcURL, index: w.tabs.indexOf(tab) + 1 }));
-    add("Adresi kopyala", () => clipboard.writeText(p.srcURL));
+    add(T(p.mediaType === "video" ? "ctx.video-tab" : "ctx.audio-tab"), () => createTab(w, { url: p.srcURL, index: w.tabs.indexOf(tab) + 1 }));
+    add(T("ctx.copy-address"), () => clipboard.writeText(p.srcURL));
     sep();
   }
   if (p.isEditable) {
     const f = p.editFlags || {};
-    add("Geri al", () => wc.undo(), { disabled: !f.canUndo, key: "Ctrl+Z" });
-    add("Yinele", () => wc.redo(), { disabled: !f.canRedo, key: "Ctrl+Y" });
+    add(T("edit.undo"), () => wc.undo(), { disabled: !f.canUndo, key: "Ctrl+Z" });
+    add(T("edit.redo"), () => wc.redo(), { disabled: !f.canRedo, key: "Ctrl+Y" });
     sep();
-    add("Kes", () => wc.cut(), { disabled: !f.canCut, key: "Ctrl+X" });
-    add("Kopyala", () => wc.copy(), { disabled: !f.canCopy, key: "Ctrl+C" });
-    add("Yapıştır", () => wc.paste(), { disabled: !f.canPaste, key: "Ctrl+V" });
-    add("Düz metin olarak yapıştır", () => wc.pasteAndMatchStyle(), { disabled: !f.canPaste, key: "Ctrl+Shift+V" });
-    add("Tümünü seç", () => wc.selectAll(), { key: "Ctrl+A" });
+    add(T("edit.cut"), () => wc.cut(), { disabled: !f.canCut, key: "Ctrl+X" });
+    add(T("edit.copy"), () => wc.copy(), { disabled: !f.canCopy, key: "Ctrl+C" });
+    add(T("edit.paste"), () => wc.paste(), { disabled: !f.canPaste, key: "Ctrl+V" });
+    add(T("edit.paste-plain"), () => wc.pasteAndMatchStyle(), { disabled: !f.canPaste, key: "Ctrl+Shift+V" });
+    add(T("edit.select-all"), () => wc.selectAll(), { key: "Ctrl+A" });
     sep();
   } else if (p.selectionText && p.selectionText.trim()) {
     const s = p.selectionText.trim().replace(/\s+/g, " ");
-    add("Kopyala", () => wc.copy(), { key: "Ctrl+C" });
-    add(`Google'da ara: “${s.length > 28 ? s.slice(0, 28) + "…" : s}”`, () => createTab(w, { url: googleSearch(s), index: w.tabs.indexOf(tab) + 1 }));
+    add(T("edit.copy"), () => wc.copy(), { key: "Ctrl+C" });
+    add(T("ctx.search", { text: s.length > 28 ? s.slice(0, 28) + "…" : s }), () => createTab(w, { url: googleSearch(s), index: w.tabs.indexOf(tab) + 1 }));
     sep();
   }
   if (!p.linkURL && !p.isEditable && !p.selectionText && p.mediaType === "none") {
-    add("Geri", () => wc.navigationHistory.goBack(), { disabled: !wc.navigationHistory.canGoBack(), key: "Alt+Sol" });
-    add("İleri", () => wc.navigationHistory.goForward(), { disabled: !wc.navigationHistory.canGoForward(), key: "Alt+Sağ" });
-    add("Yeniden yükle", () => wc.reload(), { key: "Ctrl+R" });
+    add(T("nav.back"), () => wc.navigationHistory.goBack(), { disabled: !wc.navigationHistory.canGoBack(), key: T("key.alt-left") });
+    add(T("nav.forward"), () => wc.navigationHistory.goForward(), { disabled: !wc.navigationHistory.canGoForward(), key: T("key.alt-right") });
+    add(T("nav.reload"), () => wc.reload(), { key: "Ctrl+R" });
     sep();
-    add("Yazdır…", () => wc.print(), { key: "Ctrl+P" });
-    if (/^https?:/i.test(wc.getURL())) add("Sayfa kaynağını görüntüle", () => createTab(w, { url: "view-source:" + wc.getURL(), index: w.tabs.indexOf(tab) + 1 }), { key: "Ctrl+U" });
+    add(T("menu.print"), () => wc.print(), { key: "Ctrl+P" });
+    if (/^https?:/i.test(wc.getURL())) add(T("menu.view-source"), () => createTab(w, { url: "view-source:" + wc.getURL(), index: w.tabs.indexOf(tab) + 1 }), { key: "Ctrl+U" });
     sep();
   }
-  add("İncele", () => { wc.inspectElement(p.x, p.y); }, { key: "Ctrl+Shift+I" });
+  add(T("ctx.inspect"), () => { wc.inspectElement(p.x, p.y); }, { key: "Ctrl+Shift+I" });
   const vp = (w.layout && w.layout.viewport) || { x: 0, y: 0 };
   openPopup(w, { kind: "menu", data: { items }, anchor: { x: vp.x + p.x, y: vp.y + p.y, width: 0, height: 0 }, at: "point", width: 280 },
     (id) => { const fn = actions[id]; if (fn) fn(); });
@@ -981,19 +989,21 @@ function downloadAction(w, v) {
 }
 
 /* ============================================================ site info */
-const PERM_LABEL = { media: "Kamera ve mikrofon", geolocation: "Konum", notifications: "Bildirimler", "clipboard-read": "Pano okuma", midi: "MIDI cihazları", midiSysex: "MIDI (tam erişim)" };
+const PERM_LABEL = { media: "perm.media", geolocation: "perm.geolocation", notifications: "perm.notifications", "clipboard-read": "perm.clipboard", midi: "perm.midi", midiSysex: "perm.midi-sysex" };
 function permsFor(w, origin) {
   if (!w.priv) return { ...(store.s.permissions[origin] || {}) };
   const out = {};
   for (const [k, v] of privatePermissions) { const i = k.lastIndexOf("|"); if (k.slice(0, i) === origin) out[k.slice(i + 1)] = v; }
   return out;
 }
+// Title and explanation of each kind of connection, as text keys.
 const SECURITY_TEXT = {
-  secure: ["Bağlantı güvenli", "Bu siteye gönderdiğin bilgiler (şifreler, kart numaraları) şifrelenerek iletilir."],
-  insecure: ["Bağlantı güvenli değil", "Bu sitede şifre veya kart bilgisi girme: bilgiler açık metin olarak iletilir."],
-  internal: ["NeuralWeb sayfası", "Bu sayfa NeuralWeb'in kendi sayfası; internete bağlanmaz."],
-  file: ["Yerel dosya", "Bu dosya bilgisayarından açıldı."],
-  other: ["Özel sayfa", ""],
+  secure: ["sec.secure", "sec.secure.text"],
+  insecure: ["sec.insecure", "sec.insecure.text"],
+  internal: ["sec.internal", "sec.internal.text"],
+  file: ["sec.file", "sec.file.text"],
+  other: ["sec.other", null],
+  bypass: ["sec.bypass", "sec.bypass.text"],
 };
 function siteInfoData(w) {
   const t = activeTab(w);
@@ -1001,9 +1011,9 @@ function siteInfoData(w) {
   const origin = originOf(url);
   const sec = securityOf(url);
   const certBypass = sec === "secure" && (w.priv ? [...privateCertExceptions] : store.s.certExceptions).some((k) => k.startsWith(hostOf(url) + "|"));
-  const [title, text] = certBypass ? ["Sertifika hatası yok sayıldı", "Bu sitenin sertifikasına güvenilmiyor; devam etmeyi sen seçtin."] : SECURITY_TEXT[sec];
-  const perms = Object.entries(permsFor(w, origin)).map(([perm, value]) => ({ perm, label: PERM_LABEL[perm] || perm, value }));
-  return { host: hostOf(url) || url, origin, security: certBypass ? "insecure" : sec, title, text, perms };
+  const [title, text] = SECURITY_TEXT[certBypass ? "bypass" : sec];
+  const perms = Object.entries(permsFor(w, origin)).map(([perm, value]) => ({ perm, label: PERM_LABEL[perm] ? T(PERM_LABEL[perm]) : perm, value }));
+  return { host: hostOf(url) || url, origin, security: certBypass ? "insecure" : sec, title: T(title), text: text ? T(text) : "", perms };
 }
 function openSiteInfo(w) {
   openPopup(w, { kind: "siteinfo", data: siteInfoData(w), anchor: w.layout && w.layout.anchors.security, width: 340, returnFocus: "ui" }, (v) => {
@@ -1218,7 +1228,7 @@ const pageApi = {
     return true;
   },
   chooseDownloadDir: async (ctx) => {
-    const r = await dialog.showOpenDialog(ctx.w.win, { title: "İndirme klasörü", defaultPath: store.s.downloadDir, properties: ["openDirectory", "createDirectory"] });
+    const r = await dialog.showOpenDialog(ctx.w.win, { title: T("dlg.download-folder"), defaultPath: store.s.downloadDir, properties: ["openDirectory", "createDirectory"] });
     if (r.canceled || !r.filePaths[0]) return store.s.downloadDir;
     store.set("downloadDir", r.filePaths[0]);
     return r.filePaths[0];
@@ -1228,7 +1238,7 @@ const pageApi = {
     if (p) { delete p[perm]; if (!Object.keys(p).length) delete store.s.permissions[origin]; store.settings.save(); }
     return store.s.permissions;
   },
-  edgeProfiles: () => Store.edgeProfiles(),
+  edgeProfiles: () => Store.edgeProfiles(Store.edgeDir(), T),
   importEdge: async (ctx, opts) => {
     const o = opts || {};
     const profile = String(o.profile || "Default");
@@ -1285,10 +1295,10 @@ const pageApi = {
   pwRemove: (ctx, id) => { const r = vault.remove(String(id)); broadcastPages("passwords"); return r; },
   pwNeverRemove: (ctx, origin) => { vault.setNever(String(origin), false); broadcastPages("passwords"); return true; },
   pwImportCsv: async (ctx) => {
-    const r = await dialog.showOpenDialog(ctx.w.win, { title: "Şifre dosyası (CSV)", filters: [{ name: "CSV", extensions: ["csv"] }], properties: ["openFile"] });
+    const r = await dialog.showOpenDialog(ctx.w.win, { title: T("dlg.password-file"), filters: [{ name: "CSV", extensions: ["csv"] }], properties: ["openFile"] });
     if (r.canceled || !r.filePaths[0]) return null;
     let res;
-    try { res = vault.importCsv(await fs.promises.readFile(r.filePaths[0], "utf8")); } catch (e) { return { error: e.message || "Dosya okunamadı." }; }
+    try { res = vault.importCsv(await fs.promises.readFile(r.filePaths[0], "utf8")); } catch (e) { return { error: e.message || T("pw.err.file") }; }
     lastCsv = r.filePaths[0];
     broadcastPages("passwords");
     return { ...res, file: path.basename(lastCsv) };
@@ -1337,7 +1347,7 @@ ipcMain.handle("ui:suggest-remote", async (e, text) => {
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 2500);
-    const res = await w.ses.fetch(`https://suggestqueries.google.com/complete/search?client=firefox&hl=tr&q=${encodeURIComponent(text)}`, { signal: ctrl.signal });
+    const res = await w.ses.fetch(`https://suggestqueries.google.com/complete/search?client=firefox&hl=${L ? L.lang : "tr"}&q=${encodeURIComponent(text)}`, { signal: ctrl.signal });
     clearTimeout(timer);
     const data = JSON.parse(await res.text());
     return Array.isArray(data[1]) ? data[1].slice(0, 6) : [];
@@ -1413,11 +1423,11 @@ app.on("login", (event, wc, details, authInfo, callback) => {
   if (!found) return;
   event.preventDefault();
   queuePrompt(found.w, {
-    title: `${authInfo.host} oturum açmanı istiyor`,
-    text: authInfo.realm ? `Alan: ${authInfo.realm}` : "Bu siteye bağlantın özel değil.",
+    title: T("login.title", { host: authInfo.host }),
+    text: authInfo.realm ? T("login.realm", { realm: authInfo.realm }) : T("login.not-private"),
     icon: "login",
-    fields: [{ id: "user", label: "Kullanıcı adı" }, { id: "pass", label: "Şifre", type: "password" }],
-    buttons: [{ id: "cancel", label: "İptal" }, { id: "ok", label: "Oturum aç", primary: true }],
+    fields: [{ id: "user", label: T("pw.username") }, { id: "pass", label: T("pw.password"), type: "password" }],
+    buttons: [{ id: "cancel", label: T("login.cancel") }, { id: "ok", label: T("login.ok"), primary: true }],
   }, (v) => { if (v && v.button === "ok") callback(v.values.user, v.values.pass); else callback(); });
 });
 app.on("web-contents-created", (e, wc) => {
@@ -1451,7 +1461,9 @@ if (!app.requestSingleInstanceLock()) {
   app.on("will-quit", () => { if (store) store.close(); });
   app.whenReady().then(() => {
     Menu.setApplicationMenu(null);
-    store = new Store(app.getPath("userData"));
+    L = language.load({ appDir: __dirname, name: "NeuralWeb", systemLanguages: app.getPreferredSystemLanguages() });
+    L.wire(ipcMain);
+    store = new Store(app.getPath("userData"), { t: T, locale: L.t.locale });
     // The series theme: taken at startup and followed while NeuralWeb runs, unless the user turned that off.
     themeSync = new ThemeSync({ name: "NeuralWeb", onChange: seriesTheme }).start();
     if (store.s.syncTheme) { const v = themeSync.read(); if (v && v.theme !== store.s.theme) store.set("theme", v.theme); }
@@ -1460,9 +1472,10 @@ if (!app.requestSingleInstanceLock()) {
       tabOf: (wc) => findTab(wc),
       onBlocked: (found) => shieldTick(found.w),
       onChange: shieldChanged,
+      t: T,
     });
     shield.start();
-    vault = new Vault(app.getPath("userData"), HELPERS);
+    vault = new Vault(app.getPath("userData"), HELPERS, T);
     const urls = urlsFromArgs(process.argv);
     const saved = store.session.data.windows || [];
     if (store.s.startup === "restore" && saved.length) {

@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/yigitcakmakci/neural-series/releases/latest"><img src="https://img.shields.io/badge/release-v1.4.0-fcee0a?style=for-the-badge&labelColor=0c0d15" alt="Release v1.4.0"></a>
+  <a href="https://github.com/yigitcakmakci/neural-series/releases/latest"><img src="https://img.shields.io/badge/release-v1.5.0-fcee0a?style=for-the-badge&labelColor=0c0d15" alt="Release v1.5.0"></a>
   <img src="https://img.shields.io/badge/codename-Levent-00f0ff?style=for-the-badge&labelColor=0c0d15" alt="Codename: Levent">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011%20x64-00f0ff?style=for-the-badge&labelColor=0c0d15" alt="Windows 10 and 11, 64-bit">
   <img src="https://img.shields.io/badge/Electron-44.5.1-00f0ff?style=for-the-badge&labelColor=0c0d15" alt="Electron 44.5.1">
@@ -59,20 +59,21 @@ They are not mock-ups. They are the tools I use every day:
 
 | | Unit | Model | Version | What it is |
 |:-:|---|:-:|:-:|---|
-| <img src="apps/neuralcalc/icon.png" width="44" alt=""> | **NeuralCalc** | `KX-9` | 1.4.0 | Scientific calculator with a readout screen, memory and keyboard input |
-| <img src="apps/neuralpad/icon.png" width="44" alt=""> | **NeuralPad** | `NP-7` | 1.4.0 | Tabbed notepad with find and replace, encodings, sessions and themes |
-| <img src="apps/neuralnav/icon.png" width="44" alt=""> | **NeuralNav** | `NV-4` | 1.4.0 | Tabbed file explorer that can stand in for Windows File Explorer |
-| <img src="apps/neuralterm/icon.png" width="44" alt=""> | **NeuralTerm** | `NT-5` | 1.4.0 | Terminal for PowerShell, PowerShell 7, Command Prompt, Git Bash and WSL |
-| <img src="apps/neuralweb/icon.png" width="44" alt=""> | **NeuralWeb** | `NW-1` | 1.4.0 | Chromium-based web browser with an ad and tracker shield and a password manager |
-| <img src="apps/neuralview/icon.png" width="44" alt=""> | **NeuralView** | `VW-3` | 1.4.0 | Image viewer with folder browsing, zoom, lossless JPEG rotation and EXIF details |
-| <img src="apps/neuraldeck/icon.png" width="44" alt=""> | **NeuralDeck** | `DK-0` | 1.4.0 | Launcher and command palette on a global shortcut: apps, folders, files, sums, searches |
+| <img src="apps/neuralcalc/icon.png" width="44" alt=""> | **NeuralCalc** | `KX-9` | 1.5.0 | Scientific calculator with a readout screen, memory and keyboard input |
+| <img src="apps/neuralpad/icon.png" width="44" alt=""> | **NeuralPad** | `NP-7` | 1.5.0 | Tabbed notepad with find and replace, encodings, sessions and themes |
+| <img src="apps/neuralnav/icon.png" width="44" alt=""> | **NeuralNav** | `NV-4` | 1.5.0 | Tabbed file explorer that can stand in for Windows File Explorer |
+| <img src="apps/neuralterm/icon.png" width="44" alt=""> | **NeuralTerm** | `NT-5` | 1.5.0 | Terminal for PowerShell, PowerShell 7, Command Prompt, Git Bash and WSL |
+| <img src="apps/neuralweb/icon.png" width="44" alt=""> | **NeuralWeb** | `NW-1` | 1.5.0 | Chromium-based web browser with an ad and tracker shield and a password manager |
+| <img src="apps/neuralview/icon.png" width="44" alt=""> | **NeuralView** | `VW-3` | 1.5.0 | Image viewer with folder browsing, zoom, lossless JPEG rotation and EXIF details |
+| <img src="apps/neuraldeck/icon.png" width="44" alt=""> | **NeuralDeck** | `DK-0` | 1.5.0 | Launcher and command palette on a global shortcut: apps, folders, files, sums, searches |
 
-The series itself is versioned as a whole: **Neural Series 1.4.0, codename "Kadikoy"**, built on Electron 44.5.1.
+The series itself is versioned as a whole: **Neural Series 1.5.0, codename "Beyoglu"**, built on Electron 44.5.1.
 See [Versions](#versions) and the [changelog](CHANGELOG.md).
 
 > [!NOTE]
-> The apps speak **Turkish**: menus, dialogs and messages are in Turkish, and so are some code comments. This guide gives
-> the English meaning of the labels you will meet.
+> The apps speak **Turkish or English**, one language for the whole series (see [Language](#language)). On a Turkish
+> Windows they start in Turkish, on any other in English. The screenshots show the Turkish interface; where this guide
+> names a label it gives the Turkish one and its English meaning.
 
 <a id="install"></a>
 
@@ -81,11 +82,11 @@ See [Versions](#versions) and the [changelog](CHANGELOG.md).
 **Requirements:** Windows 10 or 11 (64-bit), about 1.7 GB of disk space. The apps carry their own typefaces and work
 offline; NeuralWeb needs a connection to browse, of course, and to refresh its blocking lists.
 
-1. Download **`Neural-Setup-1.4.0.exe`** from the [latest release](https://github.com/yigitcakmakci/neural-series/releases/latest).
+1. Download **`Neural-Setup-1.5.0.exe`** from the [latest release](https://github.com/yigitcakmakci/neural-series/releases/latest).
 2. Run it. The setup is not code-signed, so Windows SmartScreen may say *"Windows protected your PC"*. Choose
    **More info → Run anyway**. You can compare the file's SHA-256 with the one in the release notes first:
    ```powershell
-   Get-FileHash .\Neural-Setup-1.4.0.exe -Algorithm SHA256
+   Get-FileHash .\Neural-Setup-1.5.0.exe -Algorithm SHA256
    ```
 3. Follow the wizard: pick the apps and the folder (default `%USERPROFILE%\Neural`), then choose how far the apps may
    hook into Windows. Every option can be changed later by running the setup again.
@@ -133,14 +134,17 @@ and personal data).
 <details>
 <summary><b>Unattended install (switches)</b></summary>
 
-The switches are Turkish, like the rest of the interface.
+The switches are Turkish, whatever the interface language.
 
 ```powershell
 # install everything silently with the default options
-.\Neural-Setup-1.4.0.exe /sessiz
+.\Neural-Setup-1.5.0.exe /sessiz
 
 # pick apps, options and folder; write a log
-.\Neural-Setup-1.4.0.exe /sessiz /uygulamalar:NeuralWeb,NeuralTerm /secenekler:baslat,web,nt /hedef:D:\Apps\Neural /gunluk:C:\Temp\neural.log
+.\Neural-Setup-1.5.0.exe /sessiz /uygulamalar:NeuralWeb,NeuralTerm /secenekler:baslat,web,nt /hedef:D:\Apps\Neural /gunluk:C:\Temp\neural.log
+
+# install in English, whatever Windows' language (/dil:tr for Turkish)
+.\Neural-Setup-1.5.0.exe /sessiz /dil:en
 
 # uninstall silently (add /veriler to delete settings and personal data too)
 & "$env:USERPROFILE\Neural\Ortak\NeuralKaldir.exe" /kaldir /sessiz
@@ -164,6 +168,16 @@ NeuralNav, NeuralTerm, NeuralWeb and NeuralView come with four color themes: **N
 apps that are closed start with it next time. Each app has a *"Temayı seriyle eşitle"* (follow the series theme)
 switch at the end of its theme menu, on by default (NeuralWeb also has it under *Ayarlar → Görünüm*). Switch it off
 and that app keeps its own theme: it neither follows the others nor changes them.
+
+<a id="language"></a>
+
+**Turkish or English.** The whole series speaks one language. Pick it on the setup's first page (*Türkçe* /
+*English*), or later in any app under **Dil · Language** (in the theme menu; NeuralWeb has it under
+*Ayarlar → Görünüm* / *Settings → Appearance*, NeuralDeck in its settings, NeuralCalc on its `TR | EN` switch). The
+change shows the next time each app starts; nothing that is open is interrupted. Without a choice the apps follow
+Windows' display language: Turkish on a Turkish Windows, English on any other. The choice lives in
+`%APPDATA%\NeuralSeries\language.json`; Start menu names, context menu entries and the uninstaller take the
+language the setup ran in.
 
 **Apps that hand off to each other.** When the right Neural app is installed, the others pass work to it:
 
@@ -415,6 +429,10 @@ uses `Alt+Space` (PowerToys Run, for instance), NeuralDeck says so and you pick 
 - **The setup** is a C# 5 WinForms program drawn in the same style. The payload is a zip appended to the executable;
   every file is checked against its CRC while it is written, so a damaged download stops the setup instead of
   installing broken files. A `/test` mode keeps every Windows change inside a separate registry key and folder.
+- **Two languages, one file per app.** Every text an app shows sits in its `lang\tr.json` and `lang\en.json`;
+  `apps\shared\language.js` picks the language when the app starts and `apps\shared\i18n.js` fills the pages
+  (placeholders, English plural forms, dates in the interface language). The setup keeps its texts in
+  `installer\src\Strings.cs`.
 - **Hand-offs without a shell.** `apps\shared\handoff.js` decides which Neural app opens a file, a folder or an address
   and starts it as its own executable with the path as a single argument, as NeuralDeck does; nothing goes through a
   command shell.
@@ -454,12 +472,12 @@ powershell -ExecutionPolicy Bypass -File build.ps1
 `build.ps1` restores the exact dependency versions from the lock files (Electron, xterm.js, the typefaces from
 [Fontsource](https://fontsource.org/), the Ghostery ad blocker), stages every app as the setup installs it in
 `out\stage` (with its `fonts\` folder), compiles the helpers and the setup, and writes
-`out\Neural-Setup-1.4.0.exe` together with its SHA-256. Run it with `-SkipNpm` to reuse the existing `node_modules`.
+`out\Neural-Setup-1.5.0.exe` together with its SHA-256. Run it with `-SkipNpm` to reuse the existing `node_modules`.
 
 To try a build without touching your Windows settings, install it in test mode:
 
 ```powershell
-.\out\Neural-Setup-1.4.0.exe /test /hedef:$env:TEMP\neural-test\Neural
+.\out\Neural-Setup-1.5.0.exe /test /hedef:$env:TEMP\neural-test\Neural
 ```
 
 Other tools: `tools\make-icons.ps1` redraws every icon, `node tools\make-fonts-css.js` rewrites the font style sheets
@@ -473,7 +491,8 @@ Build first: the README images and some tests use `out\`.
 
 | Release | Codename | Date | Notes |
 |---|---|---|---|
-| **1.4.0** | **Kadikoy** | 2026-10-23 | The apps hand off to each other: pictures to NeuralView, paths in NeuralTerm to NeuralNav, downloads to the app that fits |
+| **1.5.0** | **Beyoglu** | 2026-11-06 | English interface: every app, the setup and the uninstaller speak Turkish or English |
+| 1.4.0 | Kadikoy | 2026-10-23 | The apps hand off to each other: pictures to NeuralView, paths in NeuralTerm to NeuralNav, downloads to the app that fits |
 | 1.3.0 | Levent | 2026-10-23 | New unit: the NeuralDeck DK-0 launcher and command palette |
 | 1.2.1 | Galata | 2026-10-23 | NeuralWeb no longer shows an error box when closed while the pointer is over a link |
 | 1.2.0 | Galata | 2026-10-22 | One theme for the series: a theme picked in one app reaches the others |
@@ -482,18 +501,18 @@ Build first: the README images and some tests use `out\`.
 | 1.0.1 | Neo-Istanbul | 2026-10-22 | Bundled typefaces: the apps no longer load fonts from Google Fonts |
 | 1.0.0 | Neo-Istanbul | 2026-10-22 | First public release: five apps, the setup and uninstaller |
 
-| Unit | Model | 1.0.0 | 1.0.1 | 1.1.0 | 1.1.1 | 1.2.0 | 1.2.1 | 1.3.0 | 1.4.0 |
-|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-| NeuralCalc | `KX-9` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
-| NeuralPad | `NP-7` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
-| NeuralNav | `NV-4` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
-| NeuralTerm | `NT-5` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
-| NeuralWeb | `NW-1` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
-| NeuralView | `VW-3` | | | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
-| NeuralDeck | `DK-0` | | | | | | | ✔ | ✔ |
+| Unit | Model | 1.0.0 | 1.0.1 | 1.1.0 | 1.1.1 | 1.2.0 | 1.2.1 | 1.3.0 | 1.4.0 | 1.5.0 |
+|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| NeuralCalc | `KX-9` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
+| NeuralPad | `NP-7` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
+| NeuralNav | `NV-4` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
+| NeuralTerm | `NT-5` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
+| NeuralWeb | `NW-1` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
+| NeuralView | `VW-3` | | | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
+| NeuralDeck | `DK-0` | | | | | | | ✔ | ✔ | ✔ |
 
 Version numbers follow [Semantic Versioning](https://semver.org/). Every major and minor release gets a codename from
-the map of Neo-Istanbul; patch releases (1.0.x, 1.1.x, 1.2.x) keep the codename of their line. Details are in the
+the map of Neo-Istanbul; patch releases (1.0.x, 1.1.x, 1.2.x, ...) keep the codename of their line. Details are in the
 [changelog](CHANGELOG.md).
 
 <a id="privacy"></a>
