@@ -67,6 +67,7 @@ namespace NeuralSetup
                 o.StartMenu = on.Contains("baslat"); o.PadOpenWith = on.Contains("pad"); o.NavMenu = on.Contains("navmenu");
                 o.NavDefault = on.Contains("navvarsayilan"); o.NavWatch = on.Contains("izleyici"); o.TermCommands = on.Contains("nt");
                 o.WebRegister = on.Contains("web"); o.WindowsIcons = on.Contains("simge"); o.ViewOpenWith = on.Contains("view"); o.DeckAutostart = on.Contains("deck");
+                o.UpdateCheck = on.Contains("guncelleme");
             }
             o.RemoveData = arg("veriler") != null;
             L.Lang = ChooseLanguage(arg("dil"), o, uninstall);

@@ -27,7 +27,7 @@ namespace NeuralSetup
         readonly List<Item> items = new List<Item>();
         readonly Dictionary<string, NCheck> appChecks = new Dictionary<string, NCheck>();
         readonly List<string> logLines = new List<string>();
-        NCheck cStart, cPad, cTerm, cWeb, cView, cDeck, cNavMenu, cNavDefault, cNavWatch, cIcons, cOpenWeb, cRemoveData;
+        NCheck cStart, cPad, cTerm, cWeb, cView, cDeck, cNavMenu, cNavDefault, cNavWatch, cIcons, cOpenWeb, cRemoveData, cUpdate;
         PathBox pathBox;
         NProgress bar;
         LogView logView;
@@ -132,6 +132,7 @@ namespace NeuralSetup
             o.Apps.Clear();
             foreach (var kv in appChecks) if (kv.Value.Checked) o.Apps.Add(kv.Key);
             if (pathBox != null) o.Root = pathBox.Box.Text.Trim();
+            if (cUpdate != null) o.UpdateCheck = cUpdate.Checked;
             return true;
         }
         void ReadWindows()
@@ -246,7 +247,7 @@ namespace NeuralSetup
             items.Clear();
             foreach (Control c in f.Screen.Controls.Cast<Control>().ToList()) { f.Screen.Controls.Remove(c); c.Dispose(); }
             appChecks.Clear();
-            cStart = cPad = cTerm = cWeb = cView = cDeck = cNavMenu = cNavDefault = cNavWatch = cIcons = cOpenWeb = cRemoveData = null;
+            cStart = cPad = cTerm = cWeb = cView = cDeck = cNavMenu = cNavDefault = cNavWatch = cIcons = cOpenWeb = cRemoveData = cUpdate = null;
             pathBox = null; bar = null; logView = null;
             X = T.P(36); Y = T.P(30); W = f.Screen.Width - T.P(72);
             f.Back.Visible = false; f.Next.Visible = true; f.Next.Enabled = true; f.Next.Danger = false; f.Next.Primary = true;
@@ -353,7 +354,7 @@ namespace NeuralSetup
             f.Next.Text = L.Next;
             Title(L.AppsTitle);
             Lead(L.AppsLead);
-            int colW = (W - T.P(14)) / 2, y0 = Y, rowH = 0, i = 0;
+            int colW = (W - T.P(14)) / 2, y0 = Y, rowH = 0, i = 0, lastY = Y, lastH = 0;
             foreach (var a in Apps.All)
             {
                 long size = payload != null ? payload.SizeOf("base/") + payload.SizeOf("apps/" + a.Id + "/") : 0;
@@ -362,9 +363,14 @@ namespace NeuralSetup
                 c.Changed += delegate { UpdateNeedStatus(); };
                 appChecks[a.Id] = c;
                 rowH = Math.Max(rowH, c.Height);
-                if (col == 1 || i == Apps.All.Length - 1) { Y += rowH + T.P(10); rowH = 0; }
+                if (col == 1 || i == Apps.All.Length - 1) { lastY = Y; lastH = rowH; Y += rowH + T.P(10); rowH = 0; }
                 i++;
             }
+            // The update check takes the place seven apps leave free next to the last one (a row of its own otherwise).
+            bool odd = Apps.All.Length % 2 == 1;
+            cUpdate = Check(L.OptUpdate, L.OptUpdateSub, o.UpdateCheck, odd ? X + colW + T.P(14) : X, odd ? lastY : Y, colW);
+            if (!odd) Y += cUpdate.Height + T.P(10);
+            else if (cUpdate.Height > lastH) Y += cUpdate.Height - lastH;
             Y += T.P(10);
             Label(L.AppsFolder);
             pathBox = new PathBox { Location = new Point(X, Y), Size = new Size(W, T.P(36)) };

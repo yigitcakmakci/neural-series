@@ -81,6 +81,18 @@ function renderLanguages() {
 }
 renderLanguages();
 
+/* ---------- new versions of the series (update-check.js): the switch, and the newer version's page ---------- */
+const upd = NeuralI18n.updates(window, T);
+async function renderUpdates() {
+  await upd.refresh();
+  $("#check-updates").checked = upd.enabled();
+  $("#update-new").hidden = !upd.latest();
+  $("#update-new-label").textContent = upd.latestLabel();
+}
+$("#check-updates").addEventListener("change", async () => { if ($("#check-updates").checked !== upd.enabled()) await upd.toggle(); renderUpdates(); });
+$("#update-open").addEventListener("click", () => upd.open());
+renderUpdates();
+
 /* ---------- shield ---------- */
 const fmtStamp = new Intl.DateTimeFormat(T.locale, { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
 async function loadShield(info) {

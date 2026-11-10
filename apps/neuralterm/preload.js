@@ -5,6 +5,8 @@ const on = (channel) => (fn) => { ipcRenderer.on(channel, (_e, payload) => fn(pa
 
 // The interface language (language.js): the texts once, before the page draws, and the series setting.
 contextBridge.exposeInMainWorld("neuralLang", { ...ipcRenderer.sendSync("neural:lang"), set: (id) => ipcRenderer.invoke("neural:lang-set", String(id)) });
+// New versions of the series (update-check.js): the switch and the newer version's page.
+contextBridge.exposeInMainWorld("neuralUpdate", { state: () => ipcRenderer.invoke("neural:update-state"), set: (on) => ipcRenderer.invoke("neural:update-set", Boolean(on)), open: () => ipcRenderer.invoke("neural:update-open") });
 
 contextBridge.exposeInMainWorld("nt", {
   // window

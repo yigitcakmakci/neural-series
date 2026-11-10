@@ -1278,6 +1278,8 @@ const VIEW_MENU = () => [
 ];
 // The series language: a pick shows from the next start, so only the note changes now.
 const languages = NeuralI18n.languageChoices(window, note => toast(note, 6000));
+// New versions of the series (update-check.js): the switch, and the newer version when one is known.
+const upd = NeuralI18n.updates(window, T);
 const MORE_MENU = () => [
   { label: T('menu.new-window'), key: 'Ctrl+N', icon: 'i-window', run: () => nv.newWindow(currentDir() || '') },
   { label: T('menu.terminal'), icon: 'i-terminal', enabled: () => !!currentDir(), run: () => nv.openTerminal(currentDir()) },
@@ -1291,6 +1293,8 @@ const MORE_MENU = () => [
     { label: T('menu.theme-sync'), check: () => S.syncTheme, run: toggleThemeSync },
   ] },
   { label: T('lang.menu'), sub: languages().map(l => ({ label: l.label, radio: l.checked, run: l.pick })) },
+  { label: T('update.check'), check: upd.enabled, run: upd.toggle },
+  ...(upd.latest() ? [{ label: upd.latestLabel(), run: upd.open }] : []),
   { label: T('menu.keys'), run: openShortcuts },
   { label: T('menu.about'), run: () => ask($('#dlg-about')) },
 ];

@@ -67,5 +67,27 @@
     }));
   }
 
-  return { create, apply, page, languageChoices, LOCALES };
+  // The update entries next to the language menu (update-check.js through the preload's window.neuralUpdate): the
+  // series switch "check for new versions", and the newer version's page when one is known. Every part is a function,
+  // so a menu built once still shows the current state.
+  function updates(win, T) {
+    const U = win.neuralUpdate;
+    let s = { enabled: true, latest: null };
+    const refresh = () => (U ? U.state().then((v) => { s = v; }, () => {}) : Promise.resolve());
+    refresh();
+    // A check made after the page loaded (in this program or another) shows when the window comes back to the front.
+    win.addEventListener('focus', refresh);
+    setInterval(refresh, 60e3);
+    return {
+      available: !!U,
+      enabled: () => s.enabled,
+      toggle: async () => { if (U) s = await U.set(!s.enabled); },
+      latest: () => s.latest,
+      latestLabel: () => (s.latest ? T('update.available', { version: s.latest.version }) : ''),
+      open: () => { if (U) U.open(); },
+      refresh,
+    };
+  }
+
+  return { create, apply, page, languageChoices, updates, LOCALES };
 });

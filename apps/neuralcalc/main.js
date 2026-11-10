@@ -111,7 +111,10 @@ if (!app.requestSingleInstanceLock()) {
   app.on("window-all-closed", () => app.quit());
   app.whenReady().then(() => {
     // The page's texts (lang\*.json), handed over through the preload before it draws.
-    language.load({ appDir: __dirname, name: "NeuralCalc", systemLanguages: app.getPreferredSystemLanguages() }).wire(ipcMain);
+    const L = language.load({ appDir: __dirname, name: "NeuralCalc", systemLanguages: app.getPreferredSystemLanguages() });
+    L.wire(ipcMain);
+    // New versions of the series: checked after startup and every few hours, once a day for all programs together.
+    shared("update-check").create({ name: "NeuralCalc", version: app.getVersion(), t: L.t }).start();
     createWindow();
   });
 }

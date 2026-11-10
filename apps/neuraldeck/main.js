@@ -238,6 +238,10 @@ if (!app.requestSingleInstanceLock()) {
     Menu.setApplicationMenu(null);
     L = language.load({ appDir: __dirname, name: "NeuralDeck", systemLanguages: app.getPreferredSystemLanguages() });
     L.wire(ipcMain);
+    // New versions of the series: checked after startup and every few hours, once a day for all programs together.
+    const updates = shared("update-check").create({ name: "NeuralDeck", version: app.getVersion(), t: T });
+    updates.wire(ipcMain);
+    updates.start();
     commands.setTexts(L.t);
     themeSync.start();
     createPanel();

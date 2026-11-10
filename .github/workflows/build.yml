@@ -46,7 +46,8 @@ jobs:
         run: |
           $tests = @(
             'tests/shared/test-i18n.js', 'tests/shared/test-language.js', 'tests/shared/test-handoff.js',
-            'tests/shared/test-theme-sync.js', 'tests/shared/test-release-notes.js', 'tests/neuralterm/test-links.js',
+            'tests/shared/test-theme-sync.js', 'tests/shared/test-release-notes.js', 'tests/shared/test-update-check.js',
+            'tests/neuralterm/test-links.js',
             'tests/neuraldeck/test-commands.js', 'tests/neuralnav/test-ops.js', 'tests/neuralweb/test-store.js',
             'tests/neuralview/test-meta.js'
           )

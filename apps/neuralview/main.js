@@ -485,6 +485,10 @@ if (!app.requestSingleInstanceLock()) {
     Menu.setApplicationMenu(null);
     L = language.load({ appDir: __dirname, name: "NeuralView", systemLanguages: app.getPreferredSystemLanguages() });
     L.wire(ipcMain);
+    // New versions of the series: checked after startup and every few hours, once a day for all programs together.
+    const updates = shared("update-check").create({ name: "NeuralView", version: app.getVersion(), t: T });
+    updates.wire(ipcMain);
+    updates.start();
     registerProtocols();
     themeSync.wire({ ipcMain, BrowserWindow, prefix: "vw", name: "NeuralView" });
     mainWin = createWindow(pathsFromArgs(process.argv, process.cwd()));

@@ -176,6 +176,8 @@ namespace NeuralSetup
         public static string LogShortcutDeleted(string name) { return P("  kısayol silindi: ", "  shortcut deleted: ") + name; }
         public static string LogLanguage { get { return P("  seri dili: Türkçe", "  series language: English"); } }
         public static string LogLanguageFailed(string why) { return P("  seri dil dosyası yazılamadı: ", "  could not write the series language file: ") + why; }
+        public static string LogUpdate(bool on) { return on ? P("  yeni sürüm denetimi: açık", "  new version check: on") : P("  yeni sürüm denetimi: kapalı", "  new version check: off"); }
+        public static string LogUpdateFailed(string why) { return P("  güncelleme ayarı yazılamadı: ", "  could not write the update setting: ") + why; }
         public static string LogUninstalling(string root) { return P("Kaldırılıyor: ", "Uninstalling: ") + root; }
         public static string ProgressUnregistering { get { return P("Windows kayıtları geri alınıyor", "Undoing the Windows registrations"); } }
         public static string LogUnregistered { get { return P("  Windows kayıtları geri alındı", "  Windows registrations undone"); } }
@@ -285,6 +287,8 @@ namespace NeuralSetup
         public static string OptIconsSub { get { return P("Bu Bilgisayar, Geri Dönüşüm Kutusu, Ağ ve kullanıcı klasörü Neural simgelerini alır.", "This PC, Recycle Bin, Network and the user folder get the Neural icons."); } }
         public static string OptDeck { get { return P("NeuralDeck: açılışta başlat", "NeuralDeck: start with Windows"); } }
         public static string OptDeckSub { get { return P("Windows açılınca başlar; Alt+Space ile açılan komut paleti arka planda bekler.", "Starts with Windows and waits in the background for Alt+Space."); } }
+        public static string OptUpdate { get { return P("Yeni sürümleri denetle", "Check for new versions"); } }
+        public static string OptUpdateSub { get { return P("Günde en fazla bir kez GitHub'a sorar; yeni sürüm çıkınca bildirir.", "Asks GitHub at most once a day; tells you when a new version is out."); } }
 
         /* ------------------------------------------------------------ working */
         public static string Installing { get { return P("Kuruluyor…", "Installing…"); } }

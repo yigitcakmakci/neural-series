@@ -1463,6 +1463,10 @@ if (!app.requestSingleInstanceLock()) {
     Menu.setApplicationMenu(null);
     L = language.load({ appDir: __dirname, name: "NeuralWeb", systemLanguages: app.getPreferredSystemLanguages() });
     L.wire(ipcMain);
+    // New versions of the series: checked after startup and every few hours, once a day for all programs together.
+    const updates = shared("update-check").create({ name: "NeuralWeb", version: app.getVersion(), t: T });
+    updates.wire(ipcMain);
+    updates.start();
     store = new Store(app.getPath("userData"), { t: T, locale: L.t.locale });
     // The series theme: taken at startup and followed while NeuralWeb runs, unless the user turned that off.
     themeSync = new ThemeSync({ name: "NeuralWeb", onChange: seriesTheme }).start();

@@ -160,8 +160,11 @@ Copy-Fonts "$deck\fonts" @('fonts.css')
 
 # The series theme module, next to the main.js of every program that follows the series theme (NeuralCalc has none)
 foreach ($a in 'NeuralPad', 'NeuralNav', 'NeuralTerm', 'NeuralWeb', 'NeuralView', 'NeuralDeck') { Copy-Item "$apps\shared\theme-sync.js" "$stage\apps\$a\theme-sync.js" }
-# The hand-off module (which series program opens a file, a folder or an address), next to the programs that hand off
-foreach ($a in 'NeuralNav', 'NeuralTerm', 'NeuralWeb') { Copy-Item "$apps\shared\handoff.js" "$stage\apps\$a\handoff.js" }
+# The hand-off module (which series program opens a file, a folder or an address) and the update check, which opens
+# a new version's release page through it: next to every program's main.js
+foreach ($a in 'NeuralCalc', 'NeuralPad', 'NeuralNav', 'NeuralTerm', 'NeuralWeb', 'NeuralView', 'NeuralDeck') {
+  foreach ($f in 'handoff.js', 'update-check.js') { Copy-Item "$apps\shared\$f" "$stage\apps\$a\$f" }
+}
 # The interface language: each program's lang\ folder, the language module next to its main.js and the text helper
 # next to its pages (NeuralWeb's neural:// pages are served from pages\, so they get their own copy)
 foreach ($a in 'NeuralCalc', 'NeuralPad', 'NeuralNav', 'NeuralTerm', 'NeuralWeb', 'NeuralView', 'NeuralDeck') {

@@ -566,6 +566,10 @@ if (!app.requestSingleInstanceLock()) {
     Menu.setApplicationMenu(null);
     L = language.load({ appDir: __dirname, name: "NeuralNav", systemLanguages: app.getPreferredSystemLanguages() });
     L.wire(ipcMain);
+    // New versions of the series: checked after startup and every few hours, once a day for all programs together.
+    const updates = shared("update-check").create({ name: "NeuralNav", version: app.getVersion(), t: T });
+    updates.wire(ipcMain);
+    updates.start();
     ops.useTexts(L.t); // copy, move and delete errors, name checks and search case folding in the same language
     const paths = pathsFromArgs(process.argv, process.cwd());
     if (!paths.length && forwardedVirtual) { app.quit(); return; }

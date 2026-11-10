@@ -324,6 +324,10 @@ if (!app.requestSingleInstanceLock()) {
     Menu.setApplicationMenu(null);
     L = language.load({ appDir: __dirname, name: "NeuralTerm", systemLanguages: app.getPreferredSystemLanguages() });
     L.wire(ipcMain);
+    // New versions of the series: checked after startup and every few hours, once a day for all programs together.
+    const updates = shared("update-check").create({ name: "NeuralTerm", version: app.getVersion(), t: T });
+    updates.wire(ipcMain);
+    updates.start();
     themeSync.wire({ ipcMain, BrowserWindow, prefix: "nt", name: "NeuralTerm" });
     mainWin = createWindow({ dirs: dirsFromArgs(process.argv, process.cwd()) });
   });

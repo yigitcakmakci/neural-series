@@ -14,6 +14,8 @@ if (window !== window.top) {
   });
   // The interface language (language.js), asked for once before the page draws; never for a web site.
   contextBridge.exposeInMainWorld("neuralLang", { ...ipcRenderer.sendSync("neural:lang"), set: (id) => ipcRenderer.invoke("neural:lang-set", String(id)) });
+  // New versions of the series (update-check.js): the switch and the newer version's page.
+  contextBridge.exposeInMainWorld("neuralUpdate", { state: () => ipcRenderer.invoke("neural:update-state"), set: (on) => ipcRenderer.invoke("neural:update-set", Boolean(on)), open: () => ipcRenderer.invoke("neural:update-open") });
 } else if (location.protocol === "https:" || location.protocol === "http:") {
   watchLogins();
 }

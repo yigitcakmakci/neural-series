@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.Win32;
 
 namespace NeuralSetup
@@ -58,6 +59,7 @@ namespace NeuralSetup
         public bool StartMenu = true, PadOpenWith = true, NavMenu = true, NavDefault, NavWatch, TermCommands = true, WebRegister = true, WindowsIcons;
         public bool ViewOpenWith = true;
         public bool DeckAutostart;
+        public bool UpdateCheck = true; // the programs ask GitHub for new versions (apps\shared\update-check.js)
         public bool RemoveData;
         public bool Test;
     }
@@ -93,6 +95,12 @@ namespace NeuralSetup
         }
         // The series language, shared by every program (apps\shared\language.js reads and writes the same file).
         public string LanguageFile { get { return Path.Combine(DataRoot, "NeuralSeries", "language.json"); } }
+        // The update check's state and switch (apps\shared\update-check.js); the setup only sets "enabled".
+        static string UpdateFileOf(Options o)
+        {
+            string data = o.Test ? Path.Combine(o.Root, "_test", "AppData") : Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            return Path.Combine(data, "NeuralSeries", "update.json");
+        }
         string StartMenuDir
         {
             get { return o.Test ? Path.Combine(o.Root, "_test", "Baslat") : Environment.GetFolderPath(Environment.SpecialFolder.Programs); }
@@ -154,6 +162,7 @@ namespace NeuralSetup
             Integrate();
             WriteDataShortcuts();
             WriteLanguage();
+            WriteUpdateSetting();
             WriteReadme();
             WriteManifest();
             WriteUninstallEntry();
@@ -527,6 +536,42 @@ namespace NeuralSetup
             }
         }
 
+        // The "check for new versions" choice goes into update.json, keeping what the programs keep there (the last
+        // check, the newest version, the one already announced); the file is written the way the programs write it.
+        void WriteUpdateSetting()
+        {
+            string file = UpdateFileOf(o);
+            log(L.LogUpdate(o.UpdateCheck));
+            string tmp = file + "." + Process.GetCurrentProcess().Id + ".tmp";
+            try
+            {
+                string json = File.Exists(file) ? File.ReadAllText(file, Encoding.UTF8).Trim() : "";
+                string value = o.UpdateCheck ? "true" : "false";
+                var re = new Regex("\"enabled\"\\s*:\\s*(true|false)");
+                if (re.IsMatch(json)) json = re.Replace(json, "\"enabled\":" + value, 1);
+                else if (json.StartsWith("{") && json.EndsWith("}") && json.Length > 2) json = "{\"enabled\":" + value + "," + json.Substring(1);
+                else json = "{\"enabled\":" + value + "}";
+                Directory.CreateDirectory(Path.GetDirectoryName(file));
+                File.WriteAllText(tmp, json, new UTF8Encoding(false));
+                if (!Native.MoveFileEx(tmp, file, 0x1 | 0x8)) throw new IOException("MoveFileEx: " + Marshal.GetLastWin32Error()); // REPLACE_EXISTING, WRITE_THROUGH
+            }
+            catch (Exception ex)
+            {
+                try { File.Delete(tmp); } catch { }
+                log(L.LogUpdateFailed(ex.Message));
+            }
+        }
+        // What update.json says about checking: on unless it says "enabled": false (no file: on).
+        static bool UpdateCheckIn(Options o)
+        {
+            try
+            {
+                string file = UpdateFileOf(o);
+                return !File.Exists(file) || !Regex.IsMatch(File.ReadAllText(file, Encoding.UTF8), "\"enabled\"\\s*:\\s*false");
+            }
+            catch { return true; }
+        }
+
         void WriteManifest()
         {
             // What is in place now, read back from Windows, so programs this run left alone are described correctly too.
@@ -543,6 +588,7 @@ namespace NeuralSetup
                 "NeuralWebKayit=" + B(has("NeuralWeb") && now.WebRegister), "NeuralViewAc=" + B(has("NeuralView") && now.ViewOpenWith),
                 "NeuralDeckBaslangic=" + B(has("NeuralDeck") && now.DeckAutostart),
                 "WindowsSimgeleri=" + B(now.WindowsIcons),
+                "Guncelleme=" + B(now.UpdateCheck),
                 "Bilinen=" + string.Join(",", Apps.All.Select(a => a.Id)),
                 "Dil=" + L.Lang, // the uninstaller speaks the language of the installation
             };
@@ -761,6 +807,7 @@ namespace NeuralSetup
                 o.DeckAutostart = has(@"Software\Microsoft\Windows\CurrentVersion\Run", "NeuralDeck", "NeuralDeck.exe");
             string icon = r.GetRaw(@"Software\Microsoft\Windows\CurrentVersion\Explorer\CLSID\{20D04FE0-3AEA-1069-A2D8-08002B30309D}\DefaultIcon", "");
             o.WindowsIcons = icon != null && (icon.IndexOf(@"\Simgeler\", StringComparison.OrdinalIgnoreCase) >= 0 || icon.IndexOf("NeuralIcons", StringComparison.OrdinalIgnoreCase) >= 0);
+            o.UpdateCheck = UpdateCheckIn(o); // the switch may have been changed in a program since
         }
     }
 

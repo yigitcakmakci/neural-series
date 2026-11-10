@@ -45,12 +45,15 @@ async function open(name, lang, port) {
   fs.mkdirSync(work, { recursive: true });
   const langFile = path.join(work, "language.json");
   fs.writeFileSync(langFile, JSON.stringify({ language: lang, changedAt: Date.now(), by: "test" }));
+  const updateOff = path.join(work, "update.json"); // never ask GitHub from a test
+  fs.writeFileSync(updateOff, JSON.stringify({ enabled: false }));
   const profile = path.join(work, "profile");
   fs.mkdirSync(profile, { recursive: true });
   // NeuralDeck stays clear of the real one's shortcut and stays open; the others get their profile variables.
   fs.writeFileSync(path.join(profile, "settings.json"), JSON.stringify({ shortcut: "Ctrl+Alt+Shift+F12" }));
   const env = {
     ...process.env, NEURAL_LANG_FILE: langFile, NEURAL_THEME_FILE: path.join(work, "theme.json"), NEURAL_ROOT: path.join(work, "Neural"),
+    NEURAL_UPDATE_FILE: updateOff,
     NEURALWEB_PROFILE: profile, NEURALWEB_EDGE_DIR: path.join(work, "edge"), NEURALVIEW_PROFILE: profile, NEURALDECK_PROFILE: profile, NEURALDECK_KEEP_OPEN: "1",
   };
   const proc = spawn(ELECTRON, [dir, `--user-data-dir=${profile}`, `--remote-debugging-port=${port}`], { env, stdio: "ignore" });

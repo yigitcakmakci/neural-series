@@ -4,7 +4,23 @@ All notable changes to Neural Series are listed here. Versions follow [Semantic 
 Every major and minor release carries a codename from the map of Neo-Istanbul; patch releases keep the codename of
 their line.
 
-## Unreleased
+## 1.6.0 "Ortakoy" (2026-11-10)
+
+The apps tell you when a new version of the series is out. All seven apps are at 1.6.0. Run the new setup over an
+existing installation; options, settings and personal data are kept.
+
+### New
+
+- **New versions.** Once a day, the first Neural app you open asks GitHub for the series' latest release; the other
+  apps use its answer, so the series asks at most once a day whatever is open. A newer version is announced once with a
+  Windows notification, and clicking it opens the release page (in NeuralWeb when it is installed). The apps' theme
+  menus (NeuralWeb: *Settings → Appearance*; NeuralDeck: its settings) show *"New version: v…"* until you update.
+  Nothing is downloaded or installed by itself.
+- **One switch for the series:** *Check for new versions* (*Yeni sürümleri denetle*) in every app and on the setup's
+  apps page, on by default; `guncelleme` in `/secenekler:` for unattended installs. When it is off, the apps make no
+  request at all. The state lives in `%APPDATA%\NeuralSeries\update.json`.
+- The request is a plain GET of the public latest release on `api.github.com` with a generic User-Agent; drafts and
+  pre-releases are never offered.
 
 ### Build
 

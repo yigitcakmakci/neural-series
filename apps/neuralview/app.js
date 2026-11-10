@@ -832,6 +832,8 @@ const hasImage = () => !!(cur && cur.ok);
 const hasFile = () => !!cur;
 // The series language: a pick shows from the next start, so only the note changes now.
 const languages = NeuralI18n.languageChoices(window, note => toast(note, 6000));
+// New versions of the series (update-check.js): the switch, and the newer version when one is known.
+const upd = NeuralI18n.updates(window, T);
 const MENUS = [
   { label: T('menu.file'), items: [
     { label: T('menu.open'), key: 'Ctrl+O', run: openDialog },
@@ -875,6 +877,8 @@ const MENUS = [
       { label: T('menu.theme-sync'), check: () => S.syncTheme, run: toggleThemeSync },
     ] },
     { label: T('lang.menu'), sub: () => languages().map(l => ({ label: l.label, radio: l.checked, run: l.pick })) },
+    { label: T('update.check'), check: upd.enabled, run: upd.toggle },
+    { label: upd.latestLabel, hidden: () => !upd.latest(), run: upd.open },
   ] },
   { label: T('menu.help'), items: [
     { label: T('menu.keys'), key: 'F1', run: openShortcuts },
@@ -963,6 +967,7 @@ function renderPopup(items, x, y, level) {
   pop.dataset.level = level;
   for (const it of items) {
     if (it === '-') { pop.appendChild(document.createElement('hr')); continue; }
+    if (it.hidden && it.hidden()) continue; // an entry that is there only sometimes (a newer version)
     const b = document.createElement('button');
     b.className = 'mi';
     b.type = 'button';
@@ -970,7 +975,7 @@ function renderPopup(items, x, y, level) {
     b.setAttribute('role', it.check ? 'menuitemcheckbox' : it.radio ? 'menuitemradio' : 'menuitem');
     if (it.check || it.radio) b.setAttribute('aria-checked', String(checked));
     if (it.sub) b.setAttribute('aria-haspopup', 'true');
-    b.innerHTML = `<span class="chk">${checked ? (it.radio ? '●' : '✓') : ''}</span><span>${esc(it.label)}</span><span class="k">${esc(it.key || '')}</span><span class="arr">${it.sub ? '›' : ''}</span>`;
+    b.innerHTML = `<span class="chk">${checked ? (it.radio ? '●' : '✓') : ''}</span><span>${esc(typeof it.label === 'function' ? it.label() : it.label)}</span><span class="k">${esc(it.key || '')}</span><span class="arr">${it.sub ? '›' : ''}</span>`;
     if (it.enabled && !it.enabled()) b.disabled = true;
     b._item = it;
     b.addEventListener('mousedown', e => e.preventDefault());

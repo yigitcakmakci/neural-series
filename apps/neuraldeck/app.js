@@ -138,6 +138,7 @@ function openSettings() {
   $('#set-msg').textContent = '';
   $('#set-msg').classList.remove('err');
   renderLanguages();
+  renderUpdates();
   $('#set-shortcut').focus();
   fit();
 }
@@ -194,6 +195,25 @@ function renderLanguages() {
     b.addEventListener('click', async () => { await l.pick(); renderLanguages(); });
     return b;
   }));
+}
+// New versions of the series (update-check.js): on / off for all programs, and the newer version's page when known.
+const upd = NeuralI18n.updates(window, T);
+async function renderUpdates() {
+  await upd.refresh();
+  const box = $('#set-update');
+  const button = (label, pressed, run) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'btn';
+    b.textContent = label;
+    if (pressed !== null) b.setAttribute('aria-pressed', String(pressed));
+    b.addEventListener('click', run);
+    return b;
+  };
+  const set = on => async () => { if (upd.enabled() !== on) await upd.toggle(); renderUpdates(); };
+  box.replaceChildren(button(T('update.on'), upd.enabled(), set(true)), button(T('update.off'), !upd.enabled(), set(false)),
+    ...(upd.latest() ? [button(upd.latestLabel(), null, () => upd.open())] : []));
+  fit();
 }
 $('#set-shortcut').addEventListener('click', () => { if (!capturing) startCapture(); });
 $('#set-back').addEventListener('click', closeSettings);
