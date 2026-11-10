@@ -4,6 +4,14 @@ All notable changes to Neural Series are listed here. Versions follow [Semantic 
 Every major and minor release carries a codename from the map of Neo-Istanbul; patch releases keep the codename of
 their line.
 
+## Unreleased
+
+### Build
+
+- GitHub Actions builds the setup with `build.ps1` for every push and pull request and runs the unit tests; the setup
+  is kept with the run. A version tag also opens a draft release with the setup, its SHA-256 and the notes from this
+  changelog (`.github\workflows\build.yml`, `tools\release-notes.js`).
+
 ## 1.5.0 "Beyoglu" (2026-11-06)
 
 The series speaks English too. Every app, the setup and the uninstaller show their texts in Turkish or English, one

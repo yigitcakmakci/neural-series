@@ -4,7 +4,8 @@
 
 <p align="center">
   <a href="https://github.com/yigitcakmakci/neural-series/releases/latest"><img src="https://img.shields.io/badge/release-v1.5.0-fcee0a?style=for-the-badge&labelColor=0c0d15" alt="Release v1.5.0"></a>
-  <img src="https://img.shields.io/badge/codename-Levent-00f0ff?style=for-the-badge&labelColor=0c0d15" alt="Codename: Levent">
+  <img src="https://img.shields.io/badge/codename-Beyoglu-00f0ff?style=for-the-badge&labelColor=0c0d15" alt="Codename: Beyoglu">
+  <a href="https://github.com/yigitcakmakci/neural-series/actions/workflows/build.yml"><img src="https://img.shields.io/github/actions/workflow/status/yigitcakmakci/neural-series/build.yml?branch=main&style=for-the-badge&labelColor=0c0d15&label=build" alt="Build status"></a>
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011%20x64-00f0ff?style=for-the-badge&labelColor=0c0d15" alt="Windows 10 and 11, 64-bit">
   <img src="https://img.shields.io/badge/Electron-44.5.1-00f0ff?style=for-the-badge&labelColor=0c0d15" alt="Electron 44.5.1">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-ff2a4f?style=for-the-badge&labelColor=0c0d15" alt="License: GPL-3.0"></a>
@@ -439,6 +440,7 @@ uses `Alt+Space` (PowerToys Run, for instance), NeuralDeck says so and you pick 
 
 ```text
 neural-series/
+├─ .github/workflows/    the build on GitHub Actions (every push; draft releases for version tags)
 ├─ apps/                 the seven apps (Electron main and renderer code, C# helpers, icons)
 │  ├─ neuralcalc/        KX-9
 │  ├─ neuralpad/         NP-7
@@ -473,6 +475,11 @@ powershell -ExecutionPolicy Bypass -File build.ps1
 [Fontsource](https://fontsource.org/), the Ghostery ad blocker), stages every app as the setup installs it in
 `out\stage` (with its `fonts\` folder), compiles the helpers and the setup, and writes
 `out\Neural-Setup-1.5.0.exe` together with its SHA-256. Run it with `-SkipNpm` to reuse the existing `node_modules`.
+
+**On GitHub.** The same build runs on [GitHub Actions](https://github.com/yigitcakmakci/neural-series/actions/workflows/build.yml)
+for every push and pull request, followed by the unit tests; the setup and its release notes are kept with the run
+for 14 days. A version tag also opens a draft release with the setup, its SHA-256 and the notes from the changelog
+(`tools\release-notes.js`), which is published once the setup has been tried on a real Windows installation.
 
 To try a build without touching your Windows settings, install it in test mode:
 
