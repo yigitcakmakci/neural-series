@@ -8,7 +8,6 @@
   "foot.run": "çalıştır",
   "foot.complete": "tamamla",
   "foot.close": "kapat",
-
   "set.aria": "Ayarlar",
   "set.head": "AYARLAR",
   "set.shortcut": "Paneli açan kısayol",
@@ -24,7 +23,6 @@
   "set.unchanged": "Kısayol değişmedi.",
   "set.kept": "Kısayol {accel} olarak kaldı.",
   "set.new": "Yeni kısayol: {accel}",
-
   "tray.no-shortcut": "NeuralDeck DK-0 · kısayol kaydedilemedi",
   "tray.open": "Paneli aç",
   "tray.open-key": "Paneli aç ({accel})",
@@ -36,14 +34,12 @@
   "err.not-installed": "Bu program kurulu değil.",
   "toast.copied": "{text} panoya kopyalandı",
   "toast.theme": "Serinin teması değişti",
-
   "prog.calc": "Hesap makinesi",
   "prog.pad": "Not defteri",
   "prog.nav": "Dosya gezgini",
   "prog.term": "Terminal",
   "prog.web": "Web tarayıcısı",
   "prog.view": "Resim görüntüleyici",
-
   "cmd.calc.usage": "= 12*7",
   "cmd.calc.title": "Hesapla",
   "cmd.calc.what": "NeuralCalc'ın motoruyla; Enter sonucu panoya kopyalar",
@@ -68,12 +64,10 @@
   "cmd.settings.usage": "ayarlar",
   "cmd.settings.title": "NeuralDeck ayarları",
   "cmd.settings.what": "Kısayol ve diğerleri",
-
   "theme.neon": "Neon",
   "theme.ice": "Buz",
   "theme.alarm": "Alarm",
   "theme.daylight": "Gündüz",
-
   "item.start": "Başlat: {app}",
   "item.not-installed": "{detail} · {app} kurulu değil",
   "item.recent": "Son açılan",
@@ -90,12 +84,20 @@
   "item.theme": "Tema: {name}",
   "item.theme-current": "Şu anki tema",
   "item.theme-all": "Bütün Neural programları bu temaya geçer",
-
   "err.syntax": "SÖZDİZİMİ HATASI",
   "err.div0": "SIFIRA BÖLME",
   "err.complex": "KARMAŞIK SONUÇ",
   "err.domain": "TANIM DIŞI DEĞER",
   "err.undef": "TANIMSIZ",
   "err.fact": "n! YALNIZ DOĞAL SAYIDA",
-  "err.overflow": "TAŞMA"
+  "err.overflow": "TAŞMA",
+  "prog.pulse": "Sistem izleyici",
+  "cmd.cpu.usage": "cpu",
+  "cmd.cpu.title": "Sistem yükü",
+  "cmd.cpu.what": "CPU, bellek ve en çok kaynak kullanan süreçler",
+  "item.cpu-load": "CPU %{cpu} · Bellek %{mem}",
+  "item.cpu-measuring": "Ölçülüyor…",
+  "item.cpu-failed": "Ölçülemedi",
+  "item.cpu-open": "NeuralPulse'u aç",
+  "item.cpu-proc": "CPU %{cpu} · {mem}"
 }

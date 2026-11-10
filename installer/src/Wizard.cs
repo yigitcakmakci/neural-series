@@ -354,23 +354,25 @@ namespace NeuralSetup
             f.Next.Text = L.Next;
             Title(L.AppsTitle);
             Lead(L.AppsLead);
-            int colW = (W - T.P(14)) / 2, y0 = Y, rowH = 0, i = 0, lastY = Y, lastH = 0;
-            foreach (var a in Apps.All)
+            // Three columns: the apps, then the update check in the next place (eight apps and it fill a 3x3 grid).
+            const int cols = 3;
+            int gap = T.P(12), colW = (W - gap * (cols - 1)) / cols, rowH = 0, n = Apps.All.Length + 1;
+            for (int i = 0; i < n; i++)
             {
-                long size = payload != null ? payload.SizeOf("base/") + payload.SizeOf("apps/" + a.Id + "/") : 0;
-                int col = i % 2, x = X + col * (colW + T.P(14));
-                var c = Check(a.Id + "  " + a.Code, a.Summary + (size > 0 ? " · " + Size(size) : ""), o.Apps.Contains(a.Id), x, Y, colW);
-                c.Changed += delegate { UpdateNeedStatus(); };
-                appChecks[a.Id] = c;
+                int col = i % cols, x = X + col * (colW + gap);
+                NCheck c;
+                if (i < Apps.All.Length)
+                {
+                    var a = Apps.All[i];
+                    long size = payload != null ? payload.SizeOf("base/") + payload.SizeOf("apps/" + a.Id + "/") : 0;
+                    c = Check(a.Id + "  " + a.Code, a.Summary + (size > 0 ? " · " + Size(size) : ""), o.Apps.Contains(a.Id), x, Y, colW);
+                    c.Changed += delegate { UpdateNeedStatus(); };
+                    appChecks[a.Id] = c;
+                }
+                else c = cUpdate = Check(L.OptUpdate, L.OptUpdateSub, o.UpdateCheck, x, Y, colW);
                 rowH = Math.Max(rowH, c.Height);
-                if (col == 1 || i == Apps.All.Length - 1) { lastY = Y; lastH = rowH; Y += rowH + T.P(10); rowH = 0; }
-                i++;
+                if (col == cols - 1 || i == n - 1) { Y += rowH + T.P(10); rowH = 0; }
             }
-            // The update check takes the place seven apps leave free next to the last one (a row of its own otherwise).
-            bool odd = Apps.All.Length % 2 == 1;
-            cUpdate = Check(L.OptUpdate, L.OptUpdateSub, o.UpdateCheck, odd ? X + colW + T.P(14) : X, odd ? lastY : Y, colW);
-            if (!odd) Y += cUpdate.Height + T.P(10);
-            else if (cUpdate.Height > lastH) Y += cUpdate.Height - lastH;
             Y += T.P(10);
             Label(L.AppsFolder);
             pathBox = new PathBox { Location = new Point(X, Y), Size = new Size(W, T.P(36)) };

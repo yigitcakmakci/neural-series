@@ -18,4 +18,5 @@ contextBridge.exposeInMainWorld("deck", {
   onHidden: (fn) => { ipcRenderer.on("deck:hidden", () => fn()); },
   onTheme: (fn) => { ipcRenderer.on("deck:theme", (_e, t) => fn(String(t))); },
   onOpenSettings: (fn) => { ipcRenderer.on("deck:open-settings", () => fn()); },
+  onRefresh: (fn) => { ipcRenderer.on("deck:refresh", () => fn()); }, // a measurement (cpu) came in: ask again
 });

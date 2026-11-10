@@ -4,6 +4,28 @@ All notable changes to Neural Series are listed here. Versions follow [Semantic 
 Every major and minor release carries a codename from the map of Neo-Istanbul; patch releases keep the codename of
 their line.
 
+## 1.7.0 "Moda" (2026-11-11)
+
+A new unit joins the series: **NeuralPulse PL-2**, a system monitor. All eight apps are at 1.7.0. Run the new setup over
+an existing installation: it adds NeuralPulse and keeps your options, settings and personal data.
+
+### New: NeuralPulse PL-2
+
+- Live graphs of the last 60 seconds: processor (total and each core), memory (and the commit charge), every physical
+  disk (read, write, active time), the network adapters and the graphics card (busiest engine and dedicated memory).
+- The process list: CPU, memory and file location of every process, sorted by any column, searchable by name, PID or
+  location; open a process's location in NeuralNav, copy its path, or end it. Ending asks first and works on your own
+  processes only (no administrator rights); Windows' processes and NeuralPulse itself are refused.
+- A small C# helper, `plsensor`, reads Windows' performance counters and the process table about once a second (about
+  1 % of one core) and pauses while the window is minimized. Nothing is sent anywhere.
+- Themes, the series theme, Turkish and English, and the update check, like every app.
+
+### Changed
+
+- **NeuralDeck:** `cpu` / `işlemci` shows the processor and memory load and the three busiest processes, measured by
+  NeuralPulse's helper; `Enter` opens NeuralPulse. "Task manager" and "görev yöneticisi" find NeuralPulse.
+- **Setup:** NeuralPulse is offered, checked, when updating. The apps page lists the apps in three columns.
+
 ## 1.6.0 "Ortakoy" (2026-11-10)
 
 The apps tell you when a new version of the series is out. All seven apps are at 1.6.0. Run the new setup over an

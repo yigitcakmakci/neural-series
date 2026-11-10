@@ -246,6 +246,7 @@ deck.onShown(async s => {
 deck.onHidden(() => { if (!settingsEl.hidden) closeSettings(); });
 deck.onTheme(applyTheme);
 deck.onOpenSettings(openSettings);
+deck.onRefresh(() => { if (settingsEl.hidden) refresh(); });
 
 const st = await deck.state();
 applyTheme(st.theme);

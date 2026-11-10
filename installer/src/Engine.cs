@@ -44,6 +44,7 @@ namespace NeuralSetup
             new AppInfo("NeuralWeb", "NW-1", "neuralweb.ico", "NeuralWeb", false),
             new AppInfo("NeuralView", "VW-3", "neuralview.ico", "NeuralView", false),
             new AppInfo("NeuralDeck", "DK-0", "neuraldeck.ico", "NeuralDeck", false),
+            new AppInfo("NeuralPulse", "PL-2", "neuralpulse.ico", "NeuralPulse", false),
         };
         // The programs of the first release (1.0). An installation whose manifest has no "Bilinen" line was made by a
         // setup that knew only these, so any other program is new to it and is offered as checked when updating.

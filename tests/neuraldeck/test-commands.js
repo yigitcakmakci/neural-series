@@ -114,6 +114,27 @@ check(!left.length, "no Turkish left in English suggestions", left.join(" | "));
 C.setTexts(null);
 check(first("pad").title === "Başlat: NeuralPad", "setTexts(null) goes back to Turkish");
 
+console.log("cpu (NeuralPulse's measurement)");
+const GB = 1073741824;
+const STATS = { cpu: { total: 23.4 }, mem: { total: 16 * GB, used: 8.6 * GB }, procs: [
+  { pid: 10, name: "derleyici", cpu: 41.2, mem: 1.5 * GB }, { pid: 11, name: "tarayici", cpu: 12, mem: 900 * 1048576 },
+  { pid: 12, name: "oyun", cpu: 3, mem: 2.2 * GB }, { pid: 13, name: "fazla", cpu: 1, mem: 1 }] };
+let c = C.suggest("cpu", { ...env(), stats: null });
+check(c.length === 1 && c[0].disabled && c[0].title === "Ölçülüyor…", "while main.js measures: one line that waits", j(c));
+c = C.suggest("işlemci", { ...env(), stats: STATS });
+check(c.length === 4 && c[0].title === "CPU %23 · Bellek %54" && c[0].detail === "NeuralPulse'u aç" && c.every((i) => i.action.type === "launch" && i.action.app === "NeuralPulse" && !i.disabled),
+  "the load, then the three busiest processes, each opening NeuralPulse", j(c.map((i) => i.title)));
+check(c[1].title === "derleyici" && c[1].detail === "CPU %41 · 1,5 GB" && c[2].detail === "CPU %12 · 900 MB" && c[3].title === "oyun", "process lines: name, CPU and memory in Turkish", j(c.map((i) => i.detail)));
+c = C.suggest("cpu", { ...env(), stats: { failed: true } });
+check(c.length === 1 && c[0].title === "Ölçülemedi" && !c[0].disabled, "a failed measurement still opens NeuralPulse");
+c = C.suggest("cpu", { ...env({ installed: new Set(["NeuralPad"]) }), stats: STATS });
+check(c.length === 1 && c[0].disabled && /kurulu değil/.test(c[0].detail), "without NeuralPulse the command is greyed out", j(c));
+check(["görev yöneticisi", "task manager", "PL-2"].every((q) => first(q).title === "NeuralPulse" && first(q).action.app === "NeuralPulse"), "NeuralPulse is found by task manager, in both languages, and by its code");
+C.setTexts(i18n.create({ lang: "en", dict: { ...tr, ...en } }));
+c = C.suggest("cpu", { ...env(), stats: STATS });
+check(c[0].title === "CPU 23% · Memory 54%" && c[0].detail === "Open NeuralPulse" && c[1].detail === "CPU 41% · 1.5 GB", "and in English", j(c.map((i) => [i.title, i.detail])));
+C.setTexts(null);
+
 fs.rmSync(path.dirname(HOME), { recursive: true, force: true });
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

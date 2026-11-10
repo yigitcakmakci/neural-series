@@ -17,7 +17,7 @@ const STAGE = path.join(ROOT, "out", "stage", "apps");
 const dirOf = (name) => (SOURCE ? path.join(ROOT, "apps", name.toLowerCase()) : path.join(STAGE, name));
 const ELECTRON = path.join(ROOT, "node_modules", "electron", "dist", "electron.exe");
 const BOX = path.join(os.tmpdir(), "neural-testler", "lang-e2e");
-const ALL = ["NeuralCalc", "NeuralPad", "NeuralNav", "NeuralTerm", "NeuralWeb", "NeuralView", "NeuralDeck"];
+const ALL = ["NeuralCalc", "NeuralPad", "NeuralNav", "NeuralTerm", "NeuralWeb", "NeuralView", "NeuralDeck", "NeuralPulse"];
 const ONLY = process.argv.slice(2).filter((a) => !a.startsWith("-"));
 // Words that stay Turkish in English on purpose (the language's own name, NeuralDeck's Turkish command words, ...).
 const ALLOWED = new Set(["Türkçe", "Dil"]);
@@ -54,7 +54,7 @@ async function open(name, lang, port) {
   const env = {
     ...process.env, NEURAL_LANG_FILE: langFile, NEURAL_THEME_FILE: path.join(work, "theme.json"), NEURAL_ROOT: path.join(work, "Neural"),
     NEURAL_UPDATE_FILE: updateOff,
-    NEURALWEB_PROFILE: profile, NEURALWEB_EDGE_DIR: path.join(work, "edge"), NEURALVIEW_PROFILE: profile, NEURALDECK_PROFILE: profile, NEURALDECK_KEEP_OPEN: "1",
+    NEURALWEB_PROFILE: profile, NEURALWEB_EDGE_DIR: path.join(work, "edge"), NEURALVIEW_PROFILE: profile, NEURALDECK_PROFILE: profile, NEURALDECK_KEEP_OPEN: "1", NEURALPULSE_PROFILE: profile, NEURALPULSE_DEMO: "1", NEURALPULSE_TEST_INACTIVE: "1",
   };
   const proc = spawn(ELECTRON, [dir, `--user-data-dir=${profile}`, `--remote-debugging-port=${port}`], { env, stdio: "ignore" });
   const target = await waitTarget(port, (t) => (PAGE[name] ? PAGE[name](t.url) : /^file:/.test(t.url)), 30000);

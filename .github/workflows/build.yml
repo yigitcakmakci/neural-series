@@ -49,7 +49,7 @@ jobs:
             'tests/shared/test-theme-sync.js', 'tests/shared/test-release-notes.js', 'tests/shared/test-update-check.js',
             'tests/neuralterm/test-links.js',
             'tests/neuraldeck/test-commands.js', 'tests/neuralnav/test-ops.js', 'tests/neuralweb/test-store.js',
-            'tests/neuralview/test-meta.js'
+            'tests/neuralview/test-meta.js', 'tests/neuralpulse/test-sensor.js'
           )
           $failed = @()
           foreach ($t in $tests) {

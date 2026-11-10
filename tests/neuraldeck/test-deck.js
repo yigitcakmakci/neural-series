@@ -26,13 +26,16 @@ const check = (cond, label, extra = "") => { if (cond) { passed++; console.log("
 const j = (x) => JSON.stringify(x);
 
 fs.rmSync(OUT, { recursive: true, force: true });
-for (const app of ["NeuralCalc", "NeuralPad", "NeuralNav", "NeuralTerm", "NeuralWeb"]) {
+for (const app of ["NeuralCalc", "NeuralPad", "NeuralNav", "NeuralTerm", "NeuralWeb", "NeuralPulse"]) {
   fs.mkdirSync(path.join(FAKE, app, "Program"), { recursive: true });
   fs.writeFileSync(path.join(FAKE, app, "Program", `${app}.exe`), "");
 }
 for (const d of ["Belgeler", "Belgeler\\Proje", "Resimler"]) fs.mkdirSync(path.join(BOX, d), { recursive: true });
 fs.writeFileSync(path.join(BOX, "Belgeler", "not defteri.txt"), "x");
 fs.writeFileSync(path.join(BOX, "Resimler", "galata.jpg"), "x");
+// What NeuralPulse's helper would answer to the cpu command (NEURALDECK_TEST_STATS, instead of running it).
+const STATS = path.join(OUT, "stats.json");
+fs.writeFileSync(STATS, JSON.stringify({ cpu: { total: 23.4 }, mem: { total: 16 * 2 ** 30, used: 8.6 * 2 ** 30 }, procs: [{ pid: 10, name: "derleyici", cpu: 41.2, mem: 1.5 * 2 ** 30 }, { pid: 11, name: "tarayici", cpu: 12, mem: 900 * 2 ** 20 }, { pid: 12, name: "oyun", cpu: 3, mem: 2.2 * 2 ** 30 }] }));
 const launches = () => { try { return fs.readFileSync(LAUNCH, "utf8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch (e) { return []; } };
 const exe = (app) => path.join(FAKE, app, "Program", `${app}.exe`);
 
@@ -41,7 +44,7 @@ function start(name, port, { profileSettings, args = [] } = {}) {
   const profile = path.join(OUT, "profile-" + name);
   fs.mkdirSync(profile, { recursive: true });
   if (profileSettings) fs.writeFileSync(path.join(profile, "settings.json"), JSON.stringify(profileSettings));
-  const env = { ...process.env, NEURALDECK_PROFILE: profile, NEURALDECK_TEST_LAUNCH: LAUNCH, NEURAL_ROOT: FAKE, NEURAL_THEME_FILE: THEME, NEURALDECK_KEEP_OPEN: "1" };
+  const env = { ...process.env, NEURALDECK_PROFILE: profile, NEURALDECK_TEST_LAUNCH: LAUNCH, NEURAL_ROOT: FAKE, NEURAL_THEME_FILE: THEME, NEURALDECK_KEEP_OPEN: "1", NEURALDECK_TEST_STATS: STATS };
   const p = process.env.NEURALDECK_EXE
     ? spawn(process.env.NEURALDECK_EXE, [...args, `--remote-debugging-port=${port}`], { env, stdio: "ignore" })
     : spawn(ELECTRON, [STAGE("NeuralDeck"), ...args, `--remote-debugging-port=${port}`], { env, stdio: "ignore" });
@@ -122,6 +125,15 @@ const PRELUDE = `
     fs.renameSync(THEME + ".tmp", THEME);
     r = await run("await wait(() => document.documentElement.classList.contains('theme-alarm')); return document.documentElement.className;");
     check(/theme-alarm/.test(r), "it follows a theme picked in another program");
+
+    console.log("cpu (NeuralPulse's measurement)");
+    r = await run("await type('cpu'); return items();");
+    check(r.length === 1 && r[0].off && r[0].title === "Ölçülüyor…", "cpu first says it is measuring", j(r));
+    r = await run("await wait(() => items().length === 4, 3000); return items();");
+    check(r.length === 4 && r[0].title === "CPU %23 · Bellek %54" && r[1].title === "derleyici" && r[1].detail === "CPU %41 · 1,5 GB", "the answer comes in by itself: the load and the three busiest processes", j(r));
+    await run("await key('Enter'); return 1;");
+    await sleep(300);
+    check(j(launches().pop()) === j({ exe: exe("NeuralPulse"), args: [] }), "Enter starts NeuralPulse", j(launches().slice(-1)));
 
     console.log("only what the main process suggested can run");
     const n1 = launches().length;

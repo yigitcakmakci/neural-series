@@ -8,7 +8,6 @@
   "foot.run": "run",
   "foot.complete": "complete",
   "foot.close": "close",
-
   "set.aria": "Settings",
   "set.head": "SETTINGS",
   "set.shortcut": "Shortcut that opens the panel",
@@ -24,7 +23,6 @@
   "set.unchanged": "The shortcut did not change.",
   "set.kept": "The shortcut stays {accel}.",
   "set.new": "New shortcut: {accel}",
-
   "tray.no-shortcut": "NeuralDeck DK-0 · shortcut not registered",
   "tray.open": "Open the panel",
   "tray.open-key": "Open the panel ({accel})",
@@ -36,14 +34,12 @@
   "err.not-installed": "This app is not installed.",
   "toast.copied": "{text} copied to the clipboard",
   "toast.theme": "The series theme changed",
-
   "prog.calc": "Calculator",
   "prog.pad": "Notepad",
   "prog.nav": "File explorer",
   "prog.term": "Terminal",
   "prog.web": "Web browser",
   "prog.view": "Image viewer",
-
   "cmd.calc.usage": "= 12*7",
   "cmd.calc.title": "Calculate",
   "cmd.calc.what": "With NeuralCalc's engine; Enter copies the result",
@@ -68,12 +64,10 @@
   "cmd.settings.usage": "settings",
   "cmd.settings.title": "NeuralDeck settings",
   "cmd.settings.what": "Shortcut and more",
-
   "theme.neon": "Neon",
   "theme.ice": "Ice",
   "theme.alarm": "Alarm",
   "theme.daylight": "Daylight",
-
   "item.start": "Start {app}",
   "item.not-installed": "{detail} · {app} is not installed",
   "item.recent": "Recently opened",
@@ -90,12 +84,20 @@
   "item.theme": "Theme: {name}",
   "item.theme-current": "Current theme",
   "item.theme-all": "Every Neural app switches to this theme",
-
   "err.syntax": "SYNTAX ERROR",
   "err.div0": "DIVISION BY ZERO",
   "err.complex": "COMPLEX RESULT",
   "err.domain": "OUT OF DOMAIN",
   "err.undef": "UNDEFINED",
   "err.fact": "n! ONLY FOR NATURAL NUMBERS",
-  "err.overflow": "OVERFLOW"
+  "err.overflow": "OVERFLOW",
+  "prog.pulse": "System monitor",
+  "cmd.cpu.usage": "cpu",
+  "cmd.cpu.title": "System load",
+  "cmd.cpu.what": "CPU, memory and the busiest processes",
+  "item.cpu-load": "CPU {cpu}% · Memory {mem}%",
+  "item.cpu-measuring": "Measuring…",
+  "item.cpu-failed": "Could not measure",
+  "item.cpu-open": "Open NeuralPulse",
+  "item.cpu-proc": "CPU {cpu}% · {mem}"
 }

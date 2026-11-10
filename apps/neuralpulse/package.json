@@ -1,0 +1,8 @@
+{
+  "name": "neuralpulse",
+  "productName": "NeuralPulse",
+  "version": "1.7.0",
+  "description": "NeuralPulse PL-2 Neural serisi sistem izleyici",
+  "private": true,
+  "main": "main.js"
+}

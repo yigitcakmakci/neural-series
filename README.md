@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="docs/images/banner.png" alt="Neural Series: seven cyberpunk desktop apps for Windows" width="100%">
+  <img src="docs/images/banner.png" alt="Neural Series: eight cyberpunk desktop apps for Windows" width="100%">
 </p>
 
 <p align="center">
-  <a href="https://github.com/yigitcakmakci/neural-series/releases/latest"><img src="https://img.shields.io/badge/release-v1.6.0-fcee0a?style=for-the-badge&labelColor=0c0d15" alt="Release v1.6.0"></a>
-  <img src="https://img.shields.io/badge/codename-Ortakoy-00f0ff?style=for-the-badge&labelColor=0c0d15" alt="Codename: Ortakoy">
+  <a href="https://github.com/yigitcakmakci/neural-series/releases/latest"><img src="https://img.shields.io/badge/release-v1.7.0-fcee0a?style=for-the-badge&labelColor=0c0d15" alt="Release v1.7.0"></a>
+  <img src="https://img.shields.io/badge/codename-Moda-00f0ff?style=for-the-badge&labelColor=0c0d15" alt="Codename: Moda">
   <a href="https://github.com/yigitcakmakci/neural-series/actions/workflows/build.yml"><img src="https://img.shields.io/github/actions/workflow/status/yigitcakmakci/neural-series/build.yml?branch=main&style=for-the-badge&labelColor=0c0d15&label=build" alt="Build status"></a>
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011%20x64-00f0ff?style=for-the-badge&labelColor=0c0d15" alt="Windows 10 and 11, 64-bit">
   <img src="https://img.shields.io/badge/Electron-44.5.1-00f0ff?style=for-the-badge&labelColor=0c0d15" alt="Electron 44.5.1">
@@ -33,7 +33,7 @@
 
 ## `// 01` What is Neural Series?
 
-Neural Series is a family of seven desktop apps for Windows that share one design language: chamfered device frames,
+Neural Series is a family of eight desktop apps for Windows that share one design language: chamfered device frames,
 a yellow model band with hazard stripes, scanlines, a soft CRT glow and a beam that slowly sweeps the screen. Each app
 carries a model code like a piece of hardware from a fictional maker, Neural Systems.
 
@@ -41,7 +41,8 @@ They are not mock-ups. They are the tools I use every day:
 
 - **Real apps, real work.** NeuralWeb is my daily browser, NeuralNav can take over from File Explorer, NeuralTerm runs
   PowerShell, Command Prompt, Git Bash and WSL, NeuralPad opens and saves real text files in several encodings, and
-  NeuralView pages through the pictures of a folder, and NeuralDeck starts any of them from a keystroke.
+  NeuralView pages through the pictures of a folder, NeuralPulse watches the machine, and NeuralDeck starts any of
+  them from a keystroke.
 - **At home in Windows.** Every app has its own executable, icon and taskbar identity, its own Start menu entry, and
   optional hooks into Windows: *Open with*, folder context menus, `nt` in the Run box, a registered web browser.
 - **They work together.** A picture you double-click in NeuralNav opens in NeuralView, a path in NeuralTerm's output
@@ -60,15 +61,16 @@ They are not mock-ups. They are the tools I use every day:
 
 | | Unit | Model | Version | What it is |
 |:-:|---|:-:|:-:|---|
-| <img src="apps/neuralcalc/icon.png" width="44" alt=""> | **NeuralCalc** | `KX-9` | 1.6.0 | Scientific calculator with a readout screen, memory and keyboard input |
-| <img src="apps/neuralpad/icon.png" width="44" alt=""> | **NeuralPad** | `NP-7` | 1.6.0 | Tabbed notepad with find and replace, encodings, sessions and themes |
-| <img src="apps/neuralnav/icon.png" width="44" alt=""> | **NeuralNav** | `NV-4` | 1.6.0 | Tabbed file explorer that can stand in for Windows File Explorer |
-| <img src="apps/neuralterm/icon.png" width="44" alt=""> | **NeuralTerm** | `NT-5` | 1.6.0 | Terminal for PowerShell, PowerShell 7, Command Prompt, Git Bash and WSL |
-| <img src="apps/neuralweb/icon.png" width="44" alt=""> | **NeuralWeb** | `NW-1` | 1.6.0 | Chromium-based web browser with an ad and tracker shield and a password manager |
-| <img src="apps/neuralview/icon.png" width="44" alt=""> | **NeuralView** | `VW-3` | 1.6.0 | Image viewer with folder browsing, zoom, lossless JPEG rotation and EXIF details |
-| <img src="apps/neuraldeck/icon.png" width="44" alt=""> | **NeuralDeck** | `DK-0` | 1.6.0 | Launcher and command palette on a global shortcut: apps, folders, files, sums, searches |
+| <img src="apps/neuralcalc/icon.png" width="44" alt=""> | **NeuralCalc** | `KX-9` | 1.7.0 | Scientific calculator with a readout screen, memory and keyboard input |
+| <img src="apps/neuralpad/icon.png" width="44" alt=""> | **NeuralPad** | `NP-7` | 1.7.0 | Tabbed notepad with find and replace, encodings, sessions and themes |
+| <img src="apps/neuralnav/icon.png" width="44" alt=""> | **NeuralNav** | `NV-4` | 1.7.0 | Tabbed file explorer that can stand in for Windows File Explorer |
+| <img src="apps/neuralterm/icon.png" width="44" alt=""> | **NeuralTerm** | `NT-5` | 1.7.0 | Terminal for PowerShell, PowerShell 7, Command Prompt, Git Bash and WSL |
+| <img src="apps/neuralweb/icon.png" width="44" alt=""> | **NeuralWeb** | `NW-1` | 1.7.0 | Chromium-based web browser with an ad and tracker shield and a password manager |
+| <img src="apps/neuralview/icon.png" width="44" alt=""> | **NeuralView** | `VW-3` | 1.7.0 | Image viewer with folder browsing, zoom, lossless JPEG rotation and EXIF details |
+| <img src="apps/neuraldeck/icon.png" width="44" alt=""> | **NeuralDeck** | `DK-0` | 1.7.0 | Launcher and command palette on a global shortcut: apps, folders, files, sums, searches |
+| <img src="apps/neuralpulse/icon.png" width="44" alt=""> | **NeuralPulse** | `PL-2` | 1.7.0 | System monitor: CPU, memory, disk, network and GPU graphs, and the processes |
 
-The series itself is versioned as a whole: **Neural Series 1.6.0, codename "Ortakoy"**, built on Electron 44.5.1.
+The series itself is versioned as a whole: **Neural Series 1.7.0, codename "Moda"**, built on Electron 44.5.1.
 See [Versions](#versions) and the [changelog](CHANGELOG.md).
 
 > [!NOTE]
@@ -83,11 +85,11 @@ See [Versions](#versions) and the [changelog](CHANGELOG.md).
 **Requirements:** Windows 10 or 11 (64-bit), about 1.7 GB of disk space. The apps carry their own typefaces and work
 offline; NeuralWeb needs a connection to browse, of course, and to refresh its blocking lists.
 
-1. Download **`Neural-Setup-1.6.0.exe`** from the [latest release](https://github.com/yigitcakmakci/neural-series/releases/latest).
+1. Download **`Neural-Setup-1.7.0.exe`** from the [latest release](https://github.com/yigitcakmakci/neural-series/releases/latest).
 2. Run it. The setup is not code-signed, so Windows SmartScreen may say *"Windows protected your PC"*. Choose
    **More info → Run anyway**. You can compare the file's SHA-256 with the one in the release notes first:
    ```powershell
-   Get-FileHash .\Neural-Setup-1.6.0.exe -Algorithm SHA256
+   Get-FileHash .\Neural-Setup-1.7.0.exe -Algorithm SHA256
    ```
 3. Follow the wizard: pick the apps and the folder (default `%USERPROFILE%\Neural`), then choose how far the apps may
    hook into Windows. Every option can be changed later by running the setup again.
@@ -140,13 +142,13 @@ The switches are Turkish, whatever the interface language.
 
 ```powershell
 # install everything silently with the default options
-.\Neural-Setup-1.6.0.exe /sessiz
+.\Neural-Setup-1.7.0.exe /sessiz
 
 # pick apps, options and folder; write a log
-.\Neural-Setup-1.6.0.exe /sessiz /uygulamalar:NeuralWeb,NeuralTerm /secenekler:baslat,web,nt /hedef:D:\Apps\Neural /gunluk:C:\Temp\neural.log
+.\Neural-Setup-1.7.0.exe /sessiz /uygulamalar:NeuralWeb,NeuralTerm /secenekler:baslat,web,nt /hedef:D:\Apps\Neural /gunluk:C:\Temp\neural.log
 
 # install in English, whatever Windows' language (/dil:tr for Turkish)
-.\Neural-Setup-1.6.0.exe /sessiz /dil:en
+.\Neural-Setup-1.7.0.exe /sessiz /dil:en
 
 # uninstall silently (add /veriler to delete settings and personal data too)
 & "$env:USERPROFILE\Neural\Ortak\NeuralKaldir.exe" /kaldir /sessiz
@@ -165,9 +167,9 @@ versions). Exit code `0` means success.
 
 Every app is a frameless window: drag it by the yellow band, resize it from any edge, and use the small black-and-yellow
 buttons on the right of the band to minimize, maximize or close. Each app remembers its window position. NeuralPad,
-NeuralNav, NeuralTerm, NeuralWeb and NeuralView come with four color themes: **Neon**, **Buz** (Ice), **Alarm** and **Gündüz** (Daylight).
+NeuralNav, NeuralTerm, NeuralWeb, NeuralView and NeuralPulse come with four color themes (NeuralDeck follows them): **Neon**, **Buz** (Ice), **Alarm** and **Gündüz** (Daylight).
 
-**One theme for the series.** Pick a theme in any of these five apps and the others switch to it within a moment;
+**One theme for the series.** Pick a theme in any of these apps and the others switch to it within a moment;
 apps that are closed start with it next time. Each app has a *"Temayı seriyle eşitle"* (follow the series theme)
 switch at the end of its theme menu, on by default (NeuralWeb also has it under *Ayarlar → Görünüm*). Switch it off
 and that app keeps its own theme: it neither follows the others nor changes them.
@@ -421,23 +423,54 @@ panel and the settings, and quits it. The setup can start it with Windows (off b
 | `web <address>`, or just `github.com` | Opens the address in NeuralWeb (only `http` and `https`) |
 | `ara <words>`, `search <words>` | A Google search in NeuralWeb |
 | `tema buz`, `theme daylight` | Switches every app to that theme |
+| `cpu`, `işlemci` | The load and the three busiest processes, from NeuralPulse's helper; `Enter` opens NeuralPulse |
 | `ayarlar`, `settings` | The shortcut: press the button, then the new keys |
 
 NeuralDeck only ever starts the Neural apps and web addresses, always with the path or address as one argument and
 never through a command shell. Commands for apps that are not installed are greyed out. If another program already
 uses `Alt+Space` (PowerToys Run, for instance), NeuralDeck says so and you pick another shortcut under *ayarlar*.
 
+### <img src="apps/neuralpulse/icon.png" width="28" alt=""> NeuralPulse `PL-2`
+
+<p align="center"><img src="docs/images/screenshots/neuralpulse.png" alt="NeuralPulse PL-2 with demo data" width="85%"></p>
+
+A system monitor in the shape of a device readout. The top row draws the last 60 seconds of the processor (total and
+each core), memory, every disk, the network and the graphics card; the process list below shows each process's CPU,
+memory and file location.
+
+- Click a column to sort, type in the search box (name, PID or location), and right-click a process to open its
+  location in NeuralNav, copy its path or **end it** (*Süreci sonlandır*). Ending always asks first, and it works only
+  on your own processes: NeuralPulse needs no administrator rights, so Windows refuses its own processes.
+- Its numbers come from a small helper, `plsensor`, that reads Windows' performance counters about once a second and
+  pauses while the window is minimized. Nothing leaves your PC.
+- NeuralDeck's `cpu` command asks the same helper for a quick look without opening the window.
+
+<details>
+<summary><b>NeuralPulse shortcuts</b></summary>
+
+| Action | Keys |
+|---|---|
+| Search processes / clear the search | `Ctrl+F` / `Esc` |
+| Move through the list | `↑` `↓` `PgUp` `PgDn` `Home` `End` |
+| Open file location / copy path | `Enter` / `Ctrl+C` |
+| End process (asks first) | `Del` |
+| Context menu | `Shift+F10`, the Menu key or right-click |
+| Keyboard shortcuts | `F1` |
+
+</details>
+
 <a id="under-the-hood"></a>
 
 ## `// 05` Under the hood
 
-- **One runtime, seven identities.** All apps run on one copy of Electron 44.5.1 in `Neural\Ortak\Electron`; each app
+- **One runtime, eight identities.** All apps run on one copy of Electron 44.5.1 in `Neural\Ortak\Electron`; each app
   folder holds NTFS hard links to it, so the runtime takes disk space once. Every app gets its own copy of
   `electron.exe` with its own icon, name and version written in through the Windows resource API, and its own
   AppUserModelID, so the taskbar groups and pins it as a separate program.
 - **Windows helpers in C#.** Small helpers are compiled with the C# compiler that ships with Windows:
   `nvhelper` (shell operations) and `nvwatch` (Explorer watcher) for NeuralNav, `ntpty` (ConPTY bridge) for NeuralTerm,
-  `nwdpapi` (Edge import) and `nwhello` (Windows Hello) for NeuralWeb.
+  `nwdpapi` (Edge import) and `nwhello` (Windows Hello) for NeuralWeb, `plsensor` (performance counters and processes)
+  for NeuralPulse and NeuralDeck's `cpu` command.
 - **The setup** is a C# 5 WinForms program drawn in the same style. The payload is a zip appended to the executable;
   every file is checked against its CRC while it is written, so a damaged download stops the setup instead of
   installing broken files. A `/test` mode keeps every Windows change inside a separate registry key and folder.
@@ -452,7 +485,7 @@ uses `Alt+Space` (PowerToys Run, for instance), NeuralDeck says so and you pick 
 ```text
 neural-series/
 ├─ .github/workflows/    the build on GitHub Actions (every push; draft releases for version tags)
-├─ apps/                 the seven apps (Electron main and renderer code, C# helpers, icons)
+├─ apps/                 the eight apps (Electron main and renderer code, C# helpers, icons)
 │  ├─ neuralcalc/        KX-9
 │  ├─ neuralpad/         NP-7
 │  ├─ neuralnav/         NV-4
@@ -460,6 +493,7 @@ neural-series/
 │  ├─ neuralweb/         NW-1
 │  ├─ neuralview/        VW-3
 │  ├─ neuraldeck/        DK-0
+│  ├─ neuralpulse/       PL-2
 │  └─ shared/            code the apps share (theme, language, hand-offs, update check, NeuralCalc's engine)
 ├─ installer/src/        setup and uninstaller (C#)
 ├─ assets/windows-icons/ optional icon set for This PC, Recycle Bin, Network, user folder
@@ -485,7 +519,7 @@ powershell -ExecutionPolicy Bypass -File build.ps1
 `build.ps1` restores the exact dependency versions from the lock files (Electron, xterm.js, the typefaces from
 [Fontsource](https://fontsource.org/), the Ghostery ad blocker), stages every app as the setup installs it in
 `out\stage` (with its `fonts\` folder), compiles the helpers and the setup, and writes
-`out\Neural-Setup-1.6.0.exe` together with its SHA-256. Run it with `-SkipNpm` to reuse the existing `node_modules`.
+`out\Neural-Setup-1.7.0.exe` together with its SHA-256. Run it with `-SkipNpm` to reuse the existing `node_modules`.
 
 **On GitHub.** The same build runs on [GitHub Actions](https://github.com/yigitcakmakci/neural-series/actions/workflows/build.yml)
 for every push and pull request, followed by the unit tests; the setup and its release notes are kept with the run
@@ -495,7 +529,7 @@ for 14 days. A version tag also opens a draft release with the setup, its SHA-25
 To try a build without touching your Windows settings, install it in test mode:
 
 ```powershell
-.\out\Neural-Setup-1.6.0.exe /test /hedef:$env:TEMP\neural-test\Neural
+.\out\Neural-Setup-1.7.0.exe /test /hedef:$env:TEMP\neural-test\Neural
 ```
 
 Other tools: `tools\make-icons.ps1` redraws every icon, `node tools\make-fonts-css.js` rewrites the font style sheets
@@ -509,7 +543,8 @@ Build first: the README images and some tests use `out\`.
 
 | Release | Codename | Date | Notes |
 |---|---|---|---|
-| **1.6.0** | **Ortakoy** | 2026-11-10 | New versions: a once-a-day check and a notification, with a switch in every app and the setup |
+| **1.7.0** | **Moda** | 2026-11-11 | New unit: the NeuralPulse PL-2 system monitor, and NeuralDeck's `cpu` command |
+| 1.6.0 | Ortakoy | 2026-11-10 | New versions: a once-a-day check and a notification, with a switch in every app and the setup |
 | 1.5.0 | Beyoglu | 2026-11-06 | English interface: every app, the setup and the uninstaller speak Turkish or English |
 | 1.4.0 | Kadikoy | 2026-10-23 | The apps hand off to each other: pictures to NeuralView, paths in NeuralTerm to NeuralNav, downloads to the app that fits |
 | 1.3.0 | Levent | 2026-10-23 | New unit: the NeuralDeck DK-0 launcher and command palette |
@@ -520,15 +555,16 @@ Build first: the README images and some tests use `out\`.
 | 1.0.1 | Neo-Istanbul | 2026-10-22 | Bundled typefaces: the apps no longer load fonts from Google Fonts |
 | 1.0.0 | Neo-Istanbul | 2026-10-22 | First public release: five apps, the setup and uninstaller |
 
-| Unit | Model | 1.0.0 | 1.0.1 | 1.1.0 | 1.1.1 | 1.2.0 | 1.2.1 | 1.3.0 | 1.4.0 | 1.5.0 | 1.6.0 |
-|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-| NeuralCalc | `KX-9` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
-| NeuralPad | `NP-7` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
-| NeuralNav | `NV-4` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
-| NeuralTerm | `NT-5` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
-| NeuralWeb | `NW-1` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
-| NeuralView | `VW-3` | | | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
-| NeuralDeck | `DK-0` | | | | | | | ✔ | ✔ | ✔ | ✔ |
+| Unit | Model | 1.0.0 | 1.0.1 | 1.1.0 | 1.1.1 | 1.2.0 | 1.2.1 | 1.3.0 | 1.4.0 | 1.5.0 | 1.6.0 | 1.7.0 |
+|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| NeuralCalc | `KX-9` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
+| NeuralPad | `NP-7` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
+| NeuralNav | `NV-4` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
+| NeuralTerm | `NT-5` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
+| NeuralWeb | `NW-1` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
+| NeuralView | `VW-3` | | | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
+| NeuralDeck | `DK-0` | | | | | | | ✔ | ✔ | ✔ | ✔ | ✔ |
+| NeuralPulse | `PL-2` | | | | | | | | | | | ✔ |
 
 Version numbers follow [Semantic Versioning](https://semver.org/). Every major and minor release gets a codename from
 the map of Neo-Istanbul; patch releases (1.0.x, 1.1.x, 1.2.x, ...) keep the codename of their line. Details are in the
@@ -542,7 +578,8 @@ the map of Neo-Istanbul; patch releases (1.0.x, 1.1.x, 1.2.x, ...) keep the code
 - **The update check** is the one request the apps make by themselves: at most once a day, one app asks
   `api.github.com` for the series' latest release, with a generic User-Agent and nothing about you or your PC. GitHub
   sees the request's IP address, as with any visit. Switch it off in the setup or in any app (*Check for new versions*);
-  then NeuralCalc, NeuralPad, NeuralNav, NeuralTerm, NeuralView and NeuralDeck connect to nothing at all.
+  then NeuralCalc, NeuralPad, NeuralNav, NeuralTerm, NeuralView, NeuralDeck and NeuralPulse connect to nothing at all.
+  NeuralPulse reads the process list and the performance counters on your PC only.
 - The typefaces are bundled with the apps, so no font is ever fetched from the internet. NeuralView reads your pictures
   and their EXIF data on your PC only. The series' theme, language and update state are small local files in
   `%APPDATA%\NeuralSeries`.

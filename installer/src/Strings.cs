@@ -68,6 +68,7 @@ namespace NeuralSetup
                 case "NeuralWeb": return P("Web tarayıcısı: kalkan ve şifre yöneticisiyle", "Web browser with a shield and a password manager");
                 case "NeuralView": return P("Resim görüntüleyici", "Image viewer");
                 case "NeuralDeck": return P("Başlatıcı ve komut paleti", "Launcher and command palette");
+                case "NeuralPulse": return P("Sistem izleyici: CPU, bellek, disk, ağ, GPU", "System monitor: CPU, memory, disk, network, GPU");
             }
             return app;
         }
@@ -85,6 +86,7 @@ namespace NeuralSetup
                 case "NeuralWeb": return "NeuralWeb";
                 case "NeuralView": return en ? "NeuralView Image Viewer" : "NeuralView Resim Görüntüleyici";
                 case "NeuralDeck": return en ? "NeuralDeck Command Palette" : "NeuralDeck Komut Paleti";
+                case "NeuralPulse": return en ? "NeuralPulse System Monitor" : "NeuralPulse Sistem İzleyici";
             }
             return app;
         }
@@ -100,6 +102,7 @@ namespace NeuralSetup
                 case "NeuralWeb": return P("NeuralWeb NW-1 Neural serisi web tarayıcısı", "NeuralWeb NW-1 Neural Series web browser");
                 case "NeuralView": return P("NeuralView VW-3 cyberpunk resim görüntüleyici", "NeuralView VW-3 cyberpunk image viewer");
                 case "NeuralDeck": return P("NeuralDeck DK-0 cyberpunk başlatıcı ve komut paleti", "NeuralDeck DK-0 cyberpunk launcher and command palette");
+                case "NeuralPulse": return P("NeuralPulse PL-2 cyberpunk sistem izleyici", "NeuralPulse PL-2 cyberpunk system monitor");
             }
             return app;
         }
@@ -115,6 +118,7 @@ namespace NeuralSetup
                 case "NeuralWeb": return P("NeuralWeb NW-1 web tarayıcısı", "NeuralWeb NW-1 web browser");
                 case "NeuralView": return P("NeuralView VW-3 resim görüntüleyici", "NeuralView VW-3 image viewer");
                 case "NeuralDeck": return P("NeuralDeck DK-0 komut paleti", "NeuralDeck DK-0 command palette");
+                case "NeuralPulse": return P("NeuralPulse PL-2 sistem izleyici", "NeuralPulse PL-2 system monitor");
             }
             return app;
         }
@@ -247,7 +251,7 @@ namespace NeuralSetup
         /* ------------------------------------------------------------ welcome */
         public static string StatusPackage(string size, string version) { return F("Paket: {0} · Neural serisi {1}", "Package: {0} · Neural Series {1}", size, version); }
         public static string WelcomeTitle { get { return P("Neural serisine hoş geldin", "Welcome to the Neural Series"); } }
-        public static string WelcomeLead { get { return P("Bu sihirbaz Neural serisinin yedi programını bilgisayarına kurar. Hepsi aynı Neural tasarımını ve tek bir ortak Electron çalışma klasörünü paylaşır.", "This wizard installs the seven apps of the Neural Series on your computer. They all share the same Neural design and a single Electron runtime folder."); } }
+        public static string WelcomeLead { get { return P("Bu sihirbaz Neural serisinin sekiz programını bilgisayarına kurar. Hepsi aynı Neural tasarımını ve tek bir ortak Electron çalışma klasörünü paylaşır.", "This wizard installs the eight apps of the Neural Series on your computer. They all share the same Neural design and a single Electron runtime folder."); } }
         public static string WelcomeExisting(string root) { return F("Bilgisayarında bir Neural kurulumu var: {0}\nKurulum onu güncelleyecek. Ayarların, yer imlerin, şifrelerin ve notların olduğu gibi kalır.", "There is a Neural installation on this computer: {0}\nThe setup will update it. Your settings, bookmarks, passwords and notes stay as they are.", root); }
         public static string WelcomeNote { get { return P("Ayarlar ve kişisel veriler programlardan ayrı tutulur; güncelleme ya da yeniden kurulum onlara dokunmaz.", "Settings and personal data are kept apart from the apps; updating or reinstalling never touches them."); } }
         public static string WelcomeStart { get { return P("Başla  ›", "Start  ›"); } }

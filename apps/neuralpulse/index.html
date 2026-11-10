@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="tr" class="theme-neon">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NeuralPulse</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" type="image/png" href="icon.png">
+</head>
+<body>
+<div class="window">
+  <div class="frame">
+    <div class="frame-inner" id="app">
+      <header class="band">
+        <div class="brand" aria-hidden="true"><span class="brand-model">PL-2</span><span class="brand-name">NEURALPULSE</span></div>
+        <div class="band-title" id="band-title" data-i18n="band.title">Sistem İzleyici</div>
+        <span class="hazard" aria-hidden="true"></span>
+        <div class="win-btns">
+          <button class="win-btn" id="win-min" type="button" aria-label="Simge durumuna küçült" title="Küçült" data-i18n-aria-label="win.minimize.aria" data-i18n-title="win.minimize"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 9.5h8"/></svg></button>
+          <button class="win-btn" id="win-max" type="button" aria-label="Ekranı kapla" title="Ekranı kapla" data-i18n-aria-label="win.maximize" data-i18n-title="win.maximize"><svg class="ic-max" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5h7v7h-7z"/></svg><svg class="ic-restore" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5h5v5M2.5 4.5h5v5h-5z"/></svg></button>
+          <button class="win-btn close" id="win-close" type="button" aria-label="Kapat" title="Kapat" data-i18n-aria-label="win.close" data-i18n-title="win.close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button>
+        </div>
+      </header>
+
+      <div class="toolbar">
+        <span class="live wait" id="live"><i aria-hidden="true"></i><span id="live-text" data-i18n="live.wait">ÖLÇÜLÜYOR</span></span>
+        <span class="overview" data-i18n="overview">Genel bakış · son 60 sn</span>
+        <span class="grow"></span>
+        <button class="tool-btn" id="menu-btn" type="button" title="Ayarlar" aria-label="Ayarlar" data-i18n-title="settings" data-i18n-aria-label="settings"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6h1M5.5 6h1M9 6h1"/></svg></button>
+      </div>
+
+      <main class="screen" id="screen">
+        <div class="beam-track" aria-hidden="true"><div class="beam"></div></div>
+        <section class="cards" id="cards" aria-label="Grafikler" data-i18n-aria-label="cards.aria"></section>
+        <section class="procs">
+          <div class="procs-bar">
+            <h2 class="procs-title" data-i18n="procs.title">Süreçler</h2>
+            <label class="search">
+              <svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="5" cy="5" r="3.2"/><path d="M7.4 7.4L10.5 10.5"/></svg>
+              <input id="search" type="text" spellcheck="false" autocomplete="off" placeholder="Ara: ad, PID ya da konum" aria-label="Süreç ara" data-i18n-placeholder="search.placeholder" data-i18n-aria-label="search.aria">
+              <button class="search-clear" id="search-clear" type="button" hidden title="Aramayı temizle (Esc)" aria-label="Aramayı temizle (Esc)" data-i18n-title="search.clear" data-i18n-aria-label="search.clear"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6"/></svg></button>
+            </label>
+            <span class="procs-count" id="procs-count"></span>
+          </div>
+          <div class="table" id="table">
+            <div class="thead" id="thead" role="row">
+              <button class="th" type="button" data-col="name" role="columnheader"><span data-i18n="col.name">Ad</span><i class="arrow" aria-hidden="true"></i></button>
+              <button class="th num" type="button" data-col="pid" role="columnheader"><span data-i18n="col.pid">PID</span><i class="arrow" aria-hidden="true"></i></button>
+              <button class="th num" type="button" data-col="cpu" role="columnheader"><span data-i18n="col.cpu">CPU</span><i class="arrow" aria-hidden="true"></i></button>
+              <button class="th num" type="button" data-col="mem" role="columnheader"><span data-i18n="col.mem">Bellek</span><i class="arrow" aria-hidden="true"></i></button>
+              <button class="th" type="button" data-col="path" role="columnheader"><span data-i18n="col.path">Konum</span><i class="arrow" aria-hidden="true"></i></button>
+            </div>
+            <div class="tbody" id="tbody" tabindex="0" role="grid" aria-label="Süreç listesi" data-i18n-aria-label="procs.aria">
+              <div class="spacer" id="spacer"></div>
+              <div class="rows" id="rows"></div>
+            </div>
+            <div class="empty" id="empty" hidden></div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="statusbar">
+        <span id="st-procs"></span>
+        <span id="st-cpu"></span>
+        <span id="st-mem"></span>
+        <span id="st-uptime"></span>
+      </footer>
+    </div>
+  </div>
+  <div class="rz rz-n" data-edge="n"></div>
+  <div class="rz rz-s" data-edge="s"></div>
+  <div class="rz rz-e" data-edge="e"></div>
+  <div class="rz rz-w" data-edge="w"></div>
+  <div class="rz rz-ne" data-edge="ne"></div>
+  <div class="rz rz-nw" data-edge="nw"></div>
+  <div class="rz rz-se" data-edge="se"></div>
+  <div class="rz rz-sw" data-edge="sw"></div>
+</div>
+
+<div id="popups"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<dialog class="hud-dialog" id="dlg-end">
+  <form method="dialog">
+    <div class="dlg-body">
+      <h2 class="dlg-head" data-i18n="end.title">Süreç sonlandırılsın mı?</h2>
+      <div class="dlg-content">
+        <p class="end-target" id="end-target"></p>
+        <p class="end-path" id="end-path"></p>
+        <p class="end-warn" data-i18n="end.warn">Süreç hemen kapanır; kaydedilmemiş çalışmalar kaybolur.</p>
+      </div>
+      <div class="btns">
+        <button value="ok" class="danger" id="end-ok" data-i18n="end.ok">Sonlandır</button>
+        <button value="cancel" class="primary" id="end-cancel" data-i18n="dlg.cancel">Vazgeç</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="hud-dialog wide" id="dlg-keys">
+  <form method="dialog">
+    <div class="dlg-body">
+      <h2 class="dlg-head" data-i18n="dlg.keys">Klavye kısayolları</h2>
+      <div class="dlg-content"><div class="keys" id="keys-list"></div></div>
+      <div class="btns"><button value="ok" class="primary" data-i18n="dlg.ok">Tamam</button></div>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="hud-dialog" id="dlg-about">
+  <form method="dialog">
+    <div class="dlg-body">
+      <h2 class="dlg-head" data-i18n="dlg.about">NeuralPulse hakkında</h2>
+      <div class="dlg-content">
+        <p class="about-mark" aria-hidden="true">PL-2</p>
+        <p data-i18n="about.text">Neural serisinin sistem izleyicisi. İşlemci, bellek, disk, ağ ve GPU yükünü canlı gösterir; süreçleri listeler, konumlarını NeuralNav'da açar ve onayınla sonlandırır.</p>
+        <p class="hint" id="about-hint"></p>
+      </div>
+      <div class="btns"><button value="ok" class="primary" data-i18n="dlg.ok">Tamam</button></div>
+    </div>
+  </form>
+</dialog>
+
+<script src="../shared/i18n.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -7,7 +7,7 @@
 const { app, BrowserWindow, ipcMain, screen, Menu, Tray, globalShortcut, clipboard } = require("electron");
 const fs = require("fs");
 const path = require("path");
-const { spawn } = require("child_process");
+const { spawn, execFile } = require("child_process");
 const commands = require("./commands");
 // Shared with the series (theme, interface language): next to main.js when installed, in apps\shared from source.
 const shared = (name) => require(fs.existsSync(path.join(__dirname, `${name}.js`)) ? `./${name}` : `../shared/${name}`);
@@ -191,10 +191,39 @@ function execute(item) {
 }
 
 /* ---------- IPC ---------- */
+/* ---------- the cpu command: one measurement by NeuralPulse's helper (plsensor.exe --once) ---------- */
+// The first query shows "measuring"; when the answer is in, the panel asks again. A measurement is kept for a few
+// seconds. NEURALDECK_TEST_STATS names a JSON file the tests use instead of the helper.
+let stats = null;
+let statsAt = 0;
+let measuring = false;
+const STATS_FRESH = 3000;
+function measure() {
+  if (measuring || (stats && Date.now() - statsAt < STATS_FRESH)) return;
+  measuring = true;
+  const done = (v) => {
+    stats = v;
+    statsAt = Date.now();
+    measuring = false;
+    if (win && !win.isDestroyed()) win.webContents.send("deck:refresh");
+  };
+  if (process.env.NEURALDECK_TEST_STATS) {
+    setTimeout(() => { try { done(JSON.parse(fs.readFileSync(process.env.NEURALDECK_TEST_STATS, "utf8"))); } catch (e) { done({ failed: true }); } }, 800); // about as long as the helper takes
+    return;
+  }
+  const sensor = path.join(path.dirname(exeOf("NeuralPulse")), "resources", "app", "plsensor.exe");
+  execFile(sensor, ["--once", "--top", "3"], { timeout: 4000, windowsHide: true }, (err, out) => {
+    try { done(err ? { failed: true } : JSON.parse(String(out))); } catch (e) { done({ failed: true }); }
+  });
+}
+
 const fromPanel = (e) => win && e.sender === win.webContents;
 ipcMain.handle("deck:query", (e, text) => {
   if (!fromPanel(e)) return [];
-  const env = { installed: (id) => fs.existsSync(exeOf(id)), home: app.getPath("home"), vars: process.env, recent, ans, theme: seriesTheme() };
+  const parsed = commands.parse(String(text || ""));
+  if (parsed.cmd && parsed.cmd.id === "cpu") measure();
+  const shown = stats && Date.now() - statsAt < 10 * STATS_FRESH ? stats : null; // an older answer while a new one comes
+  const env = { installed: (id) => fs.existsSync(exeOf(id)), home: app.getPath("home"), vars: process.env, recent, ans, theme: seriesTheme(), stats: shown };
   try { lastItems = commands.suggest(String(text || ""), env); } catch (err) { lastItems = []; }
   return lastItems.map(({ title, detail, chip, disabled, complete }) => ({ title, detail, chip, disabled: !!disabled, complete: complete || "" }));
 });

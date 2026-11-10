@@ -28,6 +28,7 @@ const PROGRAMS = [
   { id: "NeuralTerm", code: "NT-5", what: "prog.term", keys: ["term", "nt", "terminal", "komut istemi", "command prompt", "powershell"] },
   { id: "NeuralWeb", code: "NW-1", what: "prog.web", keys: ["web", "tarayıcı", "browser", "internet"] },
   { id: "NeuralView", code: "VW-3", what: "prog.view", keys: ["view", "göster", "resim", "görüntüleyici", "fotoğraf", "picture", "photo"] },
+  { id: "NeuralPulse", code: "PL-2", what: "prog.pulse", keys: ["pulse", "sistem", "sistem izleyici", "görev yöneticisi", "task manager", "monitor", "bellek", "ram"] },
 ];
 const program = (id) => PROGRAMS.find((p) => p.id === id);
 
@@ -42,6 +43,7 @@ const COMMANDS = [
   { id: "web", words: ["web", "url", "site"], app: "NeuralWeb", arg: "url", usage: "cmd.web.usage", title: "cmd.web.title", what: "cmd.web.what" },
   { id: "ara", words: ["ara", "search", "google"], app: "NeuralWeb", arg: "words", usage: "cmd.search.usage", title: "cmd.search.title", what: "cmd.search.what" },
   { id: "tema", words: ["tema", "theme"], app: null, arg: "theme", usage: "cmd.theme.usage", title: "cmd.theme.title", what: null },
+  { id: "cpu", words: ["cpu", "işlemci", "islemci"], app: "NeuralPulse", arg: "stats", usage: "cmd.cpu.usage", title: "cmd.cpu.title", what: "cmd.cpu.what" },
   { id: "ayarlar", words: ["ayarlar", "settings"], app: null, arg: null, usage: "cmd.settings.usage", title: "cmd.settings.title", what: "cmd.settings.what" },
 ];
 // The name shown is T('theme.<id>'); keys: what finds it after "tema", in either language.
@@ -201,11 +203,32 @@ function calcItems(arg, env) {
   out.push(startItem(env, "NeuralCalc"));
   return out;
 }
+// The cpu command: the load and the busiest processes from NeuralPulse's helper (main.js measures; env.stats is
+// null while it measures, { failed: true } when it could not). Every line opens NeuralPulse.
+const pct = (v) => Math.round(Number(v) || 0).toLocaleString(T.locale);
+function bytes(n) {
+  const v = Number(n) || 0;
+  const [d, u] = v >= 1073741824 ? [v / 1073741824, "GB"] : v >= 1048576 ? [v / 1048576, "MB"] : [v / 1024, "KB"];
+  return `${d.toLocaleString(T.locale, { maximumFractionDigits: d < 10 ? 1 : 0 })} ${u}`;
+}
+function statsItems(env) {
+  if (!env.installed("NeuralPulse")) return [startItem(env, "NeuralPulse")];
+  const s = env.stats;
+  const open = (title, detail, chip) => launchItem(env, "NeuralPulse", [], title, detail, { chip });
+  if (!s) return [{ title: T("item.cpu-measuring"), detail: T("cmd.cpu.what"), chip: "PL-2", disabled: true, action: { type: "none" } }];
+  if (s.failed) return [open(T("item.cpu-failed"), T("item.cpu-open"), "PL-2")];
+  const mem = s.mem && s.mem.total ? (100 * s.mem.used) / s.mem.total : 0;
+  return [
+    open(T("item.cpu-load", { cpu: pct(s.cpu && s.cpu.total), mem: pct(mem) }), T("item.cpu-open"), "PL-2"),
+    ...(s.procs || []).slice(0, 3).map((p) => open(String(p.name), T("item.cpu-proc", { cpu: pct(p.cpu), mem: bytes(p.mem) }), "▲")),
+  ];
+}
 function suggest(input, env) {
   const { cmd, arg, text } = parse(input);
   if (cmd) {
     switch (cmd.arg) {
       case "math": return calcItems(arg, env);
+      case "stats": return statsItems(env);
       case "dir": case "file": case "image": return pathItems(cmd, arg, env);
       case "url": {
         const u = toUrl(arg);

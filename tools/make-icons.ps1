@@ -115,6 +115,13 @@ $apps = [ordered]@{
     & $rect $Y 56 126 144 20
     & $rect $Y 56 160 96 20
   }
+  'neuralpulse' = {  # system monitor: a yellow pulse trace over cyan graph bars
+    & $stroke $yellowC 12 @(54, 110, 88, 110, 104, 68, 128, 150, 148, 92, 162, 110, 202, 110) $false
+    & $rect $C 60 172 24 26
+    & $rect $C 96 158 24 40
+    & $rect $C 132 180 24 18
+    & $rect $C 168 150 24 48
+  }
 }
 foreach ($name in $apps.Keys) { Save-Icon (Join-Path $Root "apps\$name\$name.ico") $apps[$name] (Join-Path $Root "apps\$name\icon.png") }
 Save-Icon (Join-Path $Root 'installer\src\setup.ico') {   # cyan arrow into a yellow tray
