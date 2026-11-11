@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Builds the eight Neural programs and the Windows setup from a clean clone.
+  Builds the nine Neural programs and the Windows setup from a clean clone.
 
 .DESCRIPTION
   1. npm ci       Electron, xterm.js, the bundled typefaces (@fontsource) and NeuralWeb's ad blocker, at the
@@ -164,16 +164,22 @@ Copy-Files "$apps\neuralpulse" $pulse @('index.html', 'styles.css', 'app.js', 'm
 Copy-Fonts "$pulse\fonts" @('fonts.css')
 Invoke-Csc @('/target:exe', '/platform:x64', "/out:$pulse\plsensor.exe", "$apps\neuralpulse\plsensor.cs")
 
+# NeuralSnap SN-8, with its screen grabber (the screen's pixels and the outlines of the open windows)
+$snap = "$stage\apps\NeuralSnap"
+Copy-Files "$apps\neuralsnap" $snap @('index.html', 'styles.css', 'app.js', 'annotate.js', 'overlay.html', 'overlay.css', 'overlay.js', 'pin.html', 'pin.css', 'pin.js', 'main.js', 'preload.js', 'preload-tools.js', 'package.json', 'icon.png', 'neuralsnap.ico')
+Copy-Fonts "$snap\fonts" @('fonts.css')
+Invoke-Csc @('/target:exe', '/platform:x64', "/out:$snap\sngrab.exe", "$apps\neuralsnap\sngrab.cs")
+
 # The series theme module, next to the main.js of every program that follows the series theme (NeuralCalc has none)
-foreach ($a in 'NeuralPad', 'NeuralNav', 'NeuralTerm', 'NeuralWeb', 'NeuralView', 'NeuralDeck', 'NeuralPulse') { Copy-Item "$apps\shared\theme-sync.js" "$stage\apps\$a\theme-sync.js" }
+foreach ($a in 'NeuralPad', 'NeuralNav', 'NeuralTerm', 'NeuralWeb', 'NeuralView', 'NeuralDeck', 'NeuralPulse', 'NeuralSnap') { Copy-Item "$apps\shared\theme-sync.js" "$stage\apps\$a\theme-sync.js" }
 # The hand-off module (which series program opens a file, a folder or an address) and the update check, which opens
 # a new version's release page through it: next to every program's main.js
-foreach ($a in 'NeuralCalc', 'NeuralPad', 'NeuralNav', 'NeuralTerm', 'NeuralWeb', 'NeuralView', 'NeuralDeck', 'NeuralPulse') {
+foreach ($a in 'NeuralCalc', 'NeuralPad', 'NeuralNav', 'NeuralTerm', 'NeuralWeb', 'NeuralView', 'NeuralDeck', 'NeuralPulse', 'NeuralSnap') {
   foreach ($f in 'handoff.js', 'update-check.js') { Copy-Item "$apps\shared\$f" "$stage\apps\$a\$f" }
 }
 # The interface language: each program's lang\ folder, the language module next to its main.js and the text helper
 # next to its pages (NeuralWeb's neural:// pages are served from pages\, so they get their own copy)
-foreach ($a in 'NeuralCalc', 'NeuralPad', 'NeuralNav', 'NeuralTerm', 'NeuralWeb', 'NeuralView', 'NeuralDeck', 'NeuralPulse') {
+foreach ($a in 'NeuralCalc', 'NeuralPad', 'NeuralNav', 'NeuralTerm', 'NeuralWeb', 'NeuralView', 'NeuralDeck', 'NeuralPulse', 'NeuralSnap') {
   Copy-Item "$apps\$($a.ToLower())\lang" "$stage\apps\$a\lang" -Recurse
   foreach ($f in 'language.js', 'i18n.js') { Copy-Item "$apps\shared\$f" "$stage\apps\$a\$f" }
 }

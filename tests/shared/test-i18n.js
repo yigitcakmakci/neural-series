@@ -10,7 +10,7 @@ const i18n = require("../../apps/shared/i18n");
 const language = require("../../apps/shared/language");
 
 const APPS = path.join(__dirname, "..", "..", "apps");
-const PROGRAMS = ["neuralcalc", "neuralpad", "neuralnav", "neuralterm", "neuralweb", "neuralview", "neuraldeck", "neuralpulse"];
+const PROGRAMS = ["neuralcalc", "neuralpad", "neuralnav", "neuralterm", "neuralweb", "neuralview", "neuraldeck", "neuralpulse", "neuralsnap"];
 let passed = 0, failed = 0;
 const check = (cond, label, extra = "") => { if (cond) { passed++; console.log("  ok   " + label); } else { failed++; console.log("  FAIL " + label + (extra ? "  -> " + extra : "")); } };
 

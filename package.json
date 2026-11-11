@@ -1,7 +1,7 @@
 {
   "name": "neural-series",
-  "version": "1.7.0",
-  "description": "Neural Series: eight cyberpunk-styled desktop apps for Windows (calculator, notepad, file explorer, terminal, web browser, image viewer, launcher, system monitor) and their installer.",
+  "version": "1.8.0",
+  "description": "Neural Series: nine cyberpunk-styled desktop apps for Windows (calculator, notepad, file explorer, terminal, web browser, image viewer, launcher, system monitor, screenshot tool) and their installer.",
   "private": true,
   "license": "GPL-3.0-or-later",
   "author": "Yiğit Çakmakcı",

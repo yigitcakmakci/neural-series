@@ -45,6 +45,7 @@ namespace NeuralSetup
             new AppInfo("NeuralView", "VW-3", "neuralview.ico", "NeuralView", false),
             new AppInfo("NeuralDeck", "DK-0", "neuraldeck.ico", "NeuralDeck", false),
             new AppInfo("NeuralPulse", "PL-2", "neuralpulse.ico", "NeuralPulse", false),
+            new AppInfo("NeuralSnap", "SN-8", "neuralsnap.ico", "NeuralSnap", false),
         };
         // The programs of the first release (1.0). An installation whose manifest has no "Bilinen" line was made by a
         // setup that knew only these, so any other program is new to it and is offered as checked when updating.
@@ -60,6 +61,7 @@ namespace NeuralSetup
         public bool StartMenu = true, PadOpenWith = true, NavMenu = true, NavDefault, NavWatch, TermCommands = true, WebRegister = true, WindowsIcons;
         public bool ViewOpenWith = true;
         public bool DeckAutostart;
+        public bool SnapAutostart = true; // NeuralSnap waits in the background for its shortcut (Ctrl+Alt+S)
         public bool UpdateCheck = true; // the programs ask GitHub for new versions (apps\shared\update-check.js)
         public bool RemoveData;
         public bool Test;
@@ -170,6 +172,7 @@ namespace NeuralSetup
             Notify();
             if (o.NavWatch && o.NavDefault && o.Apps.Contains("NeuralNav") && !o.Test) StartWatcher();
             if ((o.DeckAutostart || deckWasRunning) && o.Apps.Contains("NeuralDeck") && !o.Test) StartDeck();
+            if ((o.SnapAutostart || snapWasRunning) && o.Apps.Contains("NeuralSnap") && !o.Test) StartSnap();
             progress(1, L.ProgressInstalled);
             log(L.LogDone);
         }
@@ -207,6 +210,7 @@ namespace NeuralSetup
             if (o.Apps.Contains("NeuralWeb")) { if (o.WebRegister) RegisterWeb(r); else UnregisterWeb(r); }
             if (o.Apps.Contains("NeuralView")) { if (o.ViewOpenWith) RegisterView(r); else UnregisterView(r); }
             if (o.Apps.Contains("NeuralDeck")) { if (o.DeckAutostart) r.Set(RunKey, "NeuralDeck", Q(ExePath("NeuralDeck")) + " --arka-plan"); else UnsetDeckRun(r); }
+            if (o.Apps.Contains("NeuralSnap")) { if (o.SnapAutostart) r.Set(RunKey, "NeuralSnap", Q(ExePath("NeuralSnap")) + " --arka-plan"); else UnsetSnapRun(r); }
             if (o.WindowsIcons) SetIcons(r); else UnsetIcons(r);
             log(o.Test ? L.LogRegistryTest : L.LogRegistry);
 
@@ -384,10 +388,13 @@ namespace NeuralSetup
             UnsetWatch(r);
         }
         const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
-        void UnsetDeckRun(Reg r)
+        void UnsetDeckRun(Reg r) { UnsetRun(r, "NeuralDeck"); }
+        void UnsetSnapRun(Reg r) { UnsetRun(r, "NeuralSnap"); }
+        // Removes a program's sign-in entry, but only when it still points at that program.
+        void UnsetRun(Reg r, string app)
         {
-            string v = r.Get(RunKey, "NeuralDeck");
-            if (v != null && v.IndexOf("NeuralDeck.exe", StringComparison.OrdinalIgnoreCase) >= 0) r.DeleteValue(RunKey, "NeuralDeck");
+            string v = r.Get(RunKey, app);
+            if (v != null && v.IndexOf(app + ".exe", StringComparison.OrdinalIgnoreCase) >= 0) r.DeleteValue(RunKey, app);
         }
         void UnsetWatch(Reg r)
         {
@@ -588,6 +595,7 @@ namespace NeuralSetup
                 "NeuralNavIzleyici=" + B(has("NeuralNav") && now.NavWatch), "NeuralTermKomut=" + B(has("NeuralTerm") && now.TermCommands),
                 "NeuralWebKayit=" + B(has("NeuralWeb") && now.WebRegister), "NeuralViewAc=" + B(has("NeuralView") && now.ViewOpenWith),
                 "NeuralDeckBaslangic=" + B(has("NeuralDeck") && now.DeckAutostart),
+                "NeuralSnapBaslangic=" + B(has("NeuralSnap") && now.SnapAutostart),
                 "WindowsSimgeleri=" + B(now.WindowsIcons),
                 "Guncelleme=" + B(now.UpdateCheck),
                 "Bilinen=" + string.Join(",", Apps.All.Select(a => a.Id)),
@@ -633,7 +641,7 @@ namespace NeuralSetup
             StopBackground();
             progress(0.05, L.ProgressUnregistering);
             var r = R;
-            UnregisterPad(r); UnregisterNavMenu(r); UnsetNavDefault(r); UnregisterTerm(r); UnregisterWeb(r); UnregisterView(r); UnsetDeckRun(r); UnsetIcons(r);
+            UnregisterPad(r); UnregisterNavMenu(r); UnsetNavDefault(r); UnregisterTerm(r); UnregisterWeb(r); UnregisterView(r); UnsetDeckRun(r); UnsetSnapRun(r); UnsetIcons(r);
             log(o.NavDefault ? L.LogUnregisteredNav : L.LogUnregistered);
 
             // Every shortcut that points into the installation, whatever its name (Turkish or English).
@@ -705,22 +713,36 @@ namespace NeuralSetup
             return list;
         }
         // Programs that run in the background with nothing to save: the setup stops them itself instead of asking.
-        static readonly string[] Background = { "nvwatch", "NeuralDeck" };
+        // sngrab is NeuralSnap's screen-capture helper; it ends with NeuralSnap but may still hold its file for a moment.
+        static readonly string[] Background = { "nvwatch", "NeuralDeck", "NeuralSnap", "sngrab" };
         public static bool IsBackground(Process p) { return Background.Any(n => p.ProcessName.Equals(n, StringComparison.OrdinalIgnoreCase)); }
-        bool deckWasRunning;
+        bool deckWasRunning, snapWasRunning;
         void StopBackground()
         {
-            var stopped = new HashSet<string>(); // NeuralDeck is several processes of the same name (Electron)
+            var stopped = new HashSet<string>(); // NeuralDeck and NeuralSnap are several processes of the same name (Electron)
             foreach (var p in RunningIn(o.Root).Where(IsBackground))
             {
-                bool deck = p.ProcessName.Equals("NeuralDeck", StringComparison.OrdinalIgnoreCase);
-                try { p.Kill(); p.WaitForExit(3000); stopped.Add(deck ? L.LogDeckStopped : L.LogWatcherStopped); deckWasRunning |= deck; } catch { }
+                string name = p.ProcessName;
+                bool deck = name.Equals("NeuralDeck", StringComparison.OrdinalIgnoreCase);
+                bool snap = name.Equals("NeuralSnap", StringComparison.OrdinalIgnoreCase);
+                bool helper = name.Equals("sngrab", StringComparison.OrdinalIgnoreCase);
+                try
+                {
+                    p.Kill(); p.WaitForExit(3000);
+                    if (!helper) stopped.Add(deck ? L.LogDeckStopped : snap ? L.LogSnapStopped : L.LogWatcherStopped);
+                    deckWasRunning |= deck; snapWasRunning |= snap;
+                }
+                catch { }
             }
             foreach (var s in stopped) log("  " + s);
         }
         void StartDeck()
         {
             try { Process.Start(new ProcessStartInfo(ExePath("NeuralDeck"), "--arka-plan") { UseShellExecute = false }); log(L.LogDeckStarted); } catch { }
+        }
+        void StartSnap()
+        {
+            try { Process.Start(new ProcessStartInfo(ExePath("NeuralSnap"), "--arka-plan") { UseShellExecute = false }); log(L.LogSnapStarted); } catch { }
         }
         void StartWatcher()
         {
@@ -806,6 +828,8 @@ namespace NeuralSetup
                 o.ViewOpenWith = has(@"Software\Classes\NeuralView.Image\shell\open\command", "", "NeuralView.exe");
             if (Directory.Exists(Path.Combine(o.Root, "NeuralDeck", "Program")))
                 o.DeckAutostart = has(@"Software\Microsoft\Windows\CurrentVersion\Run", "NeuralDeck", "NeuralDeck.exe");
+            if (Directory.Exists(Path.Combine(o.Root, "NeuralSnap", "Program"))) // new to an installation: on, like a fresh install
+                o.SnapAutostart = has(@"Software\Microsoft\Windows\CurrentVersion\Run", "NeuralSnap", "NeuralSnap.exe");
             string icon = r.GetRaw(@"Software\Microsoft\Windows\CurrentVersion\Explorer\CLSID\{20D04FE0-3AEA-1069-A2D8-08002B30309D}\DefaultIcon", "");
             o.WindowsIcons = icon != null && (icon.IndexOf(@"\Simgeler\", StringComparison.OrdinalIgnoreCase) >= 0 || icon.IndexOf("NeuralIcons", StringComparison.OrdinalIgnoreCase) >= 0);
             o.UpdateCheck = UpdateCheckIn(o); // the switch may have been changed in a program since

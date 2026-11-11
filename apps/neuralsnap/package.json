@@ -1,0 +1,8 @@
+{
+  "name": "neuralsnap",
+  "productName": "NeuralSnap",
+  "version": "1.8.0",
+  "description": "NeuralSnap SN-8 Neural serisi ekran görüntüsü aracı",
+  "private": true,
+  "main": "main.js"
+}

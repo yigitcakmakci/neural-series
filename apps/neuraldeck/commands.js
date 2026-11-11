@@ -29,6 +29,7 @@ const PROGRAMS = [
   { id: "NeuralWeb", code: "NW-1", what: "prog.web", keys: ["web", "tarayıcı", "browser", "internet"] },
   { id: "NeuralView", code: "VW-3", what: "prog.view", keys: ["view", "göster", "resim", "görüntüleyici", "fotoğraf", "picture", "photo"] },
   { id: "NeuralPulse", code: "PL-2", what: "prog.pulse", keys: ["pulse", "sistem", "sistem izleyici", "görev yöneticisi", "task manager", "monitor", "bellek", "ram"] },
+  { id: "NeuralSnap", code: "SN-8", what: "prog.snap", keys: ["snap", "ekran görüntüsü", "ekran alıntısı", "screenshot", "capture", "yakala"] },
 ];
 const program = (id) => PROGRAMS.find((p) => p.id === id);
 
@@ -44,6 +45,7 @@ const COMMANDS = [
   { id: "ara", words: ["ara", "search", "google"], app: "NeuralWeb", arg: "words", usage: "cmd.search.usage", title: "cmd.search.title", what: "cmd.search.what" },
   { id: "tema", words: ["tema", "theme"], app: null, arg: "theme", usage: "cmd.theme.usage", title: "cmd.theme.title", what: null },
   { id: "cpu", words: ["cpu", "işlemci", "islemci"], app: "NeuralPulse", arg: "stats", usage: "cmd.cpu.usage", title: "cmd.cpu.title", what: "cmd.cpu.what" },
+  { id: "snap", words: ["snap", "ekran", "yakala", "screenshot"], app: "NeuralSnap", arg: "capture", usage: "cmd.snap.usage", title: "cmd.snap.title", what: "cmd.snap.what" },
   { id: "ayarlar", words: ["ayarlar", "settings"], app: null, arg: null, usage: "cmd.settings.usage", title: "cmd.settings.title", what: "cmd.settings.what" },
 ];
 // The name shown is T('theme.<id>'); keys: what finds it after "tema", in either language.
@@ -223,12 +225,21 @@ function statsItems(env) {
     ...(s.procs || []).slice(0, 3).map((p) => open(String(p.name), T("item.cpu-proc", { cpu: pct(p.cpu), mem: bytes(p.mem) }), "▲")),
   ];
 }
+// NeuralSnap freezes the screen a moment after it is started with --cek, once the palette has gone.
+function captureItems(env) {
+  if (!env.installed("NeuralSnap")) return [startItem(env, "NeuralSnap")];
+  return [
+    launchItem(env, "NeuralSnap", ["--cek"], T("cmd.snap.title"), T("cmd.snap.what")),
+    launchItem(env, "NeuralSnap", [], T("item.snap-open"), T("prog.snap")),
+  ];
+}
 function suggest(input, env) {
   const { cmd, arg, text } = parse(input);
   if (cmd) {
     switch (cmd.arg) {
       case "math": return calcItems(arg, env);
       case "stats": return statsItems(env);
+      case "capture": return captureItems(env);
       case "dir": case "file": case "image": return pathItems(cmd, arg, env);
       case "url": {
         const u = toUrl(arg);

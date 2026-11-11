@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace NeuralSetup
 {
-    enum Page { Welcome, Apps, Windows, Work, Done, Fail, UWelcome, UWork, UDone }
+    enum Page { Welcome, Apps, Windows, Extras, Work, Done, Fail, UWelcome, UWork, UDone }
 
     class Wizard
     {
@@ -27,7 +27,7 @@ namespace NeuralSetup
         readonly List<Item> items = new List<Item>();
         readonly Dictionary<string, NCheck> appChecks = new Dictionary<string, NCheck>();
         readonly List<string> logLines = new List<string>();
-        NCheck cStart, cPad, cTerm, cWeb, cView, cDeck, cNavMenu, cNavDefault, cNavWatch, cIcons, cOpenWeb, cRemoveData, cUpdate;
+        NCheck cStart, cPad, cTerm, cWeb, cView, cDeck, cSnap, cNavMenu, cNavDefault, cNavWatch, cIcons, cOpenWeb, cRemoveData, cUpdate;
         PathBox pathBox;
         NProgress bar;
         LogView logView;
@@ -94,7 +94,11 @@ namespace NeuralSetup
                     break;
                 case Page.Windows:
                     ReadWindows();
-                    if (dir < 0) Show(Page.Apps);
+                    Show(dir < 0 ? Page.Apps : Page.Extras);
+                    break;
+                case Page.Extras:
+                    ReadExtras();
+                    if (dir < 0) Show(Page.Windows);
                     else if (CloseRunning()) { Show(Page.Work); Run(false); }
                     break;
                 case Page.Done:
@@ -132,14 +136,18 @@ namespace NeuralSetup
             o.Apps.Clear();
             foreach (var kv in appChecks) if (kv.Value.Checked) o.Apps.Add(kv.Key);
             if (pathBox != null) o.Root = pathBox.Box.Text.Trim();
-            if (cUpdate != null) o.UpdateCheck = cUpdate.Checked;
             return true;
         }
         void ReadWindows()
         {
             if (cStart == null) return;
-            o.StartMenu = cStart.Checked; o.PadOpenWith = cPad.Checked; o.TermCommands = cTerm.Checked; o.WebRegister = cWeb.Checked; o.ViewOpenWith = cView.Checked; o.DeckAutostart = cDeck.Checked;
+            o.StartMenu = cStart.Checked; o.PadOpenWith = cPad.Checked; o.TermCommands = cTerm.Checked; o.WebRegister = cWeb.Checked; o.ViewOpenWith = cView.Checked;
             o.NavMenu = cNavMenu.Checked; o.NavDefault = cNavDefault.Checked; o.NavWatch = cNavWatch.Checked && cNavDefault.Checked; o.WindowsIcons = cIcons.Checked;
+        }
+        void ReadExtras()
+        {
+            if (cUpdate == null) return;
+            o.UpdateCheck = cUpdate.Checked; o.DeckAutostart = cDeck.Checked; o.SnapAutostart = cSnap.Checked;
         }
         bool CheckTarget()
         {
@@ -247,7 +255,7 @@ namespace NeuralSetup
             items.Clear();
             foreach (Control c in f.Screen.Controls.Cast<Control>().ToList()) { f.Screen.Controls.Remove(c); c.Dispose(); }
             appChecks.Clear();
-            cStart = cPad = cTerm = cWeb = cView = cDeck = cNavMenu = cNavDefault = cNavWatch = cIcons = cOpenWeb = cRemoveData = cUpdate = null;
+            cStart = cPad = cTerm = cWeb = cView = cDeck = cSnap = cNavMenu = cNavDefault = cNavWatch = cIcons = cOpenWeb = cRemoveData = cUpdate = null;
             pathBox = null; bar = null; logView = null;
             X = T.P(36); Y = T.P(30); W = f.Screen.Width - T.P(72);
             f.Back.Visible = false; f.Next.Visible = true; f.Next.Enabled = true; f.Next.Danger = false; f.Next.Primary = true;
@@ -256,6 +264,7 @@ namespace NeuralSetup
                 case Page.Welcome: BuildWelcome(); break;
                 case Page.Apps: BuildApps(); break;
                 case Page.Windows: BuildWindows(); break;
+                case Page.Extras: BuildExtras(); break;
                 case Page.Work: BuildWork(false); break;
                 case Page.Done: BuildDone(); break;
                 case Page.Fail: BuildFail(); break;
@@ -263,7 +272,7 @@ namespace NeuralSetup
                 case Page.UWork: BuildWork(true); break;
                 case Page.UDone: BuildUDone(); break;
             }
-            f.Step = p == Page.Welcome ? 0 : p == Page.Apps ? 1 : p == Page.Windows ? 2 : p == Page.Work ? 3 : p == Page.Done || p == Page.Fail ? 4
+            f.Step = p == Page.Welcome ? 0 : p == Page.Apps ? 1 : p == Page.Windows ? 2 : p == Page.Extras ? 3 : p == Page.Work ? 4 : p == Page.Done || p == Page.Fail ? 5
                 : p == Page.UWelcome ? 0 : p == Page.UWork ? 1 : 2;
             // Enter always means the main button of the page, never an extra one such as "Varsayılan tarayıcıyı seç…" (choose the default browser).
             // Focus() as well: after the work page disabled Next, Windows has no focus at all while WinForms still
@@ -354,22 +363,17 @@ namespace NeuralSetup
             f.Next.Text = L.Next;
             Title(L.AppsTitle);
             Lead(L.AppsLead);
-            // Three columns: the apps, then the update check in the next place (eight apps and it fill a 3x3 grid).
+            // The apps in three columns (nine fill a 3x3 grid; the update check lives on the options page).
             const int cols = 3;
-            int gap = T.P(12), colW = (W - gap * (cols - 1)) / cols, rowH = 0, n = Apps.All.Length + 1;
+            int gap = T.P(12), colW = (W - gap * (cols - 1)) / cols, rowH = 0, n = Apps.All.Length;
             for (int i = 0; i < n; i++)
             {
                 int col = i % cols, x = X + col * (colW + gap);
-                NCheck c;
-                if (i < Apps.All.Length)
-                {
-                    var a = Apps.All[i];
-                    long size = payload != null ? payload.SizeOf("base/") + payload.SizeOf("apps/" + a.Id + "/") : 0;
-                    c = Check(a.Id + "  " + a.Code, a.Summary + (size > 0 ? " · " + Size(size) : ""), o.Apps.Contains(a.Id), x, Y, colW);
-                    c.Changed += delegate { UpdateNeedStatus(); };
-                    appChecks[a.Id] = c;
-                }
-                else c = cUpdate = Check(L.OptUpdate, L.OptUpdateSub, o.UpdateCheck, x, Y, colW);
+                var a = Apps.All[i];
+                long size = payload != null ? payload.SizeOf("base/") + payload.SizeOf("apps/" + a.Id + "/") : 0;
+                NCheck c = Check(a.Id + "  " + a.Code, a.Summary + (size > 0 ? " · " + Size(size) : ""), o.Apps.Contains(a.Id), x, Y, colW);
+                c.Changed += delegate { UpdateNeedStatus(); };
+                appChecks[a.Id] = c;
                 rowH = Math.Max(rowH, c.Height);
                 if (col == cols - 1 || i == n - 1) { Y += rowH + T.P(10); rowH = 0; }
             }
@@ -411,12 +415,12 @@ namespace NeuralSetup
         void BuildWindows()
         {
             f.Back.Visible = true;
-            f.Next.Text = existing ? L.Update : L.Install;
+            f.Next.Text = L.Next;
             f.Status = L.WinStatus;
             Title(L.WinTitle);
             Lead(L.WinLead);
             int colW = (W - T.P(14)) / 2, x1 = X, x2 = X + colW + T.P(14);
-            bool pad = o.Apps.Contains("NeuralPad"), nav = o.Apps.Contains("NeuralNav"), term = o.Apps.Contains("NeuralTerm"), web = o.Apps.Contains("NeuralWeb"), view = o.Apps.Contains("NeuralView"), deck = o.Apps.Contains("NeuralDeck");
+            bool pad = o.Apps.Contains("NeuralPad"), nav = o.Apps.Contains("NeuralNav"), term = o.Apps.Contains("NeuralTerm"), web = o.Apps.Contains("NeuralWeb"), view = o.Apps.Contains("NeuralView");
             Func<NCheck, NCheck, int> row = (a, b) => Math.Max(a.Height, b == null ? 0 : b.Height) + T.P(10);
             cStart = Check(L.OptStart, L.OptStartSub, o.StartMenu, x1, Y, colW);
             cWeb = Check(L.OptWeb, L.OptWebSub, web && o.WebRegister, x2, Y, colW);
@@ -431,11 +435,28 @@ namespace NeuralSetup
             cNavWatch = Check(L.OptNavWatch, L.OptNavWatchSub, nav && o.NavDefault && o.NavWatch, x2, Y, colW);
             Y += row(cNavDefault, cNavWatch);
             cIcons = Check(L.OptIcons, L.OptIconsSub, o.WindowsIcons, x1, Y, colW);
-            cDeck = Check(L.OptDeck, L.OptDeckSub, deck && o.DeckAutostart, x2, Y, colW);
-            Y += row(cIcons, cDeck);
-            cPad.Enabled = pad; cTerm.Enabled = term; cWeb.Enabled = web; cView.Enabled = view; cDeck.Enabled = deck; cNavMenu.Enabled = nav; cNavDefault.Enabled = nav;
+            Y += row(cIcons, null);
+            cPad.Enabled = pad; cTerm.Enabled = term; cWeb.Enabled = web; cView.Enabled = view; cNavMenu.Enabled = nav; cNavDefault.Enabled = nav;
             cNavWatch.Enabled = nav && cNavDefault.Checked;
             cNavDefault.Changed += delegate { cNavWatch.Enabled = cNavDefault.Checked; if (!cNavDefault.Checked) cNavWatch.Checked = false; };
+        }
+
+        // The apps that wait in the background from sign-in, and the series' update check.
+        void BuildExtras()
+        {
+            f.Back.Visible = true;
+            f.Next.Text = existing ? L.Update : L.Install;
+            f.Status = L.WinStatus;
+            Title(L.ExtrasTitle);
+            Lead(L.ExtrasLead);
+            int colW = (W - T.P(14)) / 2, x1 = X, x2 = X + colW + T.P(14);
+            bool deck = o.Apps.Contains("NeuralDeck"), snap = o.Apps.Contains("NeuralSnap");
+            cDeck = Check(L.OptDeck, L.OptDeckSub, deck && o.DeckAutostart, x1, Y, colW);
+            cSnap = Check(L.OptSnap, L.OptSnapSub, snap && o.SnapAutostart, x2, Y, colW);
+            Y += Math.Max(cDeck.Height, cSnap.Height) + T.P(10);
+            cUpdate = Check(L.OptUpdate, L.OptUpdateSub, o.UpdateCheck, x1, Y, colW);
+            Y += cUpdate.Height + T.P(10);
+            cDeck.Enabled = deck; cSnap.Enabled = snap;
         }
 
         void BuildWork(bool uninstall)
@@ -570,6 +591,7 @@ namespace NeuralSetup
             {
                 case "programlar": Show(Page.Apps); break;
                 case "windows": Show(Page.Windows); break;
+                case "secenekler": Show(Page.Extras); break;
                 case "kurulum":
                 case "siliniyor":
                     bool remove = which == "siliniyor";

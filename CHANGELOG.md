@@ -4,6 +4,32 @@ All notable changes to Neural Series are listed here. Versions follow [Semantic 
 Every major and minor release carries a codename from the map of Neo-Istanbul; patch releases keep the codename of
 their line.
 
+## 1.8.0 "Taksim" (2026-11-11)
+
+A new unit joins the series: **NeuralSnap SN-8**, a screenshot tool. All nine apps are at 1.8.0. Run the new setup over
+an existing installation: it adds NeuralSnap and keeps your options, settings and personal data.
+
+### New: NeuralSnap SN-8
+
+- Waits in the background from sign-in and takes a screenshot on **`Ctrl+Alt+S`** (changeable in its settings). The
+  screen freezes at once: drag a region, click a window, or press `Enter` for the whole display; `Esc` cancels. A
+  magnifier and the selection's size in pixels help to hit the edge.
+- The picture goes straight to the clipboard and, unless you switch it off, is saved in `Pictures\NeuralSnap`.
+- The editor marks it up: arrow, rectangle, pen, highlighter, text and **pixelate**, which hides personal data for good
+  (the blocks are computed from the picture, they cannot be turned back). Undo and redo, copy, save, save as, open in
+  NeuralView.
+- **Pin** keeps a picture on top of every window as a small frame you can move and zoom.
+- A small C# helper, `sngrab`, copies the screen and the outlines of the open windows. The frozen screen stays in memory;
+  nothing is uploaded.
+- Themes, the series theme, Turkish and English, and the update check, like every app.
+
+### Changed
+
+- **NeuralDeck:** `snap` / `ekran` / `yakala` takes a screenshot with NeuralSnap; "screenshot" and "ekran görüntüsü"
+  find NeuralSnap.
+- **Setup:** NeuralSnap is offered, checked, when updating. A new *Seçenekler* (Options) page holds the apps that start
+  with Windows (NeuralDeck, and NeuralSnap, on by default) and the update check, so every page fits with nine apps.
+
 ## 1.7.0 "Moda" (2026-11-11)
 
 A new unit joins the series: **NeuralPulse PL-2**, a system monitor. All eight apps are at 1.7.0. Run the new setup over

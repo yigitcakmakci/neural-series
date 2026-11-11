@@ -135,6 +135,21 @@ c = C.suggest("cpu", { ...env(), stats: STATS });
 check(c[0].title === "CPU 23% · Memory 54%" && c[0].detail === "Open NeuralPulse" && c[1].detail === "CPU 41% · 1.5 GB", "and in English", j(c.map((i) => [i.title, i.detail])));
 C.setTexts(null);
 
+console.log("snap (NeuralSnap)");
+c = C.suggest("snap", env());
+check(c.length === 2 && c[0].title === "Ekran görüntüsü al" && c[0].action.app === "NeuralSnap" && j(c[0].action.args) === '["--cek"]' && !c[0].disabled,
+  "snap: take a screenshot (NeuralSnap --cek), then open NeuralSnap", j(c.map((i) => [i.title, i.action.args])));
+check(c[1].title === "NeuralSnap'i aç" && j(c[1].action.args) === "[]", "the second line opens NeuralSnap without capturing");
+check(["ekran", "yakala", "screenshot"].every((q) => j(C.suggest(q, env())[0].action.args) === '["--cek"]'), "ekran, yakala and screenshot are the same command");
+check(j(C.toSpawn(c[0].action, (id) => `C:\\N\\${id}.exe`)) === j({ exe: "C:\\N\\NeuralSnap.exe", args: ["--cek"] }), "the capture runs NeuralSnap.exe --cek, without a shell");
+c = C.suggest("snap", env({ installed: new Set(["NeuralPad"]) }));
+check(c.length === 1 && c[0].disabled && /kurulu değil/.test(c[0].detail), "without NeuralSnap the command is greyed out", j(c));
+check(["ekran alıntısı", "capture", "SN-8"].every((q) => first(q).action.app === "NeuralSnap"), "NeuralSnap is found by its descriptions and its code");
+C.setTexts(i18n.create({ lang: "en", dict: { ...tr, ...en } }));
+c = C.suggest("snap", env());
+check(c[0].title === "Take a screenshot" && c[1].title === "Open NeuralSnap", "and in English", j(c.map((i) => i.title)));
+C.setTexts(null);
+
 fs.rmSync(path.dirname(HOME), { recursive: true, force: true });
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

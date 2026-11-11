@@ -14,6 +14,7 @@ const { sleep, waitTarget, attach } = require("../../tools/cdp");
 
 const ROOT = path.join(__dirname, "..", "..");
 const APP = path.join(ROOT, "apps", "neuralpulse");
+const VERSION = require(path.join(APP, "package.json")).version;
 const ELECTRON = path.join(ROOT, "node_modules", "electron", "dist", "electron.exe");
 const CSC = path.join(process.env.SystemRoot || "C:\\Windows", "Microsoft.NET", "Framework64", "v4.0.30319", "csc.exe");
 const OUT = path.join(os.tmpdir(), "neural-testler", "pulse-e2e");
@@ -216,7 +217,7 @@ const PRELUDE = `
     await key("F1", "F1", 112);
     r = await run(`await wait(() => q('#dlg-keys[open]')); const k = q('#keys-list').textContent; q('#dlg-keys button').click(); q('#menu-btn').click(); await wait(() => q('.popup')); menuItem('NeuralPulse hakkında').click(); await wait(() => q('#dlg-about[open]')); const a = q('#about-hint').textContent; q('#dlg-about button').click(); return { k, a };`);
     check(/Süreci sonlandır/.test(r.k) && /Del/.test(r.k), "F1 lists the keyboard shortcuts", r.k.slice(0, 80));
-    check(/^Sürüm 1\.7\.0 /.test(r.a), "the about dialog names the version", r.a);
+    check(r.a.startsWith(`Sürüm ${VERSION} `), `the about dialog names the version (${VERSION})`, r.a);
     const shot = await c.call("Page.captureScreenshot", { format: "png" });
     fs.writeFileSync(path.join(OUT, "pulse-tr.png"), Buffer.from(shot.result.data, "base64"));
 

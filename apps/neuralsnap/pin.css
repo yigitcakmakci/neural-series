@@ -1,0 +1,15 @@
+/* NeuralSnap — a pin: the picture in a thin yellow frame with a small shadow, always on top. */
+:root { --m: 10px; --font-mono: "Share Tech Mono", Consolas, monospace; }
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: transparent; user-select: none; }
+.pin {
+  position: fixed; inset: var(--m); cursor: move; background: #06060b;
+  outline: 1.5px solid #fcee0a; box-shadow: 0 3px 9px rgba(0, 0, 0, .6);
+}
+.pin img { display: block; width: 100%; height: 100%; pointer-events: none; }
+.zoom {
+  position: absolute; right: 6px; bottom: 6px; padding: 2px 7px; pointer-events: none;
+  color: #fcee0a; background: rgba(6, 6, 11, .88); box-shadow: inset 0 0 0 1px rgba(252, 238, 10, .45);
+  font: 12px/1.3 var(--font-mono);
+}

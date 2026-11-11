@@ -4,8 +4,8 @@
 // Scripting and tests:
 //   /test                              keeps every Windows change under HKCU\Software\NeuralSetupTest and <target>\_test
 //   /hedef:<folder>  /sessiz (silent)  /gunluk:<log file>  /veriler (also delete settings and personal data)
-//   /uygulamalar:NeuralCalc,NeuralWeb  /secenekler:baslat,pad,navmenu,navvarsayilan,izleyici,nt,web,view,deck,simge
-//   /onizle:programlar|windows|kurulum|tamam|hata   (with /test: open the wizard on that page)
+//   /uygulamalar:NeuralCalc,NeuralWeb  /secenekler:baslat,pad,navmenu,navvarsayilan,izleyici,nt,web,view,deck,snap,simge,guncelleme
+//   /onizle:programlar|windows|secenekler|kurulum|tamam|hata   (with /test: open the wizard on that page)
 //   /onizle:siliniyor|kaldirildi                    (with /kaldir /test: the uninstaller's pages)
 //   /dil:tr|en                         the language of the setup, written as the series language when installing;
 //                                      without it: the series language file, else Windows' display language
@@ -67,7 +67,7 @@ namespace NeuralSetup
                 o.StartMenu = on.Contains("baslat"); o.PadOpenWith = on.Contains("pad"); o.NavMenu = on.Contains("navmenu");
                 o.NavDefault = on.Contains("navvarsayilan"); o.NavWatch = on.Contains("izleyici"); o.TermCommands = on.Contains("nt");
                 o.WebRegister = on.Contains("web"); o.WindowsIcons = on.Contains("simge"); o.ViewOpenWith = on.Contains("view"); o.DeckAutostart = on.Contains("deck");
-                o.UpdateCheck = on.Contains("guncelleme");
+                o.SnapAutostart = on.Contains("snap"); o.UpdateCheck = on.Contains("guncelleme");
             }
             o.RemoveData = arg("veriler") != null;
             L.Lang = ChooseLanguage(arg("dil"), o, uninstall);

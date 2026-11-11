@@ -17,12 +17,12 @@ const STAGE = path.join(ROOT, "out", "stage", "apps");
 const dirOf = (name) => (SOURCE ? path.join(ROOT, "apps", name.toLowerCase()) : path.join(STAGE, name));
 const ELECTRON = path.join(ROOT, "node_modules", "electron", "dist", "electron.exe");
 const BOX = path.join(os.tmpdir(), "neural-testler", "lang-e2e");
-const ALL = ["NeuralCalc", "NeuralPad", "NeuralNav", "NeuralTerm", "NeuralWeb", "NeuralView", "NeuralDeck", "NeuralPulse"];
+const ALL = ["NeuralCalc", "NeuralPad", "NeuralNav", "NeuralTerm", "NeuralWeb", "NeuralView", "NeuralDeck", "NeuralPulse", "NeuralSnap"];
 const ONLY = process.argv.slice(2).filter((a) => !a.startsWith("-"));
 // Words that stay Turkish in English on purpose (the language's own name, NeuralDeck's Turkish command words, ...).
 const ALLOWED = new Set(["Türkçe", "Dil"]);
 // The page each program opens first (NeuralWeb also has its UI page; the tab pages are checked by its own test).
-const PAGE = { NeuralWeb: (u) => /\/ui\/index\.html/.test(u) };
+const PAGE = { NeuralWeb: (u) => /\/ui\/index\.html/.test(u), NeuralSnap: (u) => /\/index\.html/.test(u) }; // NeuralSnap also keeps its overlay page
 let passed = 0, failed = 0;
 const check = (cond, label, extra = "") => { if (cond) { passed++; console.log("  ok   " + label); } else { failed++; console.log("  FAIL " + label + (extra ? "  -> " + extra : "")); } };
 
@@ -49,12 +49,13 @@ async function open(name, lang, port) {
   fs.writeFileSync(updateOff, JSON.stringify({ enabled: false }));
   const profile = path.join(work, "profile");
   fs.mkdirSync(profile, { recursive: true });
-  // NeuralDeck stays clear of the real one's shortcut and stays open; the others get their profile variables.
+  // NeuralDeck and NeuralSnap stay clear of the real ones' shortcuts, NeuralDeck stays open; the others get their profile variables.
   fs.writeFileSync(path.join(profile, "settings.json"), JSON.stringify({ shortcut: "Ctrl+Alt+Shift+F12" }));
   const env = {
     ...process.env, NEURAL_LANG_FILE: langFile, NEURAL_THEME_FILE: path.join(work, "theme.json"), NEURAL_ROOT: path.join(work, "Neural"),
     NEURAL_UPDATE_FILE: updateOff,
     NEURALWEB_PROFILE: profile, NEURALWEB_EDGE_DIR: path.join(work, "edge"), NEURALVIEW_PROFILE: profile, NEURALDECK_PROFILE: profile, NEURALDECK_KEEP_OPEN: "1", NEURALPULSE_PROFILE: profile, NEURALPULSE_DEMO: "1", NEURALPULSE_TEST_INACTIVE: "1",
+    NEURALSNAP_PROFILE: profile, NEURALSNAP_TEST_INACTIVE: "1", NEURALSNAP_SAVE_DIR: path.join(work, "snaps"), NEURALSNAP_TEST_CLIPBOARD: path.join(work, "clipboard.png"),
   };
   const proc = spawn(ELECTRON, [dir, `--user-data-dir=${profile}`, `--remote-debugging-port=${port}`], { env, stdio: "ignore" });
   const target = await waitTarget(port, (t) => (PAGE[name] ? PAGE[name](t.url) : /^file:/.test(t.url)), 30000);

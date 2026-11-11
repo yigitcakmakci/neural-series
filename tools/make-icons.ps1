@@ -122,6 +122,14 @@ $apps = [ordered]@{
     & $rect $C 132 180 24 18
     & $rect $C 168 150 24 48
   }
+  'neuralsnap' = {   # screenshot: yellow selection corners around a cyan crosshair
+    & $stroke $yellowC 12 @(60, 100, 60, 62, 98, 62) $false
+    & $stroke $yellowC 12 @(158, 62, 196, 62, 196, 100) $false
+    & $stroke $yellowC 12 @(196, 156, 196, 194, 158, 194) $false
+    & $stroke $yellowC 12 @(98, 194, 60, 194, 60, 156) $false
+    & $rect $C 100 123 56 10
+    & $rect $C 123 100 10 56
+  }
 }
 foreach ($name in $apps.Keys) { Save-Icon (Join-Path $Root "apps\$name\$name.ico") $apps[$name] (Join-Path $Root "apps\$name\icon.png") }
 Save-Icon (Join-Path $Root 'installer\src\setup.ico') {   # cyan arrow into a yellow tray

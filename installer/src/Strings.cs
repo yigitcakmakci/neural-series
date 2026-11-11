@@ -69,6 +69,7 @@ namespace NeuralSetup
                 case "NeuralView": return P("Resim görüntüleyici", "Image viewer");
                 case "NeuralDeck": return P("Başlatıcı ve komut paleti", "Launcher and command palette");
                 case "NeuralPulse": return P("Sistem izleyici: CPU, bellek, disk, ağ, GPU", "System monitor: CPU, memory, disk, network, GPU");
+                case "NeuralSnap": return P("Ekran görüntüsü: seç, işaretle, kopyala", "Screenshots: select, mark up, copy");
             }
             return app;
         }
@@ -87,6 +88,7 @@ namespace NeuralSetup
                 case "NeuralView": return en ? "NeuralView Image Viewer" : "NeuralView Resim Görüntüleyici";
                 case "NeuralDeck": return en ? "NeuralDeck Command Palette" : "NeuralDeck Komut Paleti";
                 case "NeuralPulse": return en ? "NeuralPulse System Monitor" : "NeuralPulse Sistem İzleyici";
+                case "NeuralSnap": return en ? "NeuralSnap Screenshot Tool" : "NeuralSnap Ekran Görüntüsü";
             }
             return app;
         }
@@ -103,6 +105,7 @@ namespace NeuralSetup
                 case "NeuralView": return P("NeuralView VW-3 cyberpunk resim görüntüleyici", "NeuralView VW-3 cyberpunk image viewer");
                 case "NeuralDeck": return P("NeuralDeck DK-0 cyberpunk başlatıcı ve komut paleti", "NeuralDeck DK-0 cyberpunk launcher and command palette");
                 case "NeuralPulse": return P("NeuralPulse PL-2 cyberpunk sistem izleyici", "NeuralPulse PL-2 cyberpunk system monitor");
+                case "NeuralSnap": return P("NeuralSnap SN-8 cyberpunk ekran görüntüsü aracı", "NeuralSnap SN-8 cyberpunk screenshot tool");
             }
             return app;
         }
@@ -119,6 +122,7 @@ namespace NeuralSetup
                 case "NeuralView": return P("NeuralView VW-3 resim görüntüleyici", "NeuralView VW-3 image viewer");
                 case "NeuralDeck": return P("NeuralDeck DK-0 komut paleti", "NeuralDeck DK-0 command palette");
                 case "NeuralPulse": return P("NeuralPulse PL-2 sistem izleyici", "NeuralPulse PL-2 system monitor");
+                case "NeuralSnap": return P("NeuralSnap SN-8 ekran görüntüsü aracı", "NeuralSnap SN-8 screenshot tool");
             }
             return app;
         }
@@ -196,6 +200,8 @@ namespace NeuralSetup
         public static string LogDeckStopped { get { return P("NeuralDeck durduruldu", "NeuralDeck stopped"); } }
         public static string LogWatcherStopped { get { return P("Gezgin izleyicisi durduruldu", "File Explorer watcher stopped"); } }
         public static string LogDeckStarted { get { return P("  NeuralDeck arka planda başlatıldı", "  NeuralDeck started in the background"); } }
+        public static string LogSnapStopped { get { return P("NeuralSnap durduruldu", "NeuralSnap stopped"); } }
+        public static string LogSnapStarted { get { return P("  NeuralSnap arka planda başlatıldı", "  NeuralSnap started in the background"); } }
         public static string LogWatcherStarted { get { return P("  Gezgin izleyicisi başlatıldı", "  File Explorer watcher started"); } }
 
         /* ------------------------------------------------------------ errors */
@@ -214,7 +220,7 @@ namespace NeuralSetup
         public static string WindowDefault { get { return P("Neural Kurulum", "Neural Setup"); } }
         public static string BandSetup { get { return P("NEURAL KURULUM", "NEURAL SETUP"); } }
         public static string BandUninstall { get { return P("NEURAL KALDIRMA", "NEURAL UNINSTALL"); } }
-        public static string[] InstallSteps { get { return En ? new[] { "Welcome", "Apps", "Windows", "Install", "Done" } : new[] { "Hoş geldin", "Programlar", "Windows", "Kurulum", "Tamam" }; } }
+        public static string[] InstallSteps { get { return En ? new[] { "Welcome", "Apps", "Windows", "Options", "Install", "Done" } : new[] { "Hoş geldin", "Programlar", "Windows", "Seçenekler", "Kurulum", "Tamam" }; } }
         public static string[] UninstallSteps { get { return En ? new[] { "Uninstall", "Removing", "Done" } : new[] { "Kaldır", "Siliniyor", "Tamam" }; } }
         public static string SideNote { get { return P("Yalnızca senin Windows hesabına kurulur; yönetici izni gerekmez.", "For your Windows account only; no admin rights needed."); } }
         public static string SideVersion { get { return P("SÜRÜM ", "VERSION "); } }
@@ -251,7 +257,7 @@ namespace NeuralSetup
         /* ------------------------------------------------------------ welcome */
         public static string StatusPackage(string size, string version) { return F("Paket: {0} · Neural serisi {1}", "Package: {0} · Neural Series {1}", size, version); }
         public static string WelcomeTitle { get { return P("Neural serisine hoş geldin", "Welcome to the Neural Series"); } }
-        public static string WelcomeLead { get { return P("Bu sihirbaz Neural serisinin sekiz programını bilgisayarına kurar. Hepsi aynı Neural tasarımını ve tek bir ortak Electron çalışma klasörünü paylaşır.", "This wizard installs the eight apps of the Neural Series on your computer. They all share the same Neural design and a single Electron runtime folder."); } }
+        public static string WelcomeLead { get { return P("Bu sihirbaz Neural serisinin dokuz programını bilgisayarına kurar. Hepsi aynı Neural tasarımını ve tek bir ortak Electron çalışma klasörünü paylaşır.", "This wizard installs the nine apps of the Neural Series on your computer. They all share the same Neural design and a single Electron runtime folder."); } }
         public static string WelcomeExisting(string root) { return F("Bilgisayarında bir Neural kurulumu var: {0}\nKurulum onu güncelleyecek. Ayarların, yer imlerin, şifrelerin ve notların olduğu gibi kalır.", "There is a Neural installation on this computer: {0}\nThe setup will update it. Your settings, bookmarks, passwords and notes stay as they are.", root); }
         public static string WelcomeNote { get { return P("Ayarlar ve kişisel veriler programlardan ayrı tutulur; güncelleme ya da yeniden kurulum onlara dokunmaz.", "Settings and personal data are kept apart from the apps; updating or reinstalling never touches them."); } }
         public static string WelcomeStart { get { return P("Başla  ›", "Start  ›"); } }
@@ -291,6 +297,10 @@ namespace NeuralSetup
         public static string OptIconsSub { get { return P("Bu Bilgisayar, Geri Dönüşüm Kutusu, Ağ ve kullanıcı klasörü Neural simgelerini alır.", "This PC, Recycle Bin, Network and the user folder get the Neural icons."); } }
         public static string OptDeck { get { return P("NeuralDeck: açılışta başlat", "NeuralDeck: start with Windows"); } }
         public static string OptDeckSub { get { return P("Windows açılınca başlar; Alt+Space ile açılan komut paleti arka planda bekler.", "Starts with Windows and waits in the background for Alt+Space."); } }
+        public static string ExtrasTitle { get { return P("Arka plan ve güncellemeler", "Background and updates"); } }
+        public static string ExtrasLead { get { return P("Windows açılınca arka planda bekleyecek programları ve yeni sürüm denetimini seç.", "Choose which apps wait in the background from sign-in, and whether the series checks for new versions."); } }
+        public static string OptSnap { get { return P("NeuralSnap: açılışta başlat", "NeuralSnap: start with Windows"); } }
+        public static string OptSnapSub { get { return P("Windows açılınca başlar; Ctrl+Alt+S ile ekran görüntüsü alınır.", "Starts with Windows; Ctrl+Alt+S takes a screenshot."); } }
         public static string OptUpdate { get { return P("Yeni sürümleri denetle", "Check for new versions"); } }
         public static string OptUpdateSub { get { return P("Günde en fazla bir kez GitHub'a sorar; yeni sürüm çıkınca bildirir.", "Asks GitHub at most once a day; tells you when a new version is out."); } }
 

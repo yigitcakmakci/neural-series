@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NeuralSnap</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="overlay.css">
+</head>
+<body class="idle">
+<canvas id="shot" width="1" height="1"></canvas>
+<div class="dim" id="dim"></div>
+<div class="sel" id="sel" hidden><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i></div>
+<div class="cross h" id="cross-h" hidden></div>
+<div class="cross v" id="cross-v" hidden></div>
+<div class="chip" id="chip" hidden></div>
+<div class="loupe" id="loupe" hidden>
+  <canvas id="lens"></canvas>
+  <div class="lens-info"><span id="lens-xy"></span><span class="lens-col"><i id="lens-swatch"></i><span id="lens-hex"></span></span></div>
+</div>
+<div class="hint" id="hint" data-i18n="ov.hint">Sürükle: bölge · Tıkla: pencere · Enter: tam ekran · Esc: vazgeç</div>
+<script src="../shared/i18n.js"></script>
+<script src="annotate.js"></script>
+<script src="overlay.js"></script>
+</body>
+</html>

@@ -92,6 +92,7 @@
   "err.fact": "n! YALNIZ DOĞAL SAYIDA",
   "err.overflow": "TAŞMA",
   "prog.pulse": "Sistem izleyici",
+  "prog.snap": "Ekran görüntüsü aracı",
   "cmd.cpu.usage": "cpu",
   "cmd.cpu.title": "Sistem yükü",
   "cmd.cpu.what": "CPU, bellek ve en çok kaynak kullanan süreçler",
@@ -99,5 +100,9 @@
   "item.cpu-measuring": "Ölçülüyor…",
   "item.cpu-failed": "Ölçülemedi",
   "item.cpu-open": "NeuralPulse'u aç",
-  "item.cpu-proc": "CPU %{cpu} · {mem}"
+  "item.cpu-proc": "CPU %{cpu} · {mem}",
+  "cmd.snap.usage": "snap",
+  "cmd.snap.title": "Ekran görüntüsü al",
+  "cmd.snap.what": "Bölge, pencere ya da tam ekran; işaretle ve kopyala",
+  "item.snap-open": "NeuralSnap'i aç"
 }

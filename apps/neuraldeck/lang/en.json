@@ -92,6 +92,7 @@
   "err.fact": "n! ONLY FOR NATURAL NUMBERS",
   "err.overflow": "OVERFLOW",
   "prog.pulse": "System monitor",
+  "prog.snap": "Screenshot tool",
   "cmd.cpu.usage": "cpu",
   "cmd.cpu.title": "System load",
   "cmd.cpu.what": "CPU, memory and the busiest processes",
@@ -99,5 +100,9 @@
   "item.cpu-measuring": "Measuring…",
   "item.cpu-failed": "Could not measure",
   "item.cpu-open": "Open NeuralPulse",
-  "item.cpu-proc": "CPU {cpu}% · {mem}"
+  "item.cpu-proc": "CPU {cpu}% · {mem}",
+  "cmd.snap.usage": "snap",
+  "cmd.snap.title": "Take a screenshot",
+  "cmd.snap.what": "A region, a window or the whole screen; mark it up and copy it",
+  "item.snap-open": "Open NeuralSnap"
 }

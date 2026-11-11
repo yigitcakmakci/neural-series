@@ -26,7 +26,7 @@ const check = (cond, label, extra = "") => { if (cond) { passed++; console.log("
 const j = (x) => JSON.stringify(x);
 
 fs.rmSync(OUT, { recursive: true, force: true });
-for (const app of ["NeuralCalc", "NeuralPad", "NeuralNav", "NeuralTerm", "NeuralWeb", "NeuralPulse"]) {
+for (const app of ["NeuralCalc", "NeuralPad", "NeuralNav", "NeuralTerm", "NeuralWeb", "NeuralPulse", "NeuralSnap"]) {
   fs.mkdirSync(path.join(FAKE, app, "Program"), { recursive: true });
   fs.writeFileSync(path.join(FAKE, app, "Program", `${app}.exe`), "");
 }
@@ -134,6 +134,13 @@ const PRELUDE = `
     await run("await key('Enter'); return 1;");
     await sleep(300);
     check(j(launches().pop()) === j({ exe: exe("NeuralPulse"), args: [] }), "Enter starts NeuralPulse", j(launches().slice(-1)));
+
+    console.log("snap (NeuralSnap)");
+    r = await run("await type('snap'); return items();");
+    check(r.length === 2 && r[0].title === "Ekran görüntüsü al" && !r[0].off && r[1].title === "NeuralSnap'i aç", "snap offers a screenshot and NeuralSnap", j(r));
+    await run("await key('Enter'); return 1;");
+    await sleep(300);
+    check(j(launches().pop()) === j({ exe: exe("NeuralSnap"), args: ["--cek"] }), "Enter starts NeuralSnap --cek", j(launches().slice(-1)));
 
     console.log("only what the main process suggested can run");
     const n1 = launches().length;

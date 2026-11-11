@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="tr" class="theme-neon">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NeuralSnap</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" type="image/png" href="icon.png">
+</head>
+<body>
+<div class="window">
+  <div class="frame">
+    <div class="frame-inner" id="app">
+      <header class="band">
+        <div class="brand" aria-hidden="true"><span class="brand-model">SN-8</span><span class="brand-name">NEURALSNAP</span></div>
+        <div class="band-title" id="band-title" data-i18n="band.title">Ekran Görüntüsü</div>
+        <span class="hazard" aria-hidden="true"></span>
+        <div class="win-btns">
+          <button class="win-btn" id="win-min" type="button" aria-label="Simge durumuna küçült" title="Küçült" data-i18n-aria-label="win.minimize.aria" data-i18n-title="win.minimize"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 9.5h8"/></svg></button>
+          <button class="win-btn" id="win-max" type="button" aria-label="Ekranı kapla" title="Ekranı kapla" data-i18n-aria-label="win.maximize" data-i18n-title="win.maximize"><svg class="ic-max" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5h7v7h-7z"/></svg><svg class="ic-restore" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5h5v5M2.5 4.5h5v5h-5z"/></svg></button>
+          <button class="win-btn close" id="win-close" type="button" aria-label="Kapat" title="Kapat" data-i18n-aria-label="win.close" data-i18n-title="win.close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button>
+        </div>
+      </header>
+
+      <div class="toolbar" id="toolbar">
+        <div class="group" role="toolbar" aria-label="Araçlar" data-i18n-aria-label="tools.aria">
+          <button class="tbtn tool" type="button" data-tool="select" aria-label="Seç" title="Seç (V)" data-i18n-aria-label="tool.select" data-i18n-title="tool.select.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5l8.5 5.2-3.9 1 -2 3.8z"/></svg></button>
+          <button class="tbtn tool" type="button" data-tool="arrow" aria-label="Ok" title="Ok (A)" data-i18n-aria-label="tool.arrow" data-i18n-title="tool.arrow.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13L12.5 3.5M6.5 3.5h6v6"/></svg></button>
+          <button class="tbtn tool" type="button" data-tool="rect" aria-label="Dikdörtgen" title="Dikdörtgen (R)" data-i18n-aria-label="tool.rect" data-i18n-title="tool.rect.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 3.5h11v9h-11z"/></svg></button>
+          <button class="tbtn tool" type="button" data-tool="pen" aria-label="Kalem" title="Kalem (P)" data-i18n-aria-label="tool.pen" data-i18n-title="tool.pen.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 13.5l1-3.6 7.8-7.8 2.6 2.6-7.8 7.8zM9.6 3.8l2.6 2.6"/></svg></button>
+          <button class="tbtn tool" type="button" data-tool="text" aria-label="Metin" title="Metin (T)" data-i18n-aria-label="tool.text" data-i18n-title="tool.text.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4V2.8h10V4M8 2.8v10.5M5.8 13.3h4.4"/></svg></button>
+          <button class="tbtn tool" type="button" data-tool="highlight" aria-label="Fosforlu kalem" title="Fosforlu kalem (H)" data-i18n-aria-label="tool.highlight" data-i18n-title="tool.highlight.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 10.5l1.4-4.6 5-3.9 2.2 2.2-3.9 5zM5 10.5l-1.6 1.7M2 14.5h12"/></svg></button>
+          <button class="tbtn tool" type="button" data-tool="pixelate" aria-label="Bulanıklaştır" title="Bulanıklaştır (B)" data-i18n-aria-label="tool.pixelate" data-i18n-title="tool.pixelate.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 2.5h3.7v3.7H2.5zM9.8 2.5h3.7v3.7H9.8zM6.2 6.2h3.6v3.6H6.2zM2.5 9.8h3.7v3.7H2.5zM9.8 9.8h3.7v3.7H9.8z"/></svg></button>
+        </div>
+        <span class="sep" aria-hidden="true"></span>
+        <div class="group" id="colors" role="group" aria-label="Renk" data-i18n-aria-label="color.aria">
+          <button class="tbtn swatch" type="button" data-color="0" aria-label="Sarı" title="Sarı (1)" data-i18n-aria-label="color.yellow" data-i18n-title="color.yellow.tip"><i style="background:#fcee0a"></i></button>
+          <button class="tbtn swatch" type="button" data-color="1" aria-label="Camgöbeği" title="Camgöbeği (2)" data-i18n-aria-label="color.cyan" data-i18n-title="color.cyan.tip"><i style="background:#00f0ff"></i></button>
+          <button class="tbtn swatch" type="button" data-color="2" aria-label="Kırmızı" title="Kırmızı (3)" data-i18n-aria-label="color.red" data-i18n-title="color.red.tip"><i style="background:#ff2a4f"></i></button>
+          <button class="tbtn swatch" type="button" data-color="3" aria-label="Mürekkep" title="Mürekkep (4)" data-i18n-aria-label="color.ink" data-i18n-title="color.ink.tip"><i style="background:#ebe8d8"></i></button>
+          <button class="tbtn swatch" type="button" data-color="4" aria-label="Siyah" title="Siyah (5)" data-i18n-aria-label="color.black" data-i18n-title="color.black.tip"><i style="background:#06060b"></i></button>
+        </div>
+        <span class="sep" aria-hidden="true"></span>
+        <div class="group" id="widths" role="group" aria-label="Kalınlık" data-i18n-aria-label="width.aria">
+          <button class="tbtn width" type="button" data-width="0" aria-label="İnce" title="İnce" data-i18n-aria-label="width.thin" data-i18n-title="width.thin"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11" style="stroke-width:1.2"/></svg></button>
+          <button class="tbtn width" type="button" data-width="1" aria-label="Orta" title="Orta" data-i18n-aria-label="width.medium" data-i18n-title="width.medium"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11" style="stroke-width:2.6"/></svg></button>
+          <button class="tbtn width" type="button" data-width="2" aria-label="Kalın" title="Kalın" data-i18n-aria-label="width.thick" data-i18n-title="width.thick"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11" style="stroke-width:4.4"/></svg></button>
+        </div>
+        <span class="grow"></span>
+        <div class="group" role="group" aria-label="İşlemler" data-i18n-aria-label="actions.aria">
+          <button class="tbtn" type="button" id="act-undo" data-act="undo" aria-label="Geri al" title="Geri al (Ctrl+Z)" data-i18n-aria-label="act.undo" data-i18n-title="act.undo.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 3.5L2.5 6.5l3 3M2.8 6.5h6.7a3.5 3.5 0 0 1 0 7H7"/></svg></button>
+          <button class="tbtn" type="button" id="act-redo" data-act="redo" aria-label="Yinele" title="Yinele (Ctrl+Y)" data-i18n-aria-label="act.redo" data-i18n-title="act.redo.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10.5 3.5l3 3-3 3M13.2 6.5H6.5a3.5 3.5 0 0 0 0 7H9"/></svg></button>
+          <button class="tbtn" type="button" id="act-delete" data-act="delete" aria-label="Sil" title="Sil (Del)" data-i18n-aria-label="act.delete" data-i18n-title="act.delete.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V2.8h3v1.7M4.5 4.5l.7 9h5.6l.7-9M7 7v4M9 7v4"/></svg></button>
+          <span class="sep" aria-hidden="true"></span>
+          <button class="tbtn" type="button" id="act-copy" data-act="copy" aria-label="Kopyala" title="Kopyala (Ctrl+C)" data-i18n-aria-label="act.copy" data-i18n-title="act.copy.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 5.5h8v8h-8zM10.5 5.5v-3h-8v8h3"/></svg></button>
+          <button class="tbtn" type="button" id="act-save" data-act="save" aria-label="Kaydet" title="Kaydet (Ctrl+S)" data-i18n-aria-label="act.save" data-i18n-title="act.save.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 2.5h9l2 2v9h-11zM5 2.5v3.5h5.5V2.5M4.5 13.5V9.5h7v4"/></svg></button>
+          <button class="tbtn" type="button" id="act-saveas" data-act="saveAs" aria-label="Farklı kaydet" title="Farklı kaydet (Ctrl+Shift+S)" data-i18n-aria-label="act.saveas" data-i18n-title="act.saveas.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8.5 13.5h-6v-11h9l2 2v3M5 2.5v3.5h5.5V2.5M9.5 14l.4-1.9 3.6-3.6 1.5 1.5-3.6 3.6z"/></svg></button>
+          <button class="tbtn" type="button" id="act-view" data-act="view" aria-label="NeuralView'da aç" title="NeuralView'da aç" data-i18n-aria-label="act.view" data-i18n-title="act.view"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 3.5h11v9h-11zM2.5 10.5l3.5-3 2.5 2 2-1.5 3 2.5"/><circle cx="10.5" cy="6" r="1"/></svg></button>
+          <button class="tbtn" type="button" id="act-pin" data-act="pin" aria-label="Sabitle" title="Sabitle (Ctrl+P)" data-i18n-aria-label="act.pin" data-i18n-title="act.pin.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5h4M7 2.5v4L4.5 9h7L9 6.5v-4M8 9v5"/></svg></button>
+          <span class="sep" aria-hidden="true"></span>
+          <button class="tbtn new" type="button" id="act-new" data-act="new" aria-label="Yeni çekim" title="Yeni çekim (Ctrl+N)" data-i18n-aria-label="act.new" data-i18n-title="act.new.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 5.5v-3h3M10.5 2.5h3v3M13.5 10.5v3h-3M5.5 13.5h-3v-3M8 6v4M6 8h4"/></svg></button>
+        </div>
+        <button class="tbtn menu" id="menu-btn" type="button" title="Menü" aria-label="Menü" data-i18n-title="menu" data-i18n-aria-label="menu"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h1.5M7.25 8h1.5M11.5 8H13"/></svg></button>
+      </div>
+
+      <main class="screen" id="screen">
+        <div class="beam-track" aria-hidden="true"><div class="beam"></div></div>
+        <div class="stage" id="stage" hidden>
+          <canvas id="view"></canvas>
+          <textarea id="text-edit" class="text-edit" spellcheck="false" hidden aria-label="Metin" data-i18n-aria-label="tool.text"></textarea>
+        </div>
+        <section class="empty" id="empty">
+          <button class="big-btn" id="empty-new" type="button"><span class="big-label" data-i18n="empty.new">YENİ ÇEKİM</span><kbd id="empty-key"></kbd></button>
+          <p class="empty-warn" id="empty-warn" role="alert" hidden></p>
+          <p class="empty-hint" data-i18n="empty.hint">Kısayola bas ya da düğmeye tıkla: ekran donar. Bir bölge sürükle, bir pencereye tıkla ya da tam ekran için Enter'a bas.</p>
+          <div class="recent-wrap" id="recent-wrap" hidden>
+            <h2 class="recent-head" data-i18n="empty.recent">Son çekimler</h2>
+            <div class="recent" id="recent"></div>
+          </div>
+          <button class="link" id="empty-folder" type="button" data-i18n="empty.folder">Kayıt klasörünü aç</button>
+        </section>
+      </main>
+
+      <footer class="statusbar">
+        <span id="st-size"></span>
+        <span id="st-zoom"></span>
+        <span id="st-tool"></span>
+        <span id="st-file"></span>
+      </footer>
+    </div>
+  </div>
+  <div class="rz rz-n" data-edge="n"></div>
+  <div class="rz rz-s" data-edge="s"></div>
+  <div class="rz rz-e" data-edge="e"></div>
+  <div class="rz rz-w" data-edge="w"></div>
+  <div class="rz rz-ne" data-edge="ne"></div>
+  <div class="rz rz-nw" data-edge="nw"></div>
+  <div class="rz rz-se" data-edge="se"></div>
+  <div class="rz rz-sw" data-edge="sw"></div>
+</div>
+
+<div id="popups"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<dialog class="hud-dialog wide" id="dlg-settings">
+  <form method="dialog">
+    <div class="dlg-body">
+      <h2 class="dlg-head" data-i18n="set.title">Ayarlar</h2>
+      <div class="dlg-content">
+        <div class="set-row">
+          <div class="set-txt"><b data-i18n="set.shortcut">Kısayol</b><small data-i18n="set.shortcut.text">Her yerden yeni çekim başlatır. Değiştirmek için düğmeye bas, sonra yeni tuşlara.</small></div>
+          <button class="key" id="set-shortcut" type="button"></button>
+        </div>
+        <p class="set-msg" id="set-msg" role="status"></p>
+        <div class="set-row">
+          <div class="set-txt"><b data-i18n="set.autosave">Çekimleri otomatik kaydet</b><small data-i18n="set.autosave.text">Her çekim, çekildiği anın adıyla bu klasöre PNG olarak kaydedilir.</small><code class="set-path" id="set-dir"></code></div>
+          <div class="set-ctl">
+            <button class="switch" id="set-autosave" type="button" role="switch" aria-checked="true" aria-label="Çekimleri otomatik kaydet" data-i18n-aria-label="set.autosave"><span class="sw-on" data-i18n="set.on">Açık</span><span class="sw-off" data-i18n="set.off">Kapalı</span></button>
+            <button class="btn" id="set-folder" type="button" data-i18n="set.folder">Klasörü aç</button>
+          </div>
+        </div>
+        <div class="set-row">
+          <div class="set-txt"><b data-i18n="set.editor">Çekimden sonra düzenleyiciyi aç</b><small data-i18n="set.editor.text">Kapalıyken çekim yalnızca panoya kopyalanır (ve kaydedilir); bir bildirim çıkar.</small></div>
+          <div class="set-ctl">
+            <button class="switch" id="set-editor" type="button" role="switch" aria-checked="true" aria-label="Çekimden sonra düzenleyiciyi aç" data-i18n-aria-label="set.editor"><span class="sw-on" data-i18n="set.on">Açık</span><span class="sw-off" data-i18n="set.off">Kapalı</span></button>
+          </div>
+        </div>
+        <div class="set-row">
+          <div class="set-txt"><b data-i18n="set.autostart">Windows açılışında başlat</b><small data-i18n="set.autostart.text">Neural kurulum programındaki "NeuralSnap: açılışta başlat" seçeneğiyle açılıp kapanır.</small></div>
+        </div>
+      </div>
+      <div class="btns"><button value="ok" class="primary" id="set-ok" data-i18n="dlg.ok">Tamam</button></div>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="hud-dialog" id="dlg-unsaved">
+  <form method="dialog">
+    <div class="dlg-body">
+      <h2 class="dlg-head" data-i18n="unsaved.title">Kaydedilmemiş işaretler</h2>
+      <div class="dlg-content"><p id="unsaved-text"></p></div>
+      <div class="btns">
+        <button value="save" class="primary" id="unsaved-save" data-i18n="unsaved.save">Kaydet</button>
+        <button value="skip" id="unsaved-skip" data-i18n="unsaved.skip">Atla</button>
+        <button value="cancel" id="unsaved-cancel" data-i18n="dlg.cancel">Vazgeç</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="hud-dialog wide" id="dlg-keys">
+  <form method="dialog">
+    <div class="dlg-body">
+      <h2 class="dlg-head" data-i18n="dlg.keys">Klavye kısayolları</h2>
+      <div class="dlg-content"><div class="keys" id="keys-list"></div></div>
+      <div class="btns"><button value="ok" class="primary" data-i18n="dlg.ok">Tamam</button></div>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="hud-dialog" id="dlg-about">
+  <form method="dialog">
+    <div class="dlg-body">
+      <h2 class="dlg-head" data-i18n="dlg.about">NeuralSnap hakkında</h2>
+      <div class="dlg-content">
+        <p class="about-mark" aria-hidden="true">SN-8</p>
+        <p data-i18n="about.text">Neural serisinin ekran görüntüsü aracı. Kısayolla ekranı dondurur; bir bölgeyi, bir pencereyi ya da bütün ekranı alır, panoya kopyalar ve kaydeder. Oklar, kutular, kalem, metin, fosforlu kalem ve geri döndürülemez bulanıklaştırmayla işaretlenir; NeuralView'da açılır ya da ekrana sabitlenir.</p>
+        <p class="hint" id="about-hint"></p>
+      </div>
+      <div class="btns"><button value="ok" class="primary" data-i18n="dlg.ok">Tamam</button></div>
+    </div>
+  </form>
+</dialog>
+
+<script src="../shared/i18n.js"></script>
+<script src="annotate.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
